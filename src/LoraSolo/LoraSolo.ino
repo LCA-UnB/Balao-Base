@@ -8,6 +8,7 @@
     Lat:<double graus>
     Lon:<double graus>
     Alt:<float metros>
+    AltB:<float metros>
     Sat:<int>
     Fix:<int>
     T:<float>
@@ -48,7 +49,7 @@ bool lora_idle = true;
 // Variáveis para guardar os dados desempacotados.
 // Lat/Lon em double para preservar as 7 casas decimais (graus) sem perda.
 double r_lat, r_lon;
-float r_alt;
+float r_alt, r_alt_b;
 int32_t r_sat, r_fix;
 int r_hora, r_minuto, r_segundo;
 float r_temp, r_press, r_umid;
@@ -133,6 +134,7 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     if (lerDouble("Lat:", &r_lat))    campos++;
     if (lerDouble("Lon:", &r_lon))    campos++;
     if (lerFloat("Alt:", &r_alt))     campos++;
+    if (lerFloat("AltB:", &r_alt_b))  campos++;
     if (lerLong("Sat:", &r_sat))      campos++;
     if (lerLong("Fix:", &r_fix))      campos++;
     if (lerFloat("T:", &r_temp))      campos++;
@@ -162,6 +164,7 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     Serial.print(F("Lat:"));   Serial.println(r_lat, 7);
     Serial.print(F("Lon:"));   Serial.println(r_lon, 7);
     Serial.print(F("Alt:"));   Serial.println(r_alt, 1);
+    Serial.print(F("AltB:"));  Serial.println(r_alt_b, 1);
     Serial.print(F("Sat:"));   Serial.println(r_sat);
     Serial.print(F("Fix:"));   Serial.println(r_fix);
     Serial.print(F("T:"));     Serial.println(r_temp, 1);
@@ -181,9 +184,9 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     Serial.print(F("MY:"));    Serial.println(r_my, 2);
     Serial.print(F("MZ:"));    Serial.println(r_mz, 2);
 
-    // 4. Validação: o pacote completo tem 21 campos (20 chaves + Time)
-    Serial.printf(">>> %d/21 campos extraidos.\n", campos);
-    if (campos < 21) {
+    // 4. Validação: o pacote completo tem 22 campos (21 chaves + Time)
+    Serial.printf(">>> %d/22 campos extraidos.\n", campos);
+    if (campos < 22) {
       Serial.println(F("AVISO: alguns campos nao vieram ou estao corrompidos."));
     }
 

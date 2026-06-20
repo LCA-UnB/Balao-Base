@@ -48,7 +48,7 @@ HardwareSerial OpenLogSerial(2);
 #define SDA_BNO_PIN 48
 #define SCL_BNO_PIN 47
 
-#define REFERENCE_PRESSURE_HPA 1023.0 
+#define REFERENCE_PRESSURE_HPA 1013.25 
 #define TEMP_CORR (-2)                
 
 SFE_UBLOX_GNSS myGNSS; 
@@ -301,10 +301,10 @@ void loop()
       lastMagX = myIMU.getMagX(); lastMagY = myIMU.getMagY(); lastMagZ = myIMU.getMagZ();
     }
     else if (eventID == SENSOR_REPORTID_ROTATION_VECTOR) {
-      // getPitch/getRoll/getYaw retornam graus calculados a partir do quaternion
-      lastPitch = myIMU.getPitch();
-      lastRoll  = myIMU.getRoll();
-      lastYaw   = myIMU.getYaw();
+      // getPitch/getRoll/getYaw devolvem radianos (lib SparkFun); converte p/ graus.
+      lastPitch = myIMU.getPitch() * (180.0 / PI);
+      lastRoll  = myIMU.getRoll()  * (180.0 / PI);
+      lastYaw   = myIMU.getYaw()   * (180.0 / PI);
     }
   }
 
@@ -329,12 +329,19 @@ void loop()
     float press = myBME280.readFloatPressure() / 100.0F;
     float umidade = myBME280.readFloatHumidity();
 
+    // Altitude barométrica pela atmosfera padrão (ISA).
+    // h = 44330 * (1 - (P/P0)^(1/5.255)), com P0=1013.25 hPa ao nível do mar.
+    // Aproximação válida até ~11 km; acima diverge, mas é a referência usada
+    // em barômetros. Útil para comparar/substituir o Alt (GPS) quando o fix cai.
+    float altBar = 44330.0F * (1.0F - pow(press / REFERENCE_PRESSURE_HPA, 0.1903F));
+
     // Imprime no Serial (um dado por linha) para acompanhamento local
     Serial.println(F("------- PT2UNB -------"));
     // Lat/Lon em graus decimais (o GPS devolve 1e-7 graus; divide por 1e7)
     Serial.print(F("Lat:"));   Serial.println((double)latitude / 10000000.0, 7);
     Serial.print(F("Lon:"));   Serial.println((double)longitude / 10000000.0, 7);
     Serial.print(F("Alt:"));   Serial.println(altitude, 1);
+    Serial.print(F("AltB:"));  Serial.println(altBar, 1);
     Serial.print(F("Sat:"));   Serial.println(SIV);
     Serial.print(F("Fix:"));   Serial.println(fixType);
     Serial.print(F("T:"));     Serial.println(temp, 1);
@@ -361,6 +368,7 @@ void loop()
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Lat:%.7f\n", (double)latitude / 10000000.0);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Lon:%.7f\n", (double)longitude / 10000000.0);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Alt:%.1f\n", altitude);
+    pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "AltB:%.1f\n", altBar);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Sat:%d\n", SIV);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Fix:%d\n", fixType);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "T:%.1f\n", temp);

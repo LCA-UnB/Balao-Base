@@ -4,7 +4,15 @@ Projeto de balão estratosférico com telemetria LoRa. Contém 3 códigos Arduin
 
 ## `src/LoraBordo.ino` — Transmissor (a bordo do balão)
 
-Código embarcado no balão. Realiza leituras de **GPS u-blox SAM-M10Q** (latitude, longitude, satélites, tempo UTC), **BME280** (temperatura, pressão, umidade) e **BNO086** (acelerômetro, giroscópio e magnetômetro brutos + pitch/roll/yaw via sensor fusion interno) e transmite tudo via rádio **LoRa a 910.5 MHz** em formato texto multi-linha, com o indicativo de radioamadorismo **`PT2UNB`** na primeira linha do pacote.
+Código embarcado no balão. Realiza leituras de **GPS u-blox SAM-M10Q** (latitude, longitude, satélites, tempo UTC), **BME280** (temperatura, pressão, umidade e altitude barométrica derivada) e **BNO086** (acelerômetro, giroscópio e magnetômetro brutos + pitch/roll/yaw via sensor fusion interno) e transmite tudo via rádio **LoRa a 910.5 MHz** em formato texto multi-linha, com o indicativo de radioamadorismo **`PT2UNB`** na primeira linha do pacote.
+
+A altitude barométrica (`AltB`) é calculada pela fórmula da atmosfera padrão (ISA) usando **P₀ = 1013,25 hPa** ao nível do mar:
+
+```
+AltB = 44330 * (1 - (P / 1013.25) ^ 0.1903)
+```
+
+Aproximação válida até ~11 km (acima diverge), útil para comparar/substituir a altitude GPS (`Alt`) quando o fix cai.
 
 A telemetria LoRa é transmitida a **1 Hz** (no ritmo do GPS PVT). Além disso, o **BNO086 é amostrado a ~40 Hz** e cada amostra é gravada no cartão SD para análise pós-voo (ex: detectar o instante exato do estouro do balão pelo pico de aceleração).
 
@@ -72,6 +80,7 @@ PT2UNB
 Lat:0.0000000
 Lon:0.0000000
 Alt:0.0
+AltB:959.0
 Sat:0
 Fix:0
 T:23.0
@@ -97,6 +106,7 @@ PT2UNB
 Lat:-15.7939100
 Lon:-47.8823000
 Alt:25340.0
+AltB:959.0
 Sat:9
 Fix:3
 T:23.0
