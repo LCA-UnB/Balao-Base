@@ -69,8 +69,9 @@ Exemplo:
 # Logs_balao | LOTE_<seq>,<millis>=telemetria 1Hz | I,<millis>=IMU | lote separado por linha em branco
 LOTE_1,5402
 PT2UNB
-Lat:0
-Lon:0
+Lat:0.0000000
+Lon:0.0000000
+Alt:0.0
 Sat:0
 Fix:0
 T:23.0
@@ -93,10 +94,11 @@ MZ:0.00
 I,5448,AX:-0.10,AY:-9.15,AZ:0.06,GX:0.12,GY:0.05,GZ:-0.03,MX:23.45,MY:-12.30,MZ:-41.20,P:0.00,R:0.00,Y:0.00
 LOTE_2,6385
 PT2UNB
-Lat:0
-Lon:0
-Sat:0
-Fix:0
+Lat:-15.7939100
+Lon:-47.8823000
+Alt:25340.0
+Sat:9
+Fix:3
 T:23.0
 P:903.2
 U:47.6
