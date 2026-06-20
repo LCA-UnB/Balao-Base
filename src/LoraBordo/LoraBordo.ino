@@ -28,7 +28,7 @@
 #define LORA_IQ_INVERSION_ON                        false
 
 #define RX_TIMEOUT_VALUE                            1000
-#define BUFFER_SIZE                                 250 
+#define BUFFER_SIZE                                 256 
 
 char txpacket[BUFFER_SIZE];
 bool lora_idle = true;
@@ -313,6 +313,8 @@ void loop()
   {
     int32_t latitude = myGNSS.getLatitude();
     int32_t longitude = myGNSS.getLongitude();
+    // Altitude acima do nivel do mar (getAltitudeMSL devolve mm; converte p/ metros)
+    float altitude = myGNSS.getAltitudeMSL() / 1000.0F;
     uint8_t SIV = myGNSS.getSIV();
     // Tipo de fix: 0=sem fix, 2=2D, 3=3D, 5=somente tempo. Indica se os
     // dados de posição/tempo são confiáveis (avoid usar GPS dados com Fix:0).
@@ -329,8 +331,10 @@ void loop()
 
     // Imprime no Serial (um dado por linha) para acompanhamento local
     Serial.println(F("------- PT2UNB -------"));
-    Serial.print(F("Lat:"));   Serial.println(latitude);
-    Serial.print(F("Lon:"));   Serial.println(longitude);
+    // Lat/Lon em graus decimais (o GPS devolve 1e-7 graus; divide por 1e7)
+    Serial.print(F("Lat:"));   Serial.println((double)latitude / 10000000.0, 7);
+    Serial.print(F("Lon:"));   Serial.println((double)longitude / 10000000.0, 7);
+    Serial.print(F("Alt:"));   Serial.println(altitude, 1);
     Serial.print(F("Sat:"));   Serial.println(SIV);
     Serial.print(F("Fix:"));   Serial.println(fixType);
     Serial.print(F("T:"));     Serial.println(temp, 1);
@@ -354,8 +358,9 @@ void loop()
     // pos += garante que nunca escrevemos além do buffer.
     int pos = 0;
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "PT2UNB\n");
-    pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Lat:%ld\n", latitude);
-    pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Lon:%ld\n", longitude);
+    pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Lat:%.7f\n", (double)latitude / 10000000.0);
+    pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Lon:%.7f\n", (double)longitude / 10000000.0);
+    pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Alt:%.1f\n", altitude);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Sat:%d\n", SIV);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "Fix:%d\n", fixType);
     pos += snprintf(txpacket + pos, BUFFER_SIZE - pos, "T:%.1f\n", temp);

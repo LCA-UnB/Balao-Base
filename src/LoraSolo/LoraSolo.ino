@@ -5,8 +5,9 @@
   Formato do pacote (multi-linha "chave:valor", separado por '\n'),
   produzido pelo LoraBordo.ino:
     PT2UNB
-    Lat:<int32>
-    Lon:<int32>
+    Lat:<double graus>
+    Lon:<double graus>
+    Alt:<float metros>
     Sat:<int>
     Fix:<int>
     T:<float>
@@ -35,8 +36,8 @@
 
 #define RX_TIMEOUT_VALUE                            1000
 
-// AUMENTADO para 250 (Deve ser igual ou maior que o do Transmissor)
-#define BUFFER_SIZE                                 250 
+// Deve ser igual ou maior que o do Transmissor (256 no LoraBordo)
+#define BUFFER_SIZE                                 256 
 
 char rxpacket[BUFFER_SIZE];
 
@@ -44,8 +45,10 @@ static RadioEvents_t RadioEvents;
 int16_t rssi, rxSize;
 bool lora_idle = true;
 
-// Variáveis para guardar os dados desempacotados
-int32_t r_lat, r_lon;
+// Variáveis para guardar os dados desempacotados.
+// Lat/Lon em double para preservar as 7 casas decimais (graus) sem perda.
+double r_lat, r_lon;
+float r_alt;
 int32_t r_sat, r_fix;
 int r_hora, r_minuto, r_segundo;
 float r_temp, r_press, r_umid;
@@ -69,6 +72,13 @@ bool lerFloat(const char *chave, float *dest) {
   const char *p = strstr(rxpacket, chave);
   if (p == NULL) return false;
   *dest = atof(p + strlen(chave));
+  return true;
+}
+
+bool lerDouble(const char *chave, double *dest) {
+  const char *p = strstr(rxpacket, chave);
+  if (p == NULL) return false;
+  *dest = strtod(p + strlen(chave), NULL);
   return true;
 }
 
@@ -120,8 +130,9 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     // aguenta pacotes parcialmente corrompidos no ar.
     int campos = 0;
 
-    if (lerLong("Lat:", &r_lat))      campos++;
-    if (lerLong("Lon:", &r_lon))      campos++;
+    if (lerDouble("Lat:", &r_lat))    campos++;
+    if (lerDouble("Lon:", &r_lon))    campos++;
+    if (lerFloat("Alt:", &r_alt))     campos++;
     if (lerLong("Sat:", &r_sat))      campos++;
     if (lerLong("Fix:", &r_fix))      campos++;
     if (lerFloat("T:", &r_temp))      campos++;
@@ -148,8 +159,9 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 
     // 3. Exibe os dados extraídos (um campo por linha, igual ao LoraBordo)
     Serial.println(F("------- PT2UNB -------"));
-    Serial.print(F("Lat:"));   Serial.println(r_lat);
-    Serial.print(F("Lon:"));   Serial.println(r_lon);
+    Serial.print(F("Lat:"));   Serial.println(r_lat, 7);
+    Serial.print(F("Lon:"));   Serial.println(r_lon, 7);
+    Serial.print(F("Alt:"));   Serial.println(r_alt, 1);
     Serial.print(F("Sat:"));   Serial.println(r_sat);
     Serial.print(F("Fix:"));   Serial.println(r_fix);
     Serial.print(F("T:"));     Serial.println(r_temp, 1);
@@ -169,9 +181,9 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     Serial.print(F("MY:"));    Serial.println(r_my, 2);
     Serial.print(F("MZ:"));    Serial.println(r_mz, 2);
 
-    // 4. Validação: o pacote completo tem 20 campos (19 chaves + Time)
-    Serial.printf(">>> %d/20 campos extraidos.\n", campos);
-    if (campos < 20) {
+    // 4. Validação: o pacote completo tem 21 campos (20 chaves + Time)
+    Serial.printf(">>> %d/21 campos extraidos.\n", campos);
+    if (campos < 21) {
       Serial.println(F("AVISO: alguns campos nao vieram ou estao corrompidos."));
     }
 
