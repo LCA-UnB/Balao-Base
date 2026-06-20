@@ -1,12 +1,30 @@
 /*
   Receptor LoRa: u-blox SAM-M10Q + BME280 + BNO086
   Lê a string recebida e extrai (faz o parse) de volta para variáveis.
+
+  Formato do pacote (multi-linha "chave:valor", separado por '\n'),
+  produzido pelo LoraBordo.ino:
+    PT2UNB
+    Lat:<int32>
+    Lon:<int32>
+    Sat:<int>
+    Fix:<int>
+    T:<float>
+    P:<float>
+    U:<float>
+    Time:HH:MM:SS
+    Pitch:<float>
+    Roll:<float>
+    Yaw:<float>
+    AX:<float> AY:<float> AZ:<float>
+    GX:<float> GY:<float> GZ:<float>
+    MX:<float> MY:<float> MZ:<float>
 */
 
 #include "LoRaWan_APP.h"
 #include "Arduino.h"
 
-#define RF_FREQUENCY                                915000000 // Hz
+#define RF_FREQUENCY                                910500000 // Hz (910.5 MHz)
 #define LORA_BANDWIDTH                              0         // [0: 125 kHz]
 #define LORA_SPREADING_FACTOR                       7         // [SF7..SF12]
 #define LORA_CODINGRATE                             1         // [1: 4/5]
@@ -27,11 +45,32 @@ int16_t rssi, rxSize;
 bool lora_idle = true;
 
 // Variáveis para guardar os dados desempacotados
-int32_t r_lat, r_lon, r_alt;
-int r_sat;
+int32_t r_lat, r_lon;
+int32_t r_sat, r_fix;
+int r_hora, r_minuto, r_segundo;
 float r_temp, r_press, r_umid;
+float r_pitch, r_roll, r_yaw;
 float r_ax, r_ay, r_az;
 float r_gx, r_gy, r_gz;
+float r_mx, r_my, r_mz;
+
+// ---- Helpers de parsing (formato multi-linha chave:valor) ----
+// Busca "chave" dentro do pacote recebido e converte o texto seguinte.
+// Retorna true se a chave foi encontrada. Como cada campo é lido separadamente,
+// o receptor tolera campos faltantes/corrompidos no ar e ordem diferente.
+bool lerLong(const char *chave, int32_t *dest) {
+  const char *p = strstr(rxpacket, chave);
+  if (p == NULL) return false;
+  *dest = (int32_t)atol(p + strlen(chave));
+  return true;
+}
+
+bool lerFloat(const char *chave, float *dest) {
+  const char *p = strstr(rxpacket, chave);
+  if (p == NULL) return false;
+  *dest = atof(p + strlen(chave));
+  return true;
+}
 
 void setup() {
     Serial.begin(115200);
@@ -75,24 +114,65 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     Serial.print(F("Texto Bruto: "));
     Serial.println(rxpacket);
 
-    // 2. Tenta fatiar (parse) o texto de volta para variáveis numéricas
-    // A máscara do sscanf deve ser EXATAMENTE igual ao snprintf do transmissor
-    int lidos = sscanf(rxpacket, "Lat:%ld,Lon:%ld,Alt:%ld,Sat:%d,T:%f,P:%f,U:%f,AX:%f,AY:%f,AZ:%f,GX:%f,GY:%f,GZ:%f", 
-           &r_lat, &r_lon, &r_alt, &r_sat, 
-           &r_temp, &r_press, &r_umid, 
-           &r_ax, &r_ay, &r_az, 
-           &r_gx, &r_gy, &r_gz);
+    // 2. Faz o parse campo a campo. O transmissor (LoraBordo) envia em formato
+    // multi-linha "chave:valor" separado por '\n', por isso não dá pra usar um
+    // único sscanf com vírgulas. Buscamos cada chave com strstr, o que também
+    // aguenta pacotes parcialmente corrompidos no ar.
+    int campos = 0;
 
-    // Verifica se conseguiu ler todas as 13 variáveis com sucesso
-    if (lidos == 13) {
-      Serial.println(F(">>> Dados extraídos com sucesso:"));
-      Serial.printf("  GPS: Lat: %ld | Lon: %ld | Alt: %ld mm | Sat: %d\n", r_lat, r_lon, r_alt, r_sat);
-      Serial.printf("Clima: Temp: %.1f C | Pressão: %.1f hPa | Umidade: %.1f %%\n", r_temp, r_press, r_umid);
-      Serial.printf(" IMU Accel (X,Y,Z): %.2f, %.2f, %.2f\n", r_ax, r_ay, r_az);
-      Serial.printf(" IMU Gyro  (X,Y,Z): %.2f, %.2f, %.2f\n", r_gx, r_gy, r_gz);
-    } else {
-      // Se algum pacote chegou corrompido no ar, ele avisa
-      Serial.println(F("ERRO: Pacote incompleto ou formato incorreto."));
+    if (lerLong("Lat:", &r_lat))      campos++;
+    if (lerLong("Lon:", &r_lon))      campos++;
+    if (lerLong("Sat:", &r_sat))      campos++;
+    if (lerLong("Fix:", &r_fix))      campos++;
+    if (lerFloat("T:", &r_temp))      campos++;
+    if (lerFloat("P:", &r_press))     campos++;
+    if (lerFloat("U:", &r_umid))      campos++;
+    if (lerFloat("Pitch:", &r_pitch)) campos++;
+    if (lerFloat("Roll:", &r_roll))   campos++;
+    if (lerFloat("Yaw:", &r_yaw))     campos++;
+    if (lerFloat("AX:", &r_ax))       campos++;
+    if (lerFloat("AY:", &r_ay))       campos++;
+    if (lerFloat("AZ:", &r_az))       campos++;
+    if (lerFloat("GX:", &r_gx))       campos++;
+    if (lerFloat("GY:", &r_gy))       campos++;
+    if (lerFloat("GZ:", &r_gz))       campos++;
+    if (lerFloat("MX:", &r_mx))       campos++;
+    if (lerFloat("MY:", &r_my))       campos++;
+    if (lerFloat("MZ:", &r_mz))       campos++;
+
+    // Time:HH:MM:SS tem parse especial (3 inteiros separados por ':')
+    const char *pt = strstr(rxpacket, "Time:");
+    if (pt != NULL && sscanf(pt, "Time:%d:%d:%d", &r_hora, &r_minuto, &r_segundo) == 3) {
+      campos++;
+    }
+
+    // 3. Exibe os dados extraídos (um campo por linha, igual ao LoraBordo)
+    Serial.println(F("------- PT2UNB -------"));
+    Serial.print(F("Lat:"));   Serial.println(r_lat);
+    Serial.print(F("Lon:"));   Serial.println(r_lon);
+    Serial.print(F("Sat:"));   Serial.println(r_sat);
+    Serial.print(F("Fix:"));   Serial.println(r_fix);
+    Serial.print(F("T:"));     Serial.println(r_temp, 1);
+    Serial.print(F("P:"));     Serial.println(r_press, 1);
+    Serial.print(F("U:"));     Serial.println(r_umid, 1);
+    Serial.printf("Time:%02d:%02d:%02d\n", r_hora, r_minuto, r_segundo);
+    Serial.print(F("Pitch:")); Serial.println(r_pitch, 2);
+    Serial.print(F("Roll:"));  Serial.println(r_roll, 2);
+    Serial.print(F("Yaw:"));   Serial.println(r_yaw, 2);
+    Serial.print(F("AX:"));    Serial.println(r_ax, 2);
+    Serial.print(F("AY:"));    Serial.println(r_ay, 2);
+    Serial.print(F("AZ:"));    Serial.println(r_az, 2);
+    Serial.print(F("GX:"));    Serial.println(r_gx, 2);
+    Serial.print(F("GY:"));    Serial.println(r_gy, 2);
+    Serial.print(F("GZ:"));    Serial.println(r_gz, 2);
+    Serial.print(F("MX:"));    Serial.println(r_mx, 2);
+    Serial.print(F("MY:"));    Serial.println(r_my, 2);
+    Serial.print(F("MZ:"));    Serial.println(r_mz, 2);
+
+    // 4. Validação: o pacote completo tem 20 campos (19 chaves + Time)
+    Serial.printf(">>> %d/20 campos extraidos.\n", campos);
+    if (campos < 20) {
+      Serial.println(F("AVISO: alguns campos nao vieram ou estao corrompidos."));
     }
 
     Serial.println(F("====================================="));
