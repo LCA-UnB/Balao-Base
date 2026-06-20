@@ -37,6 +37,11 @@ static RadioEvents_t RadioEvents;
 void OnTxDone( void );
 void OnTxTimeout( void );
 
+// DEFINIÇÕES DO OPENLOG (CARTÃO SD)
+#define OPENLOG_RX 2
+#define OPENLOG_TX 3
+HardwareSerial OpenLogSerial(2);
+
 // --- DEFINIÇÕES DOS SENSORES ---
 #define SDA_PIN 41
 #define SCL_PIN 42
@@ -128,7 +133,32 @@ void setup()
 
   configurarSensoresIMU();
 
-  Serial.println(F("Setup concluído! Iniciando leituras e transmissão..."));
+  // Openlog setup
+  OpenLogSerial.begin(9600, SERIAL_8N1, OPENLOG_RX, OPENLOG_TX);
+  delay(2000);
+
+  for (int i = 0; i < 3; i++) {
+    OpenLogSerial.write(0x1A);
+    delay(10);
+  }
+  OpenLogSerial.write(0x0D);
+  delay(300);
+  while (OpenLogSerial.available()) OpenLogSerial.read();
+
+  OpenLogSerial.print("new testeCartao.txt");
+  OpenLogSerial.write(0x0D);
+  delay(300);
+  while (OpenLogSerial.available()) OpenLogSerial.read();
+
+  OpenLogSerial.print("append testeCartao.txt");
+  OpenLogSerial.write(0x0D);
+  delay(300);
+  while (OpenLogSerial.available()) OpenLogSerial.read();
+
+  OpenLogSerial.println("--- INICIO DO DATALOGGER ---");
+  Serial.println(F("OpenLog: cartao SD configurado!"));
+
+  Serial.println(F("Setup concluido! Iniciando leituras e transmissão..."));
   Serial.println(F("--------------------------------------------------"));
 }
 
@@ -174,20 +204,21 @@ void loop()
     Serial.print(F("C || IMU AX:")); Serial.print(lastAccelX, 1);
     Serial.println(); 
 
-    // ==== TRANSMISSÃO LORA ====
-    // Só transmite se o rádio estiver livre
+    // formata a string de transmissão com os dados
+    snprintf(txpacket, BUFFER_SIZE, 
+      "Lat:%ld,Lon:%ld,Alt:%ld,Sat:%d,T:%.1f,P:%.1f,U:%.1f,AX:%.2f,AY:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f", 
+      latitude, longitude, altitudeGNSS, SIV, 
+      temp, press, umidade, 
+      lastAccelX, lastAccelY, lastAccelZ, 
+      lastGyroX, lastGyroY, lastGyroZ);
+
+    // gravação no cartão SD via OpenLog
+    OpenLogSerial.println(txpacket);
+
+    // trasmissão LoRa 
     if (lora_idle == true) 
     {
-      // Formata todos os dados numa única string "txpacket"
-      snprintf(txpacket, BUFFER_SIZE, 
-        "Lat:%ld,Lon:%ld,Alt:%ld,Sat:%d,T:%.1f,P:%.1f,U:%.1f,AX:%.2f,AY:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f", 
-        latitude, longitude, altitudeGNSS, SIV, 
-        temp, press, umidade, 
-        lastAccelX, lastAccelY, lastAccelZ, 
-        lastGyroX, lastGyroY, lastGyroZ);
-
       Serial.printf("Enviando LoRa (%d bytes): %s\r\n", strlen(txpacket), txpacket);
-
       Radio.Send( (uint8_t *)txpacket, strlen(txpacket) ); 
       lora_idle = false;
     }
