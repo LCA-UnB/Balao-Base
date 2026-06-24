@@ -75,11 +75,9 @@ bool openLogAltaVelocidade = false;
 // Usado só no log SD para identificar cada lote visualmente.
 uint32_t loteContador = 0;
 
-// Controle do flush periódico do OpenLog (força gravação do buffer interno no SD).
-// A cada INTERVALO_FLUSH_MS, entramos em modo comando (que dispara o flush) e
-// voltamos para o modo append. Reduz a janela de perda em caso de queda de energia.
-uint32_t ultimoFlush = 0;
-const uint32_t INTERVALO_FLUSH_MS = 60000;  // 60 segundos
+// Nome único do arquivo de log (gerado no setup com millis()).
+// Cada boot cria um arquivo diferente, evitando sobrescrita.
+char nomeArquivoSD[32];
 
 void configurarSensoresIMU() {
   // Taxa depende da velocidade detectada no OpenLog.
@@ -109,7 +107,7 @@ bool entrarModoComandoOpenLog() {
     delay(10);
   }
   OpenLogSerial.write(0x0D);     // CR
-  delay(500);
+  delay(50);
 
   // Procura o caractere '<' que o OpenLog envia ao entrar em modo comando.
   // Em baud errado, recebemos silêncio (ou eco de garbage, mas nunca '<').
@@ -158,14 +156,14 @@ void iniciarOpenLog() {
 
 // Força o OpenLog a gravar o buffer interno no cartão SD entrando em modo comando
 // (o próprio OpenLog faz o flush ao trocar de modo) e depois volta pro append.
-// Custa ~0,8s de bloqueio do loop, mas garante que os últimos dados estão salvos
-// no SD em caso de queda de energia. Chamada a cada INTERVALO_FLUSH_MS.
+// Custa ~130ms de bloqueio do loop, garantindo dados no SD em no máximo 1s.
 void forcarFlushOpenLog() {
   Serial.println(F("OpenLog: flush forçado..."));
   if (entrarModoComandoOpenLog()) {
-    OpenLogSerial.print("append logs_balao.txt");
+    OpenLogSerial.print("append ");
+    OpenLogSerial.print(nomeArquivoSD);
     OpenLogSerial.write(0x0D);
-    delay(300);
+    delay(30);
     while (OpenLogSerial.available()) OpenLogSerial.read();
     Serial.println(F("  -> flush concluido, append reativado."));
   } else {
@@ -240,16 +238,20 @@ void setup()
   // Ver detalhes em config.txt e README.md.
   iniciarOpenLog();
 
-  // Cria o arquivo de log apenas se o OpenLog respondeu
+  // Gera nome único do arquivo e cria o log no OpenLog
+  snprintf(nomeArquivoSD, sizeof(nomeArquivoSD), "log_%lu.txt", millis());
+
   if (openLogConectado) {
-    OpenLogSerial.print("new logs_balao.txt");
+    OpenLogSerial.print("new ");
+    OpenLogSerial.print(nomeArquivoSD);
     OpenLogSerial.write(0x0D);
-    delay(300);
+    delay(30);
     while (OpenLogSerial.available()) OpenLogSerial.read();
 
-    OpenLogSerial.print("append logs_balao.txt");
+    OpenLogSerial.print("append ");
+    OpenLogSerial.print(nomeArquivoSD);
     OpenLogSerial.write(0x0D);
-    delay(300);
+    delay(30);
     while (OpenLogSerial.available()) OpenLogSerial.read();
 
     OpenLogSerial.println(F("# Logs_balao | LOTE_<seq>,<millis>=telemetria 1Hz | I,<millis>=IMU | lote separado por linha em branco"));
@@ -415,12 +417,8 @@ void loop()
       lora_idle = false;
     }
 
-    // Flush periódico do OpenLog: a cada 60s, força gravação do buffer no SD.
-    // Reduz a janela de perda em caso de queda de energia para no máx 60s.
-    if (openLogConectado && (millis() - ultimoFlush > INTERVALO_FLUSH_MS)) {
-      forcarFlushOpenLog();
-      ultimoFlush = millis();
-    }
+    // Flush do OpenLog a cada lote (1 Hz): força gravação do buffer no SD.
+    forcarFlushOpenLog();
   }
 
   // 4. Processamento obrigatório dos eventos de interrupção do rádio LoRa
