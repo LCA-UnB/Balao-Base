@@ -38,8 +38,8 @@ void OnTxDone( void );
 void OnTxTimeout( void );
 
 // DEFINIÇÕES DO OPENLOG (CARTÃO SD)
-#define OPENLOG_RX 2
-#define OPENLOG_TX 3
+#define OPENLOG_RX 3
+#define OPENLOG_TX 2
 HardwareSerial OpenLogSerial(2);
 
 // --- DEFINIÇÕES DOS SENSORES ---
@@ -98,8 +98,19 @@ void configurarSensoresIMU() {
 // ---- Funções auxiliares do OpenLog (auto-detecção de baud) ----
 
 // Envia a sequência de escape (3x Ctrl+Z + CR) e verifica se o OpenLog
-// responde com o prompt '<' (indica entrada em modo comando).
-bool entrarModoComandoOpenLog() {
+// entra em modo comando. Aceita '<' (firmware classico) OU '>' (variantes).
+// comSilencio=true impõe ~1s de silêncio (drenando RX) antes do escape:
+// requisito do OpenLog p/ reconhecer o escape. Sem isso ele trata 0x1A
+// como comando ("unknown command"). Usado só na detecção de setup; no
+// flush do loop fica false (OpenLog já está quente, p/ não bloquear 1s).
+bool entrarModoComandoOpenLog(bool comSilencio) {
+  if (comSilencio) {
+    uint32_t tq = millis();
+    while (millis() - tq < 1000) {
+      while (OpenLogSerial.available()) OpenLogSerial.read();
+      delay(10);
+    }
+  }
   while (OpenLogSerial.available()) OpenLogSerial.read();   // drena RX
 
   for (int i = 0; i < 3; i++) {
@@ -107,15 +118,28 @@ bool entrarModoComandoOpenLog() {
     delay(10);
   }
   OpenLogSerial.write(0x0D);     // CR
-  delay(50);
 
-  // Procura o caractere '<' que o OpenLog envia ao entrar em modo comando.
-  // Em baud errado, recebemos silêncio (ou eco de garbage, mas nunca '<').
-  while (OpenLogSerial.available()) {
-    char c = OpenLogSerial.read();
-    if (c == '<') return true;
+  // Lê a resposta por 150ms e ecoa em HEX p/ diagnóstico. '<' ou '>' indicam
+  // modo comando. Distingue:
+  //  - texto com '<'/'>': entrou em modo comando (sucesso)
+  //  - garbage ([FD][00]...): sinal CHEGA, mas baud/nivel errados
+  //  - silêncio (nenhum byte): nada chega ao RX do ESP (GND/pino/fio/OpenLog off)
+  Serial.print(F("  [diag] RX:"));
+  bool achou = false;
+  int nbytes = 0;
+  uint32_t t0 = millis();
+  while (millis() - t0 < 150) {
+    while (OpenLogSerial.available()) {
+      uint8_t b = OpenLogSerial.read();
+      nbytes++;
+      if ((char)b == '<' || (char)b == '>') achou = true;
+      if (b >= 0x20 && b <= 0x7E) Serial.write((char)b);
+      else { Serial.print('['); if (b < 0x10) Serial.print('0'); Serial.print(b, HEX); Serial.print(']'); }
+    }
   }
-  return false;
+  if (nbytes == 0) Serial.print(F(" (silencio - nenhum byte)"));
+  Serial.println();
+  return achou;
 }
 
 // Tenta 57600 primeiro; se falhar, cai para 9600 (default de fábrica).
@@ -128,7 +152,7 @@ void iniciarOpenLog() {
   Serial.println(F("OpenLog: testando 57600 baud..."));
   OpenLogSerial.begin(57600, SERIAL_8N1, OPENLOG_RX, OPENLOG_TX);
   delay(500);
-  if (entrarModoComandoOpenLog()) {
+  if (entrarModoComandoOpenLog(true)) {
     openLogConectado = true;
     openLogAltaVelocidade = true;
     Serial.println(F("  -> OK a 57600 baud (config.txt aplicado). IMU em 40 Hz."));
@@ -140,7 +164,7 @@ void iniciarOpenLog() {
   OpenLogSerial.end();
   OpenLogSerial.begin(9600, SERIAL_8N1, OPENLOG_RX, OPENLOG_TX);
   delay(500);
-  if (entrarModoComandoOpenLog()) {
+  if (entrarModoComandoOpenLog(true)) {
     openLogConectado = true;
     openLogAltaVelocidade = false;
     Serial.println(F("  -> OK a 9600 baud (config.txt NAO aplicado). IMU em 5 Hz."));
@@ -159,7 +183,7 @@ void iniciarOpenLog() {
 // Custa ~130ms de bloqueio do loop, garantindo dados no SD em no máximo 1s.
 void forcarFlushOpenLog() {
   Serial.println(F("OpenLog: flush forçado..."));
-  if (entrarModoComandoOpenLog()) {
+  if (entrarModoComandoOpenLog(false)) {
     OpenLogSerial.print("append ");
     OpenLogSerial.print(nomeArquivoSD);
     OpenLogSerial.write(0x0D);
@@ -418,7 +442,7 @@ void loop()
     }
 
     // Flush do OpenLog a cada lote (1 Hz): força gravação do buffer no SD.
-    forcarFlushOpenLog();
+    if (openLogConectado) forcarFlushOpenLog();
   }
 
   // 4. Processamento obrigatório dos eventos de interrupção do rádio LoRa
