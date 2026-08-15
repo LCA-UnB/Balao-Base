@@ -102,6 +102,7 @@ uint32_t ultimoTxMs      = 0;
 uint32_t ultimaJanelaMs  = 0;
 
 int ack_val = 0;
+bool ack_pendente = false;
 
 // ==========================================================================
 //  RADIO
@@ -303,6 +304,8 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   // snprintf devolve o tamanho que SERIA escrito. Sem o teto, pos pode passar
   // de BUFFER_SIZE e (BUFFER_SIZE - pos) vira um size_t enorme na chamada
   // seguinte, anulando a protecao do proprio snprintf.
+  int ack_no_pacote = ack_val;
+
   int pos = 0;
   #define ADD(...) do { \
       if (pos < BUFFER_SIZE - 1) { \
@@ -324,7 +327,7 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   ADD("Pitch:%.2f\n", lastPitch);
   ADD("Roll:%.2f\n", lastRoll);
   ADD("Yaw:%.2f\n", lastYaw);
-  ADD("Ack:%d\n", ack_val);
+  ADD("Ack:%d\n", ack_no_pacote);
   #undef ADD
 
   if (openLogConectado) {
@@ -335,12 +338,18 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
     logSD(txpacket);
   }
 
-  Serial.printf("[TX slot %02d] telemetria %d bytes | Ack:%d\n", sec_atual, pos, ack_val);
+  Serial.printf("[TX slot %02d] telemetria %d bytes | Ack:%d\n", sec_atual, pos, ack_no_pacote);
 
   Radio.Standby();
   reconfigurarLoRaTX();
   Radio.Send((uint8_t *)txpacket, strlen(txpacket));
   cntTx++;
+
+  if (ack_pendente) {
+    ack_val = 0;
+    ack_pendente = false;
+    Serial.println(F("[ACK] ACK de comando consumido. Estado neutro (0) restaurado."));
+  }
 }
 
 // ==========================================================================
@@ -363,6 +372,7 @@ void loop() {
     int cmd_recebido = 0;
     if (sscanf(rxpacket, "CMD:%d", &cmd_recebido) == 1) {
       ack_val = cmd_recebido + 1;
+      ack_pendente = true;
       Serial.printf(">>> COMANDO %d ACEITO. Proxima telemetria enviara Ack:%d\n\n", cmd_recebido, ack_val);
       char linha[64];
       snprintf(linha, sizeof(linha), "CMD,%lu,%d,rssi:%d,snr:%d", millis(), cmd_recebido, rxRssi, rxSnr);
