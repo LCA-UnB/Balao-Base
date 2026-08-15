@@ -65,6 +65,14 @@ HardwareSerial OpenLogSerial(2);
 #define REFERENCE_PRESSURE_HPA 1013.25
 #define TEMP_CORR (-2)
 
+// --- BATERIA (divisor interno da Heltec WiFi LoRa 32 V3) ---
+#define VBAT_ADC_PIN   1    // GPIO1: saída do divisor resistivo da bateria
+#define VBAT_CTRL_PIN  37   // GPIO37: habilita o divisor (ativo em LOW)
+#define VBAT_DIVIDER   4.9f // fator do divisor: Vbat = Vadc * 4.9
+#define VBAT_SAMPLES   8
+
+float lastBatVolts = 0.0;
+
 SFE_UBLOX_GNSS myGNSS;
 Adafruit_MPU6050 mpu;
 Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
@@ -194,6 +202,19 @@ void iniciarOpenLog() {
 }
 
 // ==========================================================================
+//  BATERIA
+// ==========================================================================
+
+float lerTensaoBateria() {
+  digitalWrite(VBAT_CTRL_PIN, LOW);   // liga o divisor
+  delay(5);                            // estabiliza o MOSFET antes da amostragem
+  uint32_t soma = 0;
+  for (int i = 0; i < VBAT_SAMPLES; i++) soma += analogReadMilliVolts(VBAT_ADC_PIN);
+  digitalWrite(VBAT_CTRL_PIN, HIGH);  // desliga para não drenar a bateria
+  return ((float)soma / VBAT_SAMPLES) * VBAT_DIVIDER / 1000.0f;
+}
+
+// ==========================================================================
 //  IMU
 // ==========================================================================
 
@@ -257,6 +278,11 @@ void setup() {
   reconfigurarLoRaTX();
   reconfigurarLoRaRX();
 
+  pinMode(VBAT_CTRL_PIN, OUTPUT);
+  digitalWrite(VBAT_CTRL_PIN, HIGH);
+  analogSetPinAttenuation(VBAT_ADC_PIN, ADC_11db);
+  lastBatVolts = lerTensaoBateria();
+
   Wire.begin(SDA_GY86_PIN, SCL_GY86_PIN); Wire.setClock(400000);
   Wire1.begin(SDA_GPS_PIN, SCL_GPS_PIN); Wire1.setClock(100000);
 
@@ -297,6 +323,7 @@ void setup() {
 
 void montarEEnviarTelemetria(uint8_t sec_atual) {
   ms5611.read();
+  lastBatVolts = lerTensaoBateria();
   float temp = ms5611.getTemperature() + TEMP_CORR;
   float press = ms5611.getPressure();
   float altBar = 44330.0F * (1.0F - pow(press / REFERENCE_PRESSURE_HPA, 0.1903F));
@@ -327,6 +354,7 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   ADD("Pitch:%.2f\n", lastPitch);
   ADD("Roll:%.2f\n", lastRoll);
   ADD("Yaw:%.2f\n", lastYaw);
+  ADD("Bat:%.2f\n", lastBatVolts);
   ADD("Ack:%d\n", ack_no_pacote);
   #undef ADD
 
@@ -338,7 +366,7 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
     logSD(txpacket);
   }
 
-  Serial.printf("[TX slot %02d] telemetria %d bytes | Ack:%d\n", sec_atual, pos, ack_no_pacote);
+  Serial.printf("[TX slot %02d] telemetria %d bytes | Ack:%d | Bat:%.2f V\n", sec_atual, pos, ack_no_pacote, lastBatVolts);
 
   Radio.Standby();
   reconfigurarLoRaTX();

@@ -35,10 +35,10 @@
 // Quantas janelas tentar antes de desistir de um comando.
 #define MAX_TENTATIVAS                              5
 
-// A telemetria carrega 13 campos. Com o CRC ligado, um pacote que chega
+// A telemetria carrega 14 campos. Com o CRC ligado, um pacote que chega
 // integro tem todos. Menos que isso e' corrupcao: descarta em vez de
 // imprimir os valores da leitura anterior como se fossem novos.
-#define CAMPOS_ESPERADOS                            13
+#define CAMPOS_ESPERADOS                            14
 
 char rxpacket[BUFFER_SIZE];
 static RadioEvents_t RadioEvents;
@@ -62,7 +62,7 @@ double r_lat, r_lon;
 float r_alt, r_alt_b;
 int32_t r_sat, r_fix, r_ack = 0;
 int r_hora, r_minuto, r_segundo;
-float r_temp, r_press;
+float r_temp, r_press, r_bat;
 float r_pitch, r_roll, r_yaw;
 
 // --- VARIAVEIS DE TELECOMANDO ---
@@ -175,6 +175,7 @@ void processarTelemetria() {
   if (lerFloat("Pitch:", &r_pitch)) campos++;
   if (lerFloat("Roll:", &r_roll))   campos++;
   if (lerFloat("Yaw:", &r_yaw))     campos++;
+  if (lerFloat("Bat:", &r_bat))     campos++;
   if (lerLong("Ack:", &r_ack))      campos++;
 
   const char *pt = strstr(rxpacket, "Time:");
@@ -204,6 +205,7 @@ void processarTelemetria() {
   Serial.print(F("Pitch:")); Serial.println(r_pitch, 2);
   Serial.print(F("Roll:"));  Serial.println(r_roll, 2);
   Serial.print(F("Yaw:"));   Serial.println(r_yaw, 2);
+  Serial.print(F("Bat:"));   Serial.println(r_bat, 2);
   Serial.printf("Ack:%ld\n", (long)r_ack);
   Serial.println(F("----------------------"));
 
