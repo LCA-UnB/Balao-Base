@@ -85,6 +85,7 @@ float lastMagX = 0, lastMagY = 0, lastMagZ = 0;
 float lastPitch = 0, lastRoll = 0, lastYaw = 0;
 float roll = 0.0, pitch = 0.0, yaw = 0.0;
 float pitchOffset = 0.0, rollOffset = 0.0, yawOffset = 0.0;
+float gyroBiasX = 0.0, gyroBiasY = 0.0, gyroBiasZ = 0.0; // bias do giroscopio, medido em repouso
 unsigned long lastTime = 0;
 const float alpha = 0.98;
 uint32_t imuInterval = 200;
@@ -111,6 +112,13 @@ uint32_t ultimaJanelaMs  = 0;
 
 int ack_val = 0;
 bool ack_pendente = false;
+
+// ---- MEDIA DAS ACELARACOES ---
+#define ACCEL_AVG_WINDOW_MS                         1000   // pode trocar pra qualquer intervalo
+double accelSomaX = 0, accelSomaY = 0, accelSomaZ = 0;
+uint32_t accelAmostras = 0;
+uint32_t accelJanelaInicio = 0;
+float avgAccelX = 0, avgAccelY = 0, avgAccelZ = 0;
 
 // ==========================================================================
 //  RADIO
@@ -243,6 +251,12 @@ void atualizarIMU() {
   lastGyroX = g.gyro.x;          lastGyroY = g.gyro.y;          lastGyroZ = g.gyro.z;
   lastMagX = m.magnetic.x;       lastMagY = m.magnetic.y;       lastMagZ = m.magnetic.z;
 
+  // Acumula a aceleracao instantanea para a media da janela (ver atualizarMediaAceleracao()).
+  accelSomaX += lastAccelX;
+  accelSomaY += lastAccelY;
+  accelSomaZ += lastAccelZ;
+  accelAmostras++;
+
   float accRoll = atan2(a.acceleration.y, a.acceleration.z) * 180.0 / PI;
   float accPitch = atan2(-a.acceleration.x, sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z)) * 180.0 / PI;
 
@@ -260,6 +274,81 @@ void atualizarIMU() {
   yaw = atan2(Yh, Xh) * 180.0 / PI;
   if (yaw < 0) yaw += 360.0;
 }
+
+// Verifica se a janela de tempo (ACCEL_AVG_WINDOW_MS) fechou; se sim, calcula
+// a media das amostras acumuladas desde a ultima janela e zera os acumuladores.
+// Chamada a cada ciclo do loop, mas so recalcula quando o tempo da janela passa.
+
+void atualizarMediaAceleracao() {
+  if (millis() - accelJanelaInicio < ACCEL_AVG_WINDOW_MS) return;
+  if (accelAmostras > 0) {
+    avgAccelX = accelSomaX / accelAmostras;
+    avgAccelY = accelSomaY / accelAmostras;
+    avgAccelZ = accelSomaZ / accelAmostras;
+  }
+  accelSomaX = 0; accelSomaY = 0; accelSomaZ = 0;
+  accelAmostras = 0;
+  accelJanelaInicio = millis();
+}
+
+void calibrarIMU() {
+  Serial.println(F("[IMU] Calibrando (mantenha a montagem imovel)..."));
+
+  const int amostrasBias = 200; // ~1s a 5ms/amostra
+  double somaGX = 0, somaGY = 0, somaGZ = 0;
+  double somaAccRoll = 0, somaAccPitch = 0;
+
+  for (int i = 0; i < amostrasBias; i++) {
+    sensors_event_t a, g, temp_mpu;
+    mpu.getEvent(&a, &g, &temp_mpu);
+
+    somaGX += g.gyro.x;
+    somaGY += g.gyro.y;
+    somaGZ += g.gyro.z;
+
+    somaAccRoll  += atan2(a.acceleration.y, a.acceleration.z) * 180.0 / PI;
+    somaAccPitch += atan2(-a.acceleration.x, sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z)) * 180.0 / PI;
+
+    delay(5);
+  }
+
+  gyroBiasX = somaGX / amostrasBias;
+  gyroBiasY = somaGY / amostrasBias;
+  gyroBiasZ = somaGZ / amostrasBias;
+
+  // Semeia o filtro JA na orientacao real (calculada so pelo acelerometro).
+  // E' isso que garante zerar corretamente mesmo ligando na vertical.
+  roll  = somaAccRoll  / amostrasBias;
+  pitch = somaAccPitch / amostrasBias;
+
+  Serial.printf("[IMU] Bias giro X:%.3f Y:%.3f Z:%.3f | Seed roll:%.2f pitch:%.2f\n",
+                gyroBiasX, gyroBiasY, gyroBiasZ, roll, pitch);
+
+  // Deixa o filtro assentar (yaw depende do magnetometro e do roll/pitch
+  // ja quase corretos) e tira o offset como media das ultimas amostras.
+  lastTime = micros();
+  const int amostrasAssentamento = 300; // ~3s a 10ms/amostra
+  const int janelaMedia = 50;           // media das ultimas 50 amostras
+  double somaRollFinal = 0, somaPitchFinal = 0, somaYawFinal = 0;
+
+  for (int i = 0; i < amostrasAssentamento; i++) {
+    atualizarIMU();
+    if (i >= amostrasAssentamento - janelaMedia) {
+      somaRollFinal  += roll;
+      somaPitchFinal += pitch;
+      somaYawFinal   += yaw;
+    }
+    delay(10);
+  }
+
+  rollOffset  = somaRollFinal  / janelaMedia;
+  pitchOffset = somaPitchFinal / janelaMedia;
+  yawOffset   = somaYawFinal   / janelaMedia;
+
+  Serial.printf("[IMU] Offsets finais -> Pitch:%.2f Roll:%.2f Yaw:%.2f\n",
+                pitchOffset, rollOffset, yawOffset);
+}
+
 
 // ==========================================================================
 //  RELOGIO TDM
@@ -302,6 +391,26 @@ void setup() {
   mag.begin(); ms5611.begin();
   myGNSS.begin(Wire1); myGNSS.setI2COutput(COM_TYPE_UBX);
 
+  if (myGNSS.setDynamicModel(DYN_MODEL_AIRBORNE4g) == false) {
+    Serial.println(F("[GNSS] Falha ao configurar Dynamic Model Airborne4g!"));
+  } else {
+    Serial.println(F("[GNSS] Dynamic Model = Airborne <4g (ok)"));
+  }
+
+  uint8_t modeloAtual = myGNSS.getDynamicModel();
+
+  if (modeloAtual == DYN_MODEL_UNKNOWN)
+  {
+    Serial.println(F("*** Warning: getDynamicModel failed ***"));
+  }
+  else
+  {
+    Serial.printf("[GNSS] Dynamic Model lido de volta: %d (esperado: %d = AIRBORNE4g)\n",
+              modeloAtual, DYN_MODEL_AIRBORNE4g);
+  }
+
+  myGNSS.saveConfiguration();
+
   // Sem isto, getPVT() faz um poll explicito e BLOQUEIA o loop por ate
   // kUBLOXGNSSDefaultMaxWait (1100 ms), derrubando a janela de escuta.
   // Com autoPVT o modulo reporta sozinho e getPVT(0) apenas consome.
@@ -317,10 +426,7 @@ void setup() {
     OpenLogSerial.println(F("# Logs TDM"));
   }
 
-  uint32_t tStart = millis();
-  lastTime = micros();
-  while (millis() - tStart < 4000) { atualizarIMU(); delay(10); }
-  pitchOffset = pitch; rollOffset = roll; yawOffset = yaw;
+  calibrarIMU();
 
   lastImuTick = millis();
   lastTime = micros();
@@ -366,6 +472,12 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   ADD("Pitch:%.2f\n", lastPitch);
   ADD("Roll:%.2f\n", lastRoll);
   ADD("Yaw:%.2f\n", lastYaw);
+  ADD("AX:%.3f\n", lastAccelX);
+  ADD("AY:%.3f\n", lastAccelY);
+  ADD("AZ:%.3f\n", lastAccelZ);
+  ADD("AXavg:%.3f\n", avgAccelX);
+  ADD("AYavg:%.3f\n", avgAccelY);
+  ADD("AZavg:%.3f\n", avgAccelZ);
   ADD("Bat:%.2f\n", lastBatVolts);
   ADD("Ack:%d\n", ack_no_pacote);
   #undef ADD
@@ -449,6 +561,9 @@ void loop() {
       logSD(imuLine);
     }
   }
+
+  // Roda todo ciclo do loop; so recalcula de fato quando a janela de tempo fecha.
+  atualizarMediaAceleracao();
 
   servicoRadio();
 
