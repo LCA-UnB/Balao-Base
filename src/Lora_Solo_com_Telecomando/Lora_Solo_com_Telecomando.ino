@@ -43,7 +43,7 @@
 // AXavg/AYavg/AZavg). Com o CRC ligado, um pacote que chega integro tem
 // todos. Menos que isso e' corrupcao: descarta em vez de imprimir os
 // valores da leitura anterior como se fossem novos.
-#define CAMPOS_ESPERADOS                            20
+#define CAMPOS_ESPERADOS                            17
 
 char rxpacket[BUFFER_SIZE];
 static RadioEvents_t RadioEvents;
@@ -182,9 +182,6 @@ void processarTelemetria() {
   if (lerFloat("Pitch:", &r_pitch)) campos++;
   if (lerFloat("Roll:", &r_roll))   campos++;
   if (lerFloat("Yaw:", &r_yaw))     campos++;
-  if (lerFloat("AX:", &r_ax))       campos++;
-  if (lerFloat("AY:", &r_ay))       campos++;
-  if (lerFloat("AZ:", &r_az))       campos++;
   if (lerFloat("AXavg:", &r_axavg)) campos++;
   if (lerFloat("AYavg:", &r_ayavg)) campos++;
   if (lerFloat("AZavg:", &r_azavg)) campos++;
@@ -218,9 +215,6 @@ void processarTelemetria() {
   Serial.print(F("Pitch:"));  Serial.println(r_pitch, 2);
   Serial.print(F("Roll:"));   Serial.println(r_roll, 2);
   Serial.print(F("Yaw:"));    Serial.println(r_yaw, 2);
-  Serial.print(F("AX:"));     Serial.println(r_ax, 3);
-  Serial.print(F("AY:"));     Serial.println(r_ay, 3);
-  Serial.print(F("AZ:"));     Serial.println(r_az, 3);
   Serial.print(F("AXavg:"));  Serial.println(r_axavg, 3);
   Serial.print(F("AYavg:"));  Serial.println(r_ayavg, 3);
   Serial.print(F("AZavg:"));  Serial.println(r_azavg, 3);
@@ -250,6 +244,7 @@ void processarTelemetria() {
     has_cmd = false;
     abrirEscuta();
     return;
+
   }
 
   Serial.printf("[TDM] Comando %d aguardando janela (tentativa %d de %d, em %d ms).\n",

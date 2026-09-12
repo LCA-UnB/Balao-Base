@@ -62,7 +62,7 @@ HardwareSerial OpenLogSerial(2);
 #define SCL_GPS_PIN 42
 #define SDA_GY86_PIN 48
 #define SCL_GY86_PIN 47
-#define REFERENCE_PRESSURE_HPA 1013.25
+int referencePressureHpa = 1013;
 #define TEMP_CORR (-2)
 
 // --- BATERIA (divisor interno da Heltec WiFi LoRa 32 V3) ---
@@ -114,11 +114,13 @@ int ack_val = 0;
 bool ack_pendente = false;
 
 // ---- MEDIA DAS ACELARACOES ---
-#define ACCEL_AVG_WINDOW_MS                         1000   // pode trocar pra qualquer intervalo
+#define SENSOR_AVG_WINDOW_MS                         1000   // pode trocar pra qualquer intervalo
 double accelSomaX = 0, accelSomaY = 0, accelSomaZ = 0;
-uint32_t accelAmostras = 0;
-uint32_t accelJanelaInicio = 0;
+double magSomaX = 0, magSomaY = 0, magSomaZ = 0;
+uint32_t sensorAmostras = 0;
+uint32_t sensorJanelaInicio = 0;
 float avgAccelX = 0, avgAccelY = 0, avgAccelZ = 0;
+float avgMagX = 0, avgMagY = 0, avgMagZ = 0;
 
 // ==========================================================================
 //  RADIO
@@ -255,7 +257,12 @@ void atualizarIMU() {
   accelSomaX += lastAccelX;
   accelSomaY += lastAccelY;
   accelSomaZ += lastAccelZ;
-  accelAmostras++;
+
+  magSomaX += lastMagX;
+  magSomaY += lastMagY;
+  magSomaZ += lastMagZ;
+
+  sensorAmostras++;
 
   float accRoll = atan2(a.acceleration.y, a.acceleration.z) * 180.0 / PI;
   float accPitch = atan2(-a.acceleration.x, sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z)) * 180.0 / PI;
@@ -279,16 +286,21 @@ void atualizarIMU() {
 // a media das amostras acumuladas desde a ultima janela e zera os acumuladores.
 // Chamada a cada ciclo do loop, mas so recalcula quando o tempo da janela passa.
 
-void atualizarMediaAceleracao() {
-  if (millis() - accelJanelaInicio < ACCEL_AVG_WINDOW_MS) return;
-  if (accelAmostras > 0) {
-    avgAccelX = accelSomaX / accelAmostras;
-    avgAccelY = accelSomaY / accelAmostras;
-    avgAccelZ = accelSomaZ / accelAmostras;
+void atualizarMediasSensores() {
+  if (millis() - sensorJanelaInicio < SENSOR_AVG_WINDOW_MS) return;
+  if (sensorAmostras > 0) {
+    avgAccelX = accelSomaX / sensorAmostras;
+    avgAccelY = accelSomaY / sensorAmostras;
+    avgAccelZ = accelSomaZ / sensorAmostras;
+    
+    avgMagX = magSomaX / sensorAmostras;
+    avgMagY = magSomaY / sensorAmostras;
+    avgMagZ = magSomaZ / sensorAmostras;
   }
   accelSomaX = 0; accelSomaY = 0; accelSomaZ = 0;
-  accelAmostras = 0;
-  accelJanelaInicio = millis();
+  magSomaX = 0; magSomaY = 0; magSomaZ = 0;
+  sensorAmostras = 0;
+  sensorJanelaInicio = millis();
 }
 
 void calibrarIMU() {
@@ -391,7 +403,7 @@ void setup() {
   mag.begin(); ms5611.begin();
   myGNSS.begin(Wire1); myGNSS.setI2COutput(COM_TYPE_UBX);
 
-  if (myGNSS.setDynamicModel(DYN_MODEL_AIRBORNE4g) == false) {
+  if (myGNSS.setDynamicModel(DYN_MODEL_AIRBORNE1g) == false) {
     Serial.println(F("[GNSS] Falha ao configurar Dynamic Model Airborne4g!"));
   } else {
     Serial.println(F("[GNSS] Dynamic Model = Airborne <4g (ok)"));
@@ -444,7 +456,7 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   lastBatVolts = lerTensaoBateria();
   float temp = ms5611.getTemperature() + TEMP_CORR;
   float press = ms5611.getPressure();
-  float altBar = 44330.0F * (1.0F - pow(press / REFERENCE_PRESSURE_HPA, 0.1903F));
+  float altBar = 44330.0F * (1.0F - pow(press / referencePressureHpa, 0.1903F));
 
   // snprintf devolve o tamanho que SERIA escrito. Sem o teto, pos pode passar
   // de BUFFER_SIZE e (BUFFER_SIZE - pos) vira um size_t enorme na chamada
@@ -467,14 +479,11 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   ADD("Sat:%d\n", t_siv);
   ADD("Fix:%d\n", t_fix);
   ADD("T:%.1f\n", temp);
-  ADD("P:%.1f\n", press);
+  ADD("P:%.1f\n", press); 
   ADD("Time:%02d:%02d:%02d\n", t_hora, t_min, sec_atual);
   ADD("Pitch:%.2f\n", lastPitch);
   ADD("Roll:%.2f\n", lastRoll);
   ADD("Yaw:%.2f\n", lastYaw);
-  ADD("AX:%.3f\n", lastAccelX);
-  ADD("AY:%.3f\n", lastAccelY);
-  ADD("AZ:%.3f\n", lastAccelZ);
   ADD("AXavg:%.3f\n", avgAccelX);
   ADD("AYavg:%.3f\n", avgAccelY);
   ADD("AZavg:%.3f\n", avgAccelZ);
@@ -522,14 +531,36 @@ void loop() {
     Serial.printf("\n>>> [TELECOMANDO] RSSI:%d dBm | SNR:%d dB | %s\n", rxRssi, rxSnr, rxpacket);
 
     int cmd_recebido = 0;
-    if (sscanf(rxpacket, "CMD:%d", &cmd_recebido) == 1) {
+    sscanf(rxpacket, "CMD:%d", &cmd_recebido);
+    
+    if (cmd_recebido >= 1 && cmd_recebido <= 50) { 
       ack_val = cmd_recebido + 1;
       ack_pendente = true;
       Serial.printf(">>> COMANDO %d ACEITO. Proxima telemetria enviara Ack:%d\n\n", cmd_recebido, ack_val);
       char linha[64];
       snprintf(linha, sizeof(linha), "CMD,%lu,%d,rssi:%d,snr:%d", millis(), cmd_recebido, rxRssi, rxSnr);
       logSD(linha);
-    } else {
+    }else if(cmd_recebido >= 900 && cmd_recebido <= 1100){
+       referencePressureHpa = cmd_recebido;
+
+       ack_val = cmd_recebido + 1; 
+       ack_pendente = true;
+
+       Serial.printf(">>> QNH ATUALIZADO PARA %d hPa. Proxima telemetria confirma via QNHref:.\n\n",
+                      cmd_recebido);
+        char linha[64];
+        snprintf(linha, sizeof(linha), "QNH,%lu,%d,rssi:%d,snr:%d", millis(), cmd_recebido, rxRssi, rxSnr);
+        logSD(linha);
+
+    }else if(cmd_recebido > 2000){
+
+      Serial.println(">>> CALIBRACAO IMU INICIADA POR COMANDO.");
+
+      ack_val = cmd_recebido + 1; 
+      ack_pendente = true;
+      calibrarIMU();
+
+    }else {
       Serial.println(F(">>> Pacote recebido nao e' um comando valido. Ignorado.\n"));
     }
     abrirEscuta();
@@ -555,15 +586,18 @@ void loop() {
     if (lastYaw < -180.0) lastYaw += 360.0;
 
     if (openLogConectado) {
-      char imuLine[140];
-      snprintf(imuLine, sizeof(imuLine), "I,%lu,AX:%.2f,AY:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f,MX:%.2f,MY:%.2f,MZ:%.2f,P:%.2f,R:%.2f,Y:%.2f",
-               millis(), lastAccelX, lastAccelY, lastAccelZ, lastGyroX, lastGyroY, lastGyroZ, lastMagX, lastMagY, lastMagZ, lastPitch, lastRoll, lastYaw);
+      char imuLine[256]; // Aumentado para evitar corte de string
+      
+      // Trocamos lastAccel pelas variáveis avgAccel e as siglas para AXa, AYa, AZa
+      snprintf(imuLine, sizeof(imuLine), "I,%lu,AXa:%.2f,AYa:%.2f,AZa:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f,MX:%.2f,MY:%.2f,MZ:%.2f,MXa:%.2f,MYa:%.2f,MZa:%.2f,P:%.2f,R:%.2f,Y:%.2f",
+               millis(), avgAccelX, avgAccelY, avgAccelZ, lastGyroX, lastGyroY, lastGyroZ, 
+               lastMagX, lastMagY, lastMagZ, avgMagX, avgMagY, avgMagZ, lastPitch, lastRoll, lastYaw);
       logSD(imuLine);
     }
   }
 
   // Roda todo ciclo do loop; so recalcula de fato quando a janela de tempo fecha.
-  atualizarMediaAceleracao();
+  atualizarMediasSensores();
 
   servicoRadio();
 
