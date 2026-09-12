@@ -21,7 +21,6 @@ COLOR_TEXT_MAIN = "#e1e1e6"
 COLOR_TEXT_MUTED = "#8d8d99"   
 COLOR_ACCENT_GREEN = "#04d361" 
 COLOR_ACCENT_BLUE = "#4e94e7"  
-COLOR_ACCENT_YELLOW = "#f5c518"
 COLOR_GRAPH_GRID = "#29292e"   
 COLOR_TRACK_LINE = "#ff5722"   # Rastro: Laranja Vibrante de Alta Visibilidade
 
@@ -50,20 +49,17 @@ class SondeTrackerApp:
         self.history_temp = []
         self.history_alt = []
         self.history_press = []
-        self.history_bat = []
+        self.history_hum = []         
         self.path_coordinates = []
         
-        # Campos alinhados ao pacote realmente enviado pelo bordo
-        # (PT2UNB): Lat, Lon, Alt, AltB, Sat, Fix, T, P, Time, Pitch, Roll,
-        # Yaw, AX, AY, AZ, AXavg, AYavg, AZavg, Bat, Ack.
         self.telemetry = {
             "Texto Bruto": "--", "Lat": -15.7641474, "Lon": -47.8691109,
             "Alt": 0.0, "AltB": 0.0, "Sat": 0, "Fix": 0,
-            "T": 0.0, "P": 0.0, "Time": "--:--:--",
+            "T": 0.0, "P": 0.0, "U": 0.0, "Time": "--:--:--",
             "Pitch": 0.0, "Roll": 0.0, "Yaw": 0.0,
             "AX": 0.0, "AY": 0.0, "AZ": 0.0,
-            "AXavg": 0.0, "AYavg": 0.0, "AZavg": 0.0,
-            "Bat": 0.0, "Ack": 0,
+            "GX": 0.0, "GY": 0.0, "GZ": 0.0,
+            "MX": 0.0, "MY": 0.0, "MZ": 0.0,
             "RSSI": 0, "SNR": 0,
             "WindSpeed": "--", "WindDir": "--",
             "VertSpeed": "--"  
@@ -166,42 +162,37 @@ class SondeTrackerApp:
         self.lbl_vert_speed = self.create_data_label(gps_frame, "Vel. Vertical: -- m/s", COLOR_ACCENT_BLUE, 9, True)
         self.lbl_vert_speed.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=1)
 
-        # PTU: agora só Temperatura e Pressão (sem sensor de umidade nesse conjunto)
-        ptu_frame = self.create_card_frame(self.left_frame, "TELEMETRIA AMBIENTAL (PT)")
+        ptu_frame = self.create_card_frame(self.left_frame, "TELEMETRIA AMBIENTAL (PTU)")
         ptu_frame.pack(fill=tk.X, pady=(0, 6))
         ptu_frame.grid_columnconfigure(0, weight=1)
         ptu_frame.grid_columnconfigure(1, weight=1)
+        ptu_frame.grid_columnconfigure(2, weight=1)
         self.lbl_temp = self.create_data_label(ptu_frame, "T: -- °C")
         self.lbl_temp.grid(row=0, column=0, sticky=tk.W)
         self.lbl_press = self.create_data_label(ptu_frame, "P: -- hPa")
         self.lbl_press.grid(row=0, column=1, sticky=tk.W)
+        self.lbl_hum = self.create_data_label(ptu_frame, "U: -- %")
+        self.lbl_hum.grid(row=0, column=2, sticky=tk.W)
 
-        # Bateria e status do telecomando (Bat / Ack)
-        status_frame = self.create_card_frame(self.left_frame, "ENERGIA & TELECOMANDO")
-        status_frame.pack(fill=tk.X, pady=(0, 6))
-        status_frame.grid_columnconfigure(0, weight=1)
-        status_frame.grid_columnconfigure(1, weight=1)
-        self.lbl_bat = self.create_data_label(status_frame, "Bateria: -- V", COLOR_ACCENT_YELLOW, 9, True)
-        self.lbl_bat.grid(row=0, column=0, sticky=tk.W, pady=1)
-        self.lbl_ack = self.create_data_label(status_frame, "Ack: --", COLOR_TEXT_MUTED, 9, False)
-        self.lbl_ack.grid(row=0, column=1, sticky=tk.W, pady=1)
-
-        # Dinâmica de voo: atitude (Pitch/Roll/Yaw) + aceleração instantânea e média
-        imu_frame = self.create_card_frame(self.left_frame, "DINÂMICA DE VOO")
+        imu_frame = self.create_card_frame(self.left_frame, "DINÂMICA DE VOO (IMU BRUTA)")
         imu_frame.pack(fill=tk.X)
         for i in range(4): imu_frame.grid_columnconfigure(i, weight=1)
         self.create_data_label(imu_frame, "Atitude", COLOR_TEXT_MUTED, 8, True).grid(row=0, column=0, sticky=tk.W)
         self.lbl_pitch = self.create_data_label(imu_frame, "P: --°"); self.lbl_pitch.grid(row=0, column=1, sticky=tk.W)
         self.lbl_roll = self.create_data_label(imu_frame, "R: --°"); self.lbl_roll.grid(row=0, column=2, sticky=tk.W)
         self.lbl_yaw = self.create_data_label(imu_frame, "Y: --°"); self.lbl_yaw.grid(row=0, column=3, sticky=tk.W)
-        self.create_data_label(imu_frame, "Acel. Inst.", COLOR_TEXT_MUTED, 8, True).grid(row=1, column=0, sticky=tk.W)
+        self.create_data_label(imu_frame, "Acel (A)", COLOR_TEXT_MUTED, 8, True).grid(row=1, column=0, sticky=tk.W)
         self.lbl_ax = self.create_data_label(imu_frame, "X: --"); self.lbl_ax.grid(row=1, column=1, sticky=tk.W)
         self.lbl_ay = self.create_data_label(imu_frame, "Y: --"); self.lbl_ay.grid(row=1, column=2, sticky=tk.W)
         self.lbl_az = self.create_data_label(imu_frame, "Z: --"); self.lbl_az.grid(row=1, column=3, sticky=tk.W)
-        self.create_data_label(imu_frame, "Acel. Média 1s", COLOR_TEXT_MUTED, 8, True).grid(row=2, column=0, sticky=tk.W)
-        self.lbl_axavg = self.create_data_label(imu_frame, "X: --"); self.lbl_axavg.grid(row=2, column=1, sticky=tk.W)
-        self.lbl_ayavg = self.create_data_label(imu_frame, "Y: --"); self.lbl_ayavg.grid(row=2, column=2, sticky=tk.W)
-        self.lbl_azavg = self.create_data_label(imu_frame, "Z: --"); self.lbl_azavg.grid(row=2, column=3, sticky=tk.W)
+        self.create_data_label(imu_frame, "Giro (G)", COLOR_TEXT_MUTED, 8, True).grid(row=2, column=0, sticky=tk.W)
+        self.lbl_gx = self.create_data_label(imu_frame, "X: --"); self.lbl_gx.grid(row=2, column=1, sticky=tk.W)
+        self.lbl_gy = self.create_data_label(imu_frame, "Y: --"); self.lbl_gy.grid(row=2, column=2, sticky=tk.W)
+        self.lbl_gz = self.create_data_label(imu_frame, "Z: --"); self.lbl_gz.grid(row=2, column=3, sticky=tk.W)
+        self.create_data_label(imu_frame, "Mag (M)", COLOR_TEXT_MUTED, 8, True).grid(row=3, column=0, sticky=tk.W)
+        self.lbl_mx = self.create_data_label(imu_frame, "X: --"); self.lbl_mx.grid(row=3, column=1, sticky=tk.W)
+        self.lbl_my = self.create_data_label(imu_frame, "Y: --"); self.lbl_my.grid(row=3, column=2, sticky=tk.W)
+        self.lbl_mz = self.create_data_label(imu_frame, "Z: --"); self.lbl_mz.grid(row=3, column=3, sticky=tk.W)
 
         # --- CONTEÚDO DA COLUNA CENTRAL (MAPA EXPANDIDO) ---
         self.map_widget = tkintermapview.TkinterMapView(self.center_map_frame, corner_radius=6)
@@ -284,24 +275,13 @@ class SondeTrackerApp:
                     if match_rssi: self.telemetry["RSSI"] = match_rssi.group(1)
                     if match_snr: self.telemetry["SNR"] = match_snr.group(1)
                 elif ":" in line:
-                    # Chaves compostas (AXavg, AYavg, AZavg) precisam ser
-                    # comparadas ANTES das simples (AX, AY, AZ), senão o
-                    # split gera uma chave "AXavg" que nunca bateria com a
-                    # tentativa de achar "AX" via prefixo. Como usamos
-                    # split(":", 1) isso na verdade nao e' um problema aqui
-                    # (a chave inteira antes do ":" já vem certa do bordo/solo),
-                    # mas mantemos o comentario para deixar claro que a ordem
-                    # de leitura no firmware e' o que garante nao haver colisao.
                     parts = line.split(":", 1)
                     if len(parts) == 2:
                         key = parts[0].strip()
                         val = parts[1].strip()
                         self.telemetry[key] = val
                         
-                        # "Ack:" e' o ultimo campo impresso pela estacao de
-                        # solo em cada pacote -> gatilho seguro para "pacote
-                        # completo, hora de atualizar a tela e o historico".
-                        if key == "Ack":
+                        if key == "MZ":
                             self.append_to_history()
                             self.last_packet_time = datetime.datetime.now() 
                             self.needs_gui_update = True
@@ -344,7 +324,7 @@ class SondeTrackerApp:
             t_val = float(self.telemetry.get("T", 0.0))
             alt_val = float(self.telemetry.get("Alt", 0.0))
             p_val = float(self.telemetry.get("P", 0.0))
-            bat_val = float(self.telemetry.get("Bat", 0.0))
+            u_val = float(self.telemetry.get("U", 0.0))
             lat_val = float(self.telemetry.get("Lat", 0.0))
             lon_val = float(self.telemetry.get("Lon", 0.0))
             
@@ -353,7 +333,7 @@ class SondeTrackerApp:
                 self.history_temp.append(t_val)
                 self.history_alt.append(alt_val)
                 self.history_press.append(p_val)
-                self.history_bat.append(bat_val)
+                self.history_hum.append(u_val)
             
             if lat_val != 0.0 and lon_val != 0.0:
                 nova_coord = (lat_val, lon_val)
@@ -403,7 +383,7 @@ class SondeTrackerApp:
             indices = list(range(len(self.history_time)))
             step = max(1, len(self.history_time) // 4)
             tick_indices = indices[::step]
-            # O rótulo recebe a String de hora do GPS da sonda
+            # Novo: O rótulo agora recebe a String de hora do GPS da sonda
             tick_labels = [self.history_time[i] for i in tick_indices]
 
             for ax in [ax_alt, ax_temp, ax_press]:
@@ -418,10 +398,10 @@ class SondeTrackerApp:
             ax_alt.plot(indices, self.history_alt, color='#00b4d8', linewidth=1.5)
             ax_alt.set_title("Altitude (m)", fontsize=8, fontweight='bold', color=COLOR_TEXT_MAIN, pad=2)
 
-            # Plot 2: Temperatura + Bateria (sem sensor de umidade neste conjunto)
+            # Plot 2: PTU Termo-Higrômetro vs Hora GPS
             ax_temp.plot(indices, self.history_temp, color='#ff4757', linewidth=1.5, label="T (°C)")
-            ax_temp.plot(indices, self.history_bat, color=COLOR_ACCENT_YELLOW, linewidth=1.1, linestyle='--', label="Bat (V)")
-            ax_temp.set_title("Temperatura & Bateria", fontsize=8, fontweight='bold', color=COLOR_TEXT_MAIN, pad=2)
+            ax_temp.plot(indices, self.history_hum, color='#00b4d8', linewidth=1.1, linestyle='--', label="U (%)")
+            ax_temp.set_title("Temperatura & Umidade", fontsize=8, fontweight='bold', color=COLOR_TEXT_MAIN, pad=2)
             ax_temp.legend(loc="upper right", fontsize=6, facecolor=COLOR_BG_CARD, edgecolor='none', labelcolor=COLOR_TEXT_MAIN)
 
             # Plot 3: Pressão (hPa) vs Hora GPS
@@ -459,19 +439,13 @@ class SondeTrackerApp:
         self.lbl_vert_speed.config(text=f"Vel. Vertical: {self.telemetry.get('VertSpeed')} m/s")
         self.lbl_temp.config(text=f"T: {self.telemetry.get('T', '--')} °C")
         self.lbl_press.config(text=f"P: {self.telemetry.get('P', '--')} hPa")
-
-        self.lbl_bat.config(text=f"Bateria: {self.telemetry.get('Bat', '--')} V")
-        self.lbl_ack.config(text=f"Ack: {self.telemetry.get('Ack', '--')}")
-
+        self.lbl_hum.config(text=f"U: {self.telemetry.get('U', '--')} %")
         self.lbl_pitch.config(text=f"P: {self.telemetry.get('Pitch', '--')}°")
         self.lbl_roll.config(text=f"R: {self.telemetry.get('Roll', '--')}°")
         self.lbl_yaw.config(text=f"Y: {self.telemetry.get('Yaw', '--')}°")
-        self.lbl_ax.config(text=f"X: {self.telemetry.get('AX', '--')}")
-        self.lbl_ay.config(text=f"Y: {self.telemetry.get('AY', '--')}")
-        self.lbl_az.config(text=f"Z: {self.telemetry.get('AZ', '--')}")
-        self.lbl_axavg.config(text=f"X: {self.telemetry.get('AXavg', '--')}")
-        self.lbl_ayavg.config(text=f"Y: {self.telemetry.get('AYavg', '--')}")
-        self.lbl_azavg.config(text=f"Z: {self.telemetry.get('AZavg', '--')}")
+        self.lbl_ax.config(text=f"X: {self.telemetry.get('AX', '--')}"); self.lbl_ay.config(text=f"Y: {self.telemetry.get('AY', '--')}"); self.lbl_az.config(text=f"Z: {self.telemetry.get('AZ', '--')}")
+        self.lbl_gx.config(text=f"X: {self.telemetry.get('GX', '--')}"); self.lbl_gy.config(text=f"Y: {self.telemetry.get('GY', '--')}"); self.lbl_gz.config(text=f"Z: {self.telemetry.get('GZ', '--')}")
+        self.lbl_mx.config(text=f"X: {self.telemetry.get('MX', '--')}"); self.lbl_my.config(text=f"Y: {self.telemetry.get('MY', '--')}"); self.lbl_mz.config(text=f"Z: {self.telemetry.get('MZ', '--')}")
 
         try:
             lat, lon, alt = float(self.telemetry.get('Lat', 0)), float(self.telemetry.get('Lon', 0)), self.telemetry.get('Alt', '--')
