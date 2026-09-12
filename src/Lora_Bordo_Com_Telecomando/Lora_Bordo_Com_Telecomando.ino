@@ -67,7 +67,9 @@ int referencePressureHpa = 1013;
 
 // --- BATERIA (divisor interno da Heltec WiFi LoRa 32 V3) ---
 #define VBAT_ADC_PIN   1    // GPIO1: saída do divisor resistivo da bateria
-#define VBAT_CTRL_PIN  37   // GPIO37: habilita o divisor (ativo em LOW)
+#define VBAT_CTRL_PIN  37   // GPIO37: controle do ADC_Ctrl da Heltec V3.2
+#define VBAT_CTRL_ON   HIGH // V3.2: o circuito de detecção é habilitado em HIGH
+#define VBAT_CTRL_OFF  LOW
 #define VBAT_SAMPLES   8
 #define VBAT_SETTLE_MS 100  // mesmo tempo de estabilização usado na calibração
 
@@ -247,11 +249,11 @@ float calibrarTensaoBateria(uint32_t adcMv) {
 }
 
 float lerTensaoBateria() {
-  digitalWrite(VBAT_CTRL_PIN, LOW);   // liga o divisor
+  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_ON);  // liga o divisor
   delay(VBAT_SETTLE_MS);               // estabiliza antes da amostragem
   uint32_t soma = 0;
   for (int i = 0; i < VBAT_SAMPLES; i++) soma += analogReadMilliVolts(VBAT_ADC_PIN);
-  digitalWrite(VBAT_CTRL_PIN, HIGH);  // desliga para não drenar a bateria
+  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_OFF); // desliga para não drenar a bateria
   uint32_t adcMv = soma / VBAT_SAMPLES;
   float tensao = calibrarTensaoBateria(adcMv) / 1000.0f;
   Serial.printf("[BAT] ADC medio: %lu mV | tensao: %.3f V\n", adcMv, tensao);
@@ -414,7 +416,8 @@ void setup() {
   reconfigurarLoRaRX();
 
   pinMode(VBAT_CTRL_PIN, OUTPUT);
-  digitalWrite(VBAT_CTRL_PIN, HIGH);
+  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_OFF);
+  analogReadResolution(12);
   analogSetPinAttenuation(VBAT_ADC_PIN, ADC_11db);
   lastBatVolts = lerTensaoBateria();
 
