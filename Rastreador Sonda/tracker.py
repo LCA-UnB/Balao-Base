@@ -54,6 +54,7 @@ class SondeTrackerApp:
         self.needs_gui_update = False
         self.last_packet_time = None
         self.last_gps_data = None
+        self.port_devices = {}
 
         self.history_time = []
         self.history_temp = []
@@ -77,6 +78,7 @@ class SondeTrackerApp:
         self._configure_styles()
         self.setup_ui()
         self.root.after(1000, self.gui_updater_loop)
+        self.root.after(2000, self._poll_usb_ports)
 
     def _configure_styles(self):
         self.style = ttk.Style()
@@ -191,7 +193,10 @@ class SondeTrackerApp:
         controls.grid(row=0, column=2, sticky="nse")
         port_group = tk.Frame(controls, bg=COLOR_BG_SURFACE)
         port_group.pack(side=tk.LEFT, pady=14)
-        self._label(port_group, "PORTA SERIAL", 8, COLOR_TEXT_MUTED, "bold").pack(anchor=tk.W, pady=(0, 4))
+        self.lbl_port_status = self._label(
+            port_group, "PORTA USB", 8, COLOR_TEXT_MUTED, "bold"
+        )
+        self.lbl_port_status.pack(anchor=tk.W, pady=(0, 4))
         port_row = tk.Frame(port_group, bg=COLOR_BG_SURFACE)
         port_row.pack()
         self.port_cb = ttk.Combobox(
@@ -199,6 +204,7 @@ class SondeTrackerApp:
             style="Telemetry.TCombobox",
         )
         self.port_cb.pack(side=tk.LEFT)
+        self.port_cb.bind("<<ComboboxSelected>>", self._on_port_selected)
         self.btn_refresh = tk.Button(
             port_row, text="↻", command=self.refresh_ports,
             bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN,
@@ -452,24 +458,100 @@ class SondeTrackerApp:
         elif layer == "Topográfico":
             self.map_widget.set_tile_server("https://a.tile.opentopomap.org/{z}/{x}/{y}.png")
 
-    def refresh_ports(self):
-        selected = self.port_cb.get()
-        ports = [port.device for port in serial.tools.list_ports.comports()]
-        self.port_cb["values"] = ports
-        if selected in ports:
-            self.port_cb.set(selected)
-        elif ports:
-            self.port_cb.current(0)
-        else:
-            self.port_cb.set("")
+    @staticmethod
+    def _is_usb_serial_port(port):
+        if port.vid is not None or port.pid is not None:
+            return True
+
+        metadata = " ".join(
+            str(value or "")
+            for value in (port.hwid, port.description, port.manufacturer)
+        ).upper()
+        if "USB" in metadata or "VID:PID" in metadata:
+            return True
+
+        device = port.device.lower()
+        usb_device_markers = (
+            "/dev/ttyusb",
+            "/dev/ttyacm",
+            "/dev/tty.usb",
+            "/dev/cu.usb",
+            "/dev/cu.slab",
+            "/dev/cu.wchusb",
+        )
+        return device.startswith(usb_device_markers)
+
+    @classmethod
+    def _available_usb_ports(cls):
+        return sorted(
+            (
+                port
+                for port in serial.tools.list_ports.comports()
+                if cls._is_usb_serial_port(port)
+            ),
+            key=lambda port: port.device,
+        )
+
+    @staticmethod
+    def _port_display_name(port):
+        description = (port.description or "").strip()
+        if not description or description.lower() == "n/a":
+            return port.device
+        return f"{port.device} · {description}"
+
+    def _on_port_selected(self, event=None):
         if not self.is_connected:
-            self.btn_connect.config(state=tk.NORMAL if ports else tk.DISABLED)
+            selected = self.port_cb.get()
+            self.btn_connect.config(
+                state=tk.NORMAL if selected in self.port_devices else tk.DISABLED
+            )
+
+    def _poll_usb_ports(self):
+        if not self.is_connected:
+            self.refresh_ports()
+        self.root.after(2000, self._poll_usb_ports)
+
+    def refresh_ports(self):
+        previous_device = self.port_devices.get(self.port_cb.get())
+        ports = self._available_usb_ports()
+        labels = [self._port_display_name(port) for port in ports]
+        self.port_devices = {
+            label: port.device for label, port in zip(labels, ports)
+        }
+        self.port_cb["values"] = labels
+
+        previous_label = next(
+            (
+                label
+                for label, device in self.port_devices.items()
+                if device == previous_device
+            ),
+            None,
+        )
+        if previous_label:
+            self.port_cb.set(previous_label)
+        elif len(labels) == 1:
+            self.port_cb.current(0)
+        elif labels:
+            self.port_cb.set("Selecione uma porta USB")
+        else:
+            self.port_cb.set("Nenhum dispositivo USB")
+
+        if len(labels) == 1:
+            self.lbl_port_status.config(text="PORTA USB · DETECTADA", fg=COLOR_ACCENT_GREEN)
+        elif labels:
+            self.lbl_port_status.config(
+                text=f"PORTA USB · {len(labels)} DISPONÍVEIS", fg=COLOR_ACCENT_BLUE
+            )
+        else:
+            self.lbl_port_status.config(text="PORTA USB · NÃO DETECTADA", fg=COLOR_TEXT_MUTED)
+        self._on_port_selected()
 
     def toggle_connection(self):
         if not self.is_connected:
-            port = self.port_cb.get()
+            port = self.port_devices.get(self.port_cb.get())
             if not port:
-                messagebox.showerror("Erro", "Selecione uma porta serial ativa.")
+                messagebox.showerror("Erro", "Selecione uma porta USB disponível.")
                 return
             try:
                 self.serial_port = serial.Serial(port, 115200, timeout=1)
