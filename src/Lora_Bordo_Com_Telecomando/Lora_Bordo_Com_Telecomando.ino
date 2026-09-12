@@ -68,8 +68,18 @@ int referencePressureHpa = 1013;
 // --- BATERIA (divisor interno da Heltec WiFi LoRa 32 V3) ---
 #define VBAT_ADC_PIN   1    // GPIO1: saída do divisor resistivo da bateria
 #define VBAT_CTRL_PIN  37   // GPIO37: habilita o divisor (ativo em LOW)
-#define VBAT_DIVIDER   4.9f // fator do divisor: Vbat = Vadc * 4.9
 #define VBAT_SAMPLES   8
+#define VBAT_SETTLE_MS 100  // mesmo tempo de estabilização usado na calibração
+
+// Medidas reais na fonte de bancada: ADC (mV) -> tensão da bateria (mV).
+// A conversão entre os pontos é feita por interpolação linear.
+const uint16_t adcCalibradoMv[] = {
+  683, 694, 700, 712, 720, 728, 739, 750, 757, 766, 779, 785, 797
+};
+const uint16_t tensaoRealMv[] = {
+  3600, 3650, 3700, 3750, 3800, 3850, 3900, 3950, 4000, 4050, 4100, 4150, 4200
+};
+const size_t PONTOS_CALIBRACAO = sizeof(adcCalibradoMv) / sizeof(adcCalibradoMv[0]);
 
 float lastBatVolts = 0.0;
 
@@ -215,26 +225,31 @@ void iniciarOpenLog() {
 //  BATERIA
 // ==========================================================================
 
+float calibrarTensaoBateria(uint32_t adcMv) {
+  // Fora da faixa medida, prolonga o primeiro/último segmento. Abaixo de
+  // 3,60 V a leitura deve ser validada depois com novos pontos de calibração.
+  size_t i = 0;
+  if (adcMv >= adcCalibradoMv[PONTOS_CALIBRACAO - 1]) {
+    i = PONTOS_CALIBRACAO - 2;
+  } else {
+    while (i + 1 < PONTOS_CALIBRACAO && adcMv > adcCalibradoMv[i + 1]) i++;
+  }
+
+  const float x0 = adcCalibradoMv[i];
+  const float x1 = adcCalibradoMv[i + 1];
+  const float y0 = tensaoRealMv[i];
+  const float y1 = tensaoRealMv[i + 1];
+  return y0 + ((float)adcMv - x0) * (y1 - y0) / (x1 - x0);
+}
+
 float lerTensaoBateria() {
   digitalWrite(VBAT_CTRL_PIN, LOW);   // liga o divisor
-  delay(5);                            // estabiliza o MOSFET antes da amostragem
+  delay(VBAT_SETTLE_MS);               // estabiliza antes da amostragem
   uint32_t soma = 0;
   for (int i = 0; i < VBAT_SAMPLES; i++) soma += analogReadMilliVolts(VBAT_ADC_PIN);
   digitalWrite(VBAT_CTRL_PIN, HIGH);  // desliga para não drenar a bateria
-  return ((float)soma / VBAT_SAMPLES) * VBAT_DIVIDER / 1000.0f;
+  return calibrarTensaoBateria(soma / VBAT_SAMPLES) / 1000.0f;
 }
-
-// =========================================================================
-// TABELA DE CALIBRAÇÃO ATUALIZADA COM OS DADOS DA FONTE (incrementos de 50 mV)
-// =========================================================================
-// Tensões reais em mV vs valores lidos do ADC
-// Calibração: tensão_real = valor_lido_mV * VBAT_DIVIDER
-const int tensoesReais[] = { 3000, 3050, 3100, 3150, 3200, 3250, 3300, 3350, 
-                            3400, 3450, 3500, 3550, 3600, 3650, 3700, 3750,
-                            3800, 3850, 3900, 3950, 4000, 4050, 4100, 4150, 4200 };
-const int valoresLidos[] = {  612,  623,  633,  643,  653,  663,  673,  684,
-                             694,  704,  714,  724,  735,  745,  755,  765,
-                             776,  786,  796,  806,  816,  827,  837,  847,  857 };
 
 // =========================================================================
 //  IMU
