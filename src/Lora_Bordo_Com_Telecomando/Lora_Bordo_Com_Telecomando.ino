@@ -69,9 +69,9 @@ int referencePressureHpa = 1013;
 #define VBAT_ADC_PIN   1    // GPIO1: saída do divisor resistivo da bateria
 #define VBAT_CTRL_PIN  37   // GPIO37: controle do ADC_Ctrl da Heltec V3.2
 #define VBAT_CTRL_ON   HIGH // V3.2: o circuito de detecção é habilitado em HIGH
-#define VBAT_CTRL_OFF  LOW
-#define VBAT_SAMPLES   8
-#define VBAT_SETTLE_MS 100  // mesmo tempo de estabilização usado na calibração
+#define VBAT_SAMPLES   15   // quantidade ímpar para usar a mediana
+#define VBAT_SAMPLE_DELAY_MS 3
+#define VBAT_SETTLE_MS 100  // estabilização inicial do circuito
 
 // Medidas reais na fonte de bancada: ADC (mV) -> tensão da bateria (mV).
 // A conversão entre os pontos é feita por interpolação linear.
@@ -232,14 +232,16 @@ float calibrarTensaoBateria(uint32_t adcMv) {
   // e aparece incorretamente como aproximadamente 0,5 V.
   if (adcMv == 0) return 0.0f;
 
-  // Fora da faixa medida, prolonga o primeiro/último segmento. Abaixo de
-  // 3,60 V a leitura deve ser validada depois com novos pontos de calibração.
-  size_t i = 0;
+  // A tabela não é válida acima do último ponto. Limitar a 4,2 V impede
+  // que ruído acima de 797 mV seja extrapolado como 4,3–4,6 V.
   if (adcMv >= adcCalibradoMv[PONTOS_CALIBRACAO - 1]) {
-    i = PONTOS_CALIBRACAO - 2;
-  } else {
-    while (i + 1 < PONTOS_CALIBRACAO && adcMv > adcCalibradoMv[i + 1]) i++;
+    return tensaoRealMv[PONTOS_CALIBRACAO - 1];
   }
+
+  // Abaixo de 3,60 V ainda prolongamos o primeiro segmento para não esconder
+  // uma bateria descarregada; essa região deve ser calibrada futuramente.
+  size_t i = 0;
+  while (i + 1 < PONTOS_CALIBRACAO && adcMv > adcCalibradoMv[i + 1]) i++;
 
   const float x0 = adcCalibradoMv[i];
   const float x1 = adcCalibradoMv[i + 1];
@@ -249,14 +251,28 @@ float calibrarTensaoBateria(uint32_t adcMv) {
 }
 
 float lerTensaoBateria() {
-  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_ON);  // liga o divisor
-  delay(VBAT_SETTLE_MS);               // estabiliza antes da amostragem
-  uint32_t soma = 0;
-  for (int i = 0; i < VBAT_SAMPLES; i++) soma += analogReadMilliVolts(VBAT_ADC_PIN);
-  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_OFF); // desliga para não drenar a bateria
-  uint32_t adcMv = soma / VBAT_SAMPLES;
+  uint16_t amostras[VBAT_SAMPLES];
+  for (int i = 0; i < VBAT_SAMPLES; i++) {
+    amostras[i] = analogReadMilliVolts(VBAT_ADC_PIN);
+    delay(VBAT_SAMPLE_DELAY_MS);
+  }
+
+  // Ordenação simples: com 15 valores, a mediana elimina picos do ADC sem
+  // atrasar significativamente o loop de telemetria.
+  for (int i = 1; i < VBAT_SAMPLES; i++) {
+    uint16_t atual = amostras[i];
+    int j = i;
+    while (j > 0 && amostras[j - 1] > atual) {
+      amostras[j] = amostras[j - 1];
+      j--;
+    }
+    amostras[j] = atual;
+  }
+
+  uint32_t adcMv = amostras[VBAT_SAMPLES / 2];
   float tensao = calibrarTensaoBateria(adcMv) / 1000.0f;
-  Serial.printf("[BAT] ADC medio: %lu mV | tensao: %.3f V\n", adcMv, tensao);
+  Serial.printf("[BAT] ADC mediana: %lu mV | faixa: %u-%u mV | tensao: %.3f V\n",
+                adcMv, amostras[0], amostras[VBAT_SAMPLES - 1], tensao);
   return tensao;
 }
 
@@ -416,9 +432,13 @@ void setup() {
   reconfigurarLoRaRX();
 
   pinMode(VBAT_CTRL_PIN, OUTPUT);
-  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_OFF);
+  // O exemplo oficial da Heltec V3.2 mantém ADC_Ctrl em HIGH durante o uso.
+  // Mantê-lo ligado evita transientes causados por carregar e descarregar o
+  // divisor antes de cada pacote de telemetria.
+  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_ON);
   analogReadResolution(12);
   analogSetPinAttenuation(VBAT_ADC_PIN, ADC_11db);
+  delay(VBAT_SETTLE_MS);
   lastBatVolts = lerTensaoBateria();
 
   Wire.begin(SDA_GY86_PIN, SCL_GY86_PIN); Wire.setClock(400000);

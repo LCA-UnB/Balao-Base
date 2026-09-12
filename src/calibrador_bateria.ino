@@ -16,7 +16,6 @@
 #define VBAT_ADC_PIN   1    // GPIO1: entrada do divisor
 #define VBAT_CTRL_PIN  37   // GPIO37: controle do ADC_Ctrl da Heltec V3.2
 #define VBAT_CTRL_ON   HIGH // V3.2: habilita a detecção em HIGH
-#define VBAT_CTRL_OFF  LOW
 #define VBAT_DIVIDER   4.9f // Fator de divisão
 #define VBAT_SAMPLES   8    // Número de amostras para média
 
@@ -30,9 +29,10 @@ void setup() {
   
   // Configurar pinos
   pinMode(VBAT_CTRL_PIN, OUTPUT);
-  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_OFF);  // Começa desligado
+  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_ON);  // V3.2: mantém ADC_Ctrl habilitado
   analogReadResolution(12);
   analogSetPinAttenuation(VBAT_ADC_PIN, ADC_11db);
+  delay(100);
   
   // Cabeçalho
   Serial.println("\n\n");
@@ -52,10 +52,6 @@ void setup() {
 }
 
 void loop() {
-  // Liga o divisor e espera estabilização
-  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_ON);
-  delay(100);
-  
   // Coleta 8 amostras
   uint32_t soma = 0;
   for (int i = 0; i < VBAT_SAMPLES; i++) {
@@ -63,9 +59,6 @@ void loop() {
     soma += amostra;
     ultimeLeiturasADC[i] = amostra;
   }
-  
-  // Desliga o divisor (economiza bateria)
-  digitalWrite(VBAT_CTRL_PIN, VBAT_CTRL_OFF);
   
   // Calcula média
   uint32_t mediaADC_mV = soma / VBAT_SAMPLES;
