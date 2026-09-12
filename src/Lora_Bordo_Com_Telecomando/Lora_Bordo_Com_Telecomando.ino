@@ -226,6 +226,10 @@ void iniciarOpenLog() {
 // ==========================================================================
 
 float calibrarTensaoBateria(uint32_t adcMv) {
+  // Sem esta proteção, ADC=0 é extrapolado pelo primeiro segmento da tabela
+  // e aparece incorretamente como aproximadamente 0,5 V.
+  if (adcMv == 0) return 0.0f;
+
   // Fora da faixa medida, prolonga o primeiro/último segmento. Abaixo de
   // 3,60 V a leitura deve ser validada depois com novos pontos de calibração.
   size_t i = 0;
@@ -248,7 +252,10 @@ float lerTensaoBateria() {
   uint32_t soma = 0;
   for (int i = 0; i < VBAT_SAMPLES; i++) soma += analogReadMilliVolts(VBAT_ADC_PIN);
   digitalWrite(VBAT_CTRL_PIN, HIGH);  // desliga para não drenar a bateria
-  return calibrarTensaoBateria(soma / VBAT_SAMPLES) / 1000.0f;
+  uint32_t adcMv = soma / VBAT_SAMPLES;
+  float tensao = calibrarTensaoBateria(adcMv) / 1000.0f;
+  Serial.printf("[BAT] ADC medio: %lu mV | tensao: %.3f V\n", adcMv, tensao);
+  return tensao;
 }
 
 // =========================================================================
