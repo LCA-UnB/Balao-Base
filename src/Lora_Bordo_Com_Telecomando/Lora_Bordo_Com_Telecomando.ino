@@ -1,20 +1,18 @@
 /*
-  LoraBordo - GY-86 (10DOF) + GPS + Telecomando (Slots ancorados no GPS)
-  - Segundo IMPAR = janela de transmissao da telemetria
-  - Segundo PAR   = janela de escuta de telecomandos (1000 ms inteiros)
-  - SD Card desobstruido para nao travar o RTOS do Radio.
+  Receptor/Transmissor de Solo - Slots ancorados no GPS do balao
+  - O bordo transmite no segundo IMPAR e escuta o segundo PAR inteiro.
+  - O solo nao tem GPS: ele deriva a janela a partir do instante em que a
+    telemetria termina de chegar, e mira o CENTRO da janela de escuta.
+  - Retransmite o comando ate o campo Ack: da telemetria confirmar.
+
+  ATUALIZACAO: adicionada leitura/impressao dos campos de aceleracao
+  enviados pelo bordo (AX, AY, AZ instantaneos e AXavg, AYavg, AZavg,
+  medias da janela de 1s calculada no bordo).
 */
 
 #include "LoRaWan_APP.h"
 #include "Arduino.h"
-#include <Wire.h>
-#include <SparkFun_u-blox_GNSS_v3.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_HMC5883_U.h>
-#include <MS5611.h>
 
-// --- LORA ---
 #define RF_FREQUENCY                                910500000
 #define TX_OUTPUT_POWER                             18
 #define LORA_BANDWIDTH                              0
@@ -27,12 +25,26 @@
 #define RX_TIMEOUT_VALUE                            1000
 #define BUFFER_SIZE                                 256
 
-// Cadencia nominal de um slot completo (par + impar) = 2000 ms.
-// Um intervalo minimo de 1500 ms entre disparos garante no maximo um
-// evento por slot mesmo se o segundo do GPS oscilar ou retroceder.
-#define SLOT_INTERVALO_MIN_MS                       1500
+// --- GEOMETRIA DO SLOT ---
+// O bordo comeca a transmitir no topo de um segundo impar; a telemetria
+// (~150 bytes em SF7/BW125/CR4-5) ocupa ~250 ms no ar. Logo, quando o
+// RxDone dispara aqui, estamos ~250 ms dentro do segundo impar.
+// O segundo par seguinte - a janela de escuta - comeca 750 ms depois e
+// dura 1000 ms. Miramos o centro dela para ter ~500 ms de folga dos dois
+// lados, absorvendo qualquer jitter de um lado ou do outro.
+#define AIRTIME_TELEMETRIA_MS                       250
+#define JANELA_ESCUTA_MS                            1000
+#define ATRASO_COMANDO_MS  ((JANELA_ESCUTA_MS - AIRTIME_TELEMETRIA_MS) + (JANELA_ESCUTA_MS / 2))
 
-char txpacket[BUFFER_SIZE];
+// Quantas janelas tentar antes de desistir de um comando.
+#define MAX_TENTATIVAS                              5
+
+// A telemetria agora carrega 20 campos (14 originais + AX/AY/AZ +
+// AXavg/AYavg/AZavg). Com o CRC ligado, um pacote que chega integro tem
+// todos. Menos que isso e' corrupcao: descarta em vez de imprimir os
+// valores da leitura anterior como se fossem novos.
+#define CAMPOS_ESPERADOS                            20
+
 char rxpacket[BUFFER_SIZE];
 static RadioEvents_t RadioEvents;
 
@@ -43,8 +55,31 @@ volatile bool rxErrFlag  = false;
 volatile int16_t rxRssi = 0;
 volatile int8_t  rxSnr  = 0;
 
+// === AGENDAMENTO DO COMANDO ===
+bool     envio_agendado = false;
+uint32_t envio_em_ms = 0;
+
 // === CONTADORES DE DIAGNOSTICO ===
-uint32_t cntTx = 0, cntRxOk = 0, cntRxErr = 0, cntLogPulado = 0;
+uint32_t cntRxOk = 0, cntRxErr = 0, cntDescartado = 0, cntTx = 0;
+
+// --- VARIAVEIS DE DADOS ---
+double r_lat, r_lon;
+float r_alt, r_alt_b;
+int32_t r_sat, r_fix, r_ack = 0;
+int r_hora, r_minuto, r_segundo;
+float r_temp, r_press, r_bat;
+float r_pitch, r_roll, r_yaw;
+float r_ax, r_ay, r_az;
+float r_axavg, r_ayavg, r_azavg;
+
+// --- VARIAVEIS DE TELECOMANDO ---
+int pending_cmd = 0;
+bool has_cmd = false;
+uint8_t tentativas = 0;
+
+// --- ENTRADA SERIAL NAO BLOQUEANTE ---
+char serialBuf[32];
+uint8_t serialLen = 0;
 
 void OnTxDone( void );
 void OnTxTimeout( void );
@@ -52,73 +87,24 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 void OnRxTimeout( void );
 void OnRxError( void );
 
-// --- OPENLOG ---
-#define OPENLOG_RX 3
-#define OPENLOG_TX 2
-HardwareSerial OpenLogSerial(2);
-
-// --- PINOS E SENSORES ---
-#define SDA_GPS_PIN 41
-#define SCL_GPS_PIN 42
-#define SDA_GY86_PIN 48
-#define SCL_GY86_PIN 47
-#define REFERENCE_PRESSURE_HPA 1013.25
-#define TEMP_CORR (-2)
-
-// --- BATERIA (divisor interno da Heltec WiFi LoRa 32 V3) ---
-#define VBAT_ADC_PIN   1    // GPIO1: saída do divisor resistivo da bateria
-#define VBAT_CTRL_PIN  37   // GPIO37: habilita o divisor (ativo em LOW)
-#define VBAT_DIVIDER   4.9f // fator do divisor: Vbat = Vadc * 4.9
-#define VBAT_SAMPLES   8
-
-float lastBatVolts = 0.0;
-
-SFE_UBLOX_GNSS myGNSS;
-Adafruit_MPU6050 mpu;
-Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
-MS5611 ms5611(0x77);
-
-// --- VARIAVEIS IMU ---
-float lastAccelX = 0, lastAccelY = 0, lastAccelZ = 0;
-float lastGyroX = 0, lastGyroY = 0, lastGyroZ = 0;
-float lastMagX = 0, lastMagY = 0, lastMagZ = 0;
-float lastPitch = 0, lastRoll = 0, lastYaw = 0;
-float roll = 0.0, pitch = 0.0, yaw = 0.0;
-float pitchOffset = 0.0, rollOffset = 0.0, yawOffset = 0.0;
-float gyroBiasX = 0.0, gyroBiasY = 0.0, gyroBiasZ = 0.0; // bias do giroscopio, medido em repouso
-unsigned long lastTime = 0;
-const float alpha = 0.98;
-uint32_t imuInterval = 200;
-uint32_t lastImuTick = 0;
-
-bool openLogConectado = false;
-bool openLogAltaVelocidade = false;
-uint32_t loteContador = 0;
-char nomeArquivoSD[32];
-
-// --- VARIAVEIS CACHE GPS ---
-int32_t t_lat = 0, t_lon = 0;
-float t_alt = 0;
-uint8_t t_siv = 0, t_fix = 0;
-uint8_t t_hora = 0, t_min = 0, t_sec = 0;
-
-// --- RELOGIO TDM ---
-uint8_t  tdm_sec_ancora = 0;   // segundo do GPS no instante da ancora
-uint32_t tdm_ancora_ms  = 0;   // millis() daquele instante
-bool     tdm_valido     = false;
-uint8_t  last_tdm_sec   = 255;
-uint32_t ultimoTxMs      = 0;
-uint32_t ultimaJanelaMs  = 0;
-
-int ack_val = 0;
-bool ack_pendente = false;
-
-// ---- MEDIA DAS ACELARACOES ---
-#define ACCEL_AVG_WINDOW_MS                         1000   // pode trocar pra qualquer intervalo
-double accelSomaX = 0, accelSomaY = 0, accelSomaZ = 0;
-uint32_t accelAmostras = 0;
-uint32_t accelJanelaInicio = 0;
-float avgAccelX = 0, avgAccelY = 0, avgAccelZ = 0;
+bool lerLong(const char *chave, int32_t *dest) {
+  const char *p = strstr(rxpacket, chave);
+  if (p == NULL) return false;
+  *dest = (int32_t)atol(p + strlen(chave));
+  return true;
+}
+bool lerFloat(const char *chave, float *dest) {
+  const char *p = strstr(rxpacket, chave);
+  if (p == NULL) return false;
+  *dest = atof(p + strlen(chave));
+  return true;
+}
+bool lerDouble(const char *chave, double *dest) {
+  const char *p = strstr(rxpacket, chave);
+  if (p == NULL) return false;
+  *dest = strtod(p + strlen(chave), NULL);
+  return true;
+}
 
 // ==========================================================================
 //  RADIO
@@ -138,225 +124,19 @@ void reconfigurarLoRaRX() {
                     0, true, 0, 0, LORA_IQ_INVERSION_ON, true);
 }
 
-// Coloca o radio em escuta continua a partir de um estado conhecido.
 void abrirEscuta() {
   Radio.Standby();
   reconfigurarLoRaRX();
   Radio.Rx(0);
 }
 
-// O radio e' um recurso polled: sem IrqProcess() nenhum callback dispara.
-// Chamado entre os blocos pesados do loop, nao apenas no fim dele.
 inline void servicoRadio() {
   Radio.IrqProcess();
 }
 
-// ==========================================================================
-//  OPENLOG
-// ==========================================================================
-
-// Escreve no SD apenas se a linha couber no buffer da UART. Uma linha de
-// 150 bytes a 9600 baud leva ~155 ms para sair; esperar por isso dentro do
-// loop custaria a janela de escuta do radio, entao o log e' o que cede.
-void logSD(const char *linha) {
-  if (!openLogConectado) return;
-  size_t necessario = strlen(linha) + 2;
-  if ((size_t)OpenLogSerial.availableForWrite() < necessario) {
-    cntLogPulado++;
-    return;
-  }
-  OpenLogSerial.println(linha);
-}
-
-bool entrarModoComandoOpenLog(bool comSilencio) {
-  if (comSilencio) {
-    uint32_t tq = millis();
-    while (millis() - tq < 1000) {
-      while (OpenLogSerial.available()) OpenLogSerial.read();
-      delay(10);
-    }
-  }
-  while (OpenLogSerial.available()) OpenLogSerial.read();
-  for (int i = 0; i < 3; i++) { OpenLogSerial.write(0x1A); delay(10); }
-  OpenLogSerial.write(0x0D);
-
-  bool achou = false;
-  uint32_t t0 = millis();
-  while (millis() - t0 < 150) {
-    while (OpenLogSerial.available()) {
-      uint8_t b = OpenLogSerial.read();
-      if ((char)b == '<' || (char)b == '>') achou = true;
-    }
-  }
-  return achou;
-}
-
-void iniciarOpenLog() {
-  delay(2000);
-  OpenLogSerial.begin(57600, SERIAL_8N1, OPENLOG_RX, OPENLOG_TX);
-  delay(500);
-  if (entrarModoComandoOpenLog(true)) {
-    openLogConectado = true; openLogAltaVelocidade = true; imuInterval = 25;
-    return;
-  }
-  OpenLogSerial.end();
-  OpenLogSerial.begin(9600, SERIAL_8N1, OPENLOG_RX, OPENLOG_TX);
-  delay(500);
-  if (entrarModoComandoOpenLog(true)) {
-    openLogConectado = true; openLogAltaVelocidade = false; imuInterval = 200;
-    return;
-  }
-  openLogConectado = false; openLogAltaVelocidade = false;
-}
-
-// ==========================================================================
-//  BATERIA
-// ==========================================================================
-
-float lerTensaoBateria() {
-  digitalWrite(VBAT_CTRL_PIN, LOW);   // liga o divisor
-  delay(5);                            // estabiliza o MOSFET antes da amostragem
-  uint32_t soma = 0;
-  for (int i = 0; i < VBAT_SAMPLES; i++) soma += analogReadMilliVolts(VBAT_ADC_PIN);
-  digitalWrite(VBAT_CTRL_PIN, HIGH);  // desliga para não drenar a bateria
-  return ((float)soma / VBAT_SAMPLES) * VBAT_DIVIDER / 1000.0f;
-}
-
-// =========================================================================
-// TABELA DE CALIBRAÇÃO ATUALIZADA COM OS DADOS DA FONTE (incrementos de 50 mV)
-// =========================================================================
-// Tensões reais em mV vs valores lidos do ADC
-// Calibração: tensão_real = valor_lido_mV * VBAT_DIVIDER
-const int tensoesReais[] = { 3000, 3050, 3100, 3150, 3200, 3250, 3300, 3350, 
-                            3400, 3450, 3500, 3550, 3600, 3650, 3700, 3750,
-                            3800, 3850, 3900, 3950, 4000, 4050, 4100, 4150, 4200 };
-const int valoresLidos[] = {  612,  623,  633,  643,  653,  663,  673,  684,
-                             694,  704,  714,  724,  735,  745,  755,  765,
-                             776,  786,  796,  806,  816,  827,  837,  847,  857 };
-
-// =========================================================================
-//  IMU
-// ==========================================================================
-
-void atualizarIMU() {
-  unsigned long currentTime = micros();
-  float dt = (currentTime - lastTime) / 1000000.0;
-  lastTime = currentTime;
-
-  sensors_event_t a, g, temp_mpu, m;
-  mpu.getEvent(&a, &g, &temp_mpu);
-  mag.getEvent(&m);
-
-  lastAccelX = a.acceleration.x; lastAccelY = a.acceleration.y; lastAccelZ = a.acceleration.z;
-  lastGyroX = g.gyro.x;          lastGyroY = g.gyro.y;          lastGyroZ = g.gyro.z;
-  lastMagX = m.magnetic.x;       lastMagY = m.magnetic.y;       lastMagZ = m.magnetic.z;
-
-  // Acumula a aceleracao instantanea para a media da janela (ver atualizarMediaAceleracao()).
-  accelSomaX += lastAccelX;
-  accelSomaY += lastAccelY;
-  accelSomaZ += lastAccelZ;
-  accelAmostras++;
-
-  float accRoll = atan2(a.acceleration.y, a.acceleration.z) * 180.0 / PI;
-  float accPitch = atan2(-a.acceleration.x, sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z)) * 180.0 / PI;
-
-  float gyroRollRate = g.gyro.x * 180.0 / PI;
-  float gyroPitchRate = g.gyro.y * 180.0 / PI;
-
-  roll = alpha * (roll + gyroRollRate * dt) + (1.0 - alpha) * accRoll;
-  pitch = alpha * (pitch + gyroPitchRate * dt) + (1.0 - alpha) * accPitch;
-
-  float rollRad = roll * PI / 180.0;
-  float pitchRad = pitch * PI / 180.0;
-
-  float Xh = lastMagX * cos(pitchRad) + lastMagZ * sin(pitchRad);
-  float Yh = lastMagX * sin(rollRad) * sin(pitchRad) + lastMagY * cos(rollRad) - lastMagZ * sin(rollRad) * cos(pitchRad);
-  yaw = atan2(Yh, Xh) * 180.0 / PI;
-  if (yaw < 0) yaw += 360.0;
-}
-
-// Verifica se a janela de tempo (ACCEL_AVG_WINDOW_MS) fechou; se sim, calcula
-// a media das amostras acumuladas desde a ultima janela e zera os acumuladores.
-// Chamada a cada ciclo do loop, mas so recalcula quando o tempo da janela passa.
-
-void atualizarMediaAceleracao() {
-  if (millis() - accelJanelaInicio < ACCEL_AVG_WINDOW_MS) return;
-  if (accelAmostras > 0) {
-    avgAccelX = accelSomaX / accelAmostras;
-    avgAccelY = accelSomaY / accelAmostras;
-    avgAccelZ = accelSomaZ / accelAmostras;
-  }
-  accelSomaX = 0; accelSomaY = 0; accelSomaZ = 0;
-  accelAmostras = 0;
-  accelJanelaInicio = millis();
-}
-
-void calibrarIMU() {
-  Serial.println(F("[IMU] Calibrando (mantenha a montagem imovel)..."));
-
-  const int amostrasBias = 200; // ~1s a 5ms/amostra
-  double somaGX = 0, somaGY = 0, somaGZ = 0;
-  double somaAccRoll = 0, somaAccPitch = 0;
-
-  for (int i = 0; i < amostrasBias; i++) {
-    sensors_event_t a, g, temp_mpu;
-    mpu.getEvent(&a, &g, &temp_mpu);
-
-    somaGX += g.gyro.x;
-    somaGY += g.gyro.y;
-    somaGZ += g.gyro.z;
-
-    somaAccRoll  += atan2(a.acceleration.y, a.acceleration.z) * 180.0 / PI;
-    somaAccPitch += atan2(-a.acceleration.x, sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z)) * 180.0 / PI;
-
-    delay(5);
-  }
-
-  gyroBiasX = somaGX / amostrasBias;
-  gyroBiasY = somaGY / amostrasBias;
-  gyroBiasZ = somaGZ / amostrasBias;
-
-  // Semeia o filtro JA na orientacao real (calculada so pelo acelerometro).
-  // E' isso que garante zerar corretamente mesmo ligando na vertical.
-  roll  = somaAccRoll  / amostrasBias;
-  pitch = somaAccPitch / amostrasBias;
-
-  Serial.printf("[IMU] Bias giro X:%.3f Y:%.3f Z:%.3f | Seed roll:%.2f pitch:%.2f\n",
-                gyroBiasX, gyroBiasY, gyroBiasZ, roll, pitch);
-
-  // Deixa o filtro assentar (yaw depende do magnetometro e do roll/pitch
-  // ja quase corretos) e tira o offset como media das ultimas amostras.
-  lastTime = micros();
-  const int amostrasAssentamento = 300; // ~3s a 10ms/amostra
-  const int janelaMedia = 50;           // media das ultimas 50 amostras
-  double somaRollFinal = 0, somaPitchFinal = 0, somaYawFinal = 0;
-
-  for (int i = 0; i < amostrasAssentamento; i++) {
-    atualizarIMU();
-    if (i >= amostrasAssentamento - janelaMedia) {
-      somaRollFinal  += roll;
-      somaPitchFinal += pitch;
-      somaYawFinal   += yaw;
-    }
-    delay(10);
-  }
-
-  rollOffset  = somaRollFinal  / janelaMedia;
-  pitchOffset = somaPitchFinal / janelaMedia;
-  yawOffset   = somaYawFinal   / janelaMedia;
-
-  Serial.printf("[IMU] Offsets finais -> Pitch:%.2f Roll:%.2f Yaw:%.2f\n",
-                pitchOffset, rollOffset, yawOffset);
-}
-
-
-// ==========================================================================
-//  RELOGIO TDM
-// ==========================================================================
-
-uint8_t tdmSegundoAtual() {
-  if (!tdm_valido) return (millis() / 1000) % 60;   // sem fix: relogio livre
-  return (uint8_t)((tdm_sec_ancora + ((millis() - tdm_ancora_ms) / 1000)) % 60);
+void agendarEnvio() {
+  envio_agendado = true;
+  envio_em_ms = millis() + ATRASO_COMANDO_MS;
 }
 
 // ==========================================================================
@@ -366,11 +146,10 @@ uint8_t tdmSegundoAtual() {
 void setup() {
   Serial.begin(115200);
   Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
-  delay(1000);
 
+  RadioEvents.RxDone    = OnRxDone;
   RadioEvents.TxDone    = OnTxDone;
   RadioEvents.TxTimeout = OnTxTimeout;
-  RadioEvents.RxDone    = OnRxDone;
   RadioEvents.RxTimeout = OnRxTimeout;
   RadioEvents.RxError   = OnRxError;
 
@@ -379,129 +158,103 @@ void setup() {
   reconfigurarLoRaTX();
   reconfigurarLoRaRX();
 
-  pinMode(VBAT_CTRL_PIN, OUTPUT);
-  digitalWrite(VBAT_CTRL_PIN, HIGH);
-  analogSetPinAttenuation(VBAT_ADC_PIN, ADC_11db);
-  lastBatVolts = lerTensaoBateria();
+  Serial.println(F("Estacao de Solo iniciada."));
+  Serial.printf("Comando sera disparado %d ms apos cada telemetria (centro da janela de escuta).\n", ATRASO_COMANDO_MS);
+  Serial.println(F("Digite um numero e ENTER para enviar um telecomando.\n"));
 
-  Wire.begin(SDA_GY86_PIN, SCL_GY86_PIN); Wire.setClock(400000);
-  Wire1.begin(SDA_GPS_PIN, SCL_GPS_PIN); Wire1.setClock(100000);
-
-  mpu.begin(0x68, &Wire); mpu.setI2CBypass(true); delay(50);
-  mag.begin(); ms5611.begin();
-  myGNSS.begin(Wire1); myGNSS.setI2COutput(COM_TYPE_UBX);
-
-  if (myGNSS.setDynamicModel(DYN_MODEL_AIRBORNE4g) == false) {
-    Serial.println(F("[GNSS] Falha ao configurar Dynamic Model Airborne4g!"));
-  } else {
-    Serial.println(F("[GNSS] Dynamic Model = Airborne <4g (ok)"));
-  }
-
-  uint8_t modeloAtual = myGNSS.getDynamicModel();
-
-  if (modeloAtual == DYN_MODEL_UNKNOWN)
-  {
-    Serial.println(F("*** Warning: getDynamicModel failed ***"));
-  }
-  else
-  {
-    Serial.printf("[GNSS] Dynamic Model lido de volta: %d (esperado: %d = AIRBORNE4g)\n",
-              modeloAtual, DYN_MODEL_AIRBORNE4g);
-  }
-
-  myGNSS.saveConfiguration();
-
-  // Sem isto, getPVT() faz um poll explicito e BLOQUEIA o loop por ate
-  // kUBLOXGNSSDefaultMaxWait (1100 ms), derrubando a janela de escuta.
-  // Com autoPVT o modulo reporta sozinho e getPVT(0) apenas consome.
-  myGNSS.setAutoPVT(true);
-
-  iniciarOpenLog();
-  snprintf(nomeArquivoSD, sizeof(nomeArquivoSD), "log_%lu.txt", millis());
-  if (openLogConectado) {
-    OpenLogSerial.print("new "); OpenLogSerial.print(nomeArquivoSD); OpenLogSerial.write(0x0D); delay(30);
-    while (OpenLogSerial.available()) OpenLogSerial.read();
-    OpenLogSerial.print("append "); OpenLogSerial.print(nomeArquivoSD); OpenLogSerial.write(0x0D); delay(30);
-    while (OpenLogSerial.available()) OpenLogSerial.read();
-    OpenLogSerial.println(F("# Logs TDM"));
-  }
-
-  calibrarIMU();
-
-  lastImuTick = millis();
-  lastTime = micros();
-
-  Serial.println(F("[LORA] Slots: segundo IMPAR = TX telemetria | segundo PAR = escuta."));
   abrirEscuta();
 }
 
 // ==========================================================================
-//  TELEMETRIA
+//  RECEPCAO
 // ==========================================================================
 
-void montarEEnviarTelemetria(uint8_t sec_atual) {
-  ms5611.read();
-  lastBatVolts = lerTensaoBateria();
-  float temp = ms5611.getTemperature() + TEMP_CORR;
-  float press = ms5611.getPressure();
-  float altBar = 44330.0F * (1.0F - pow(press / REFERENCE_PRESSURE_HPA, 0.1903F));
+void processarTelemetria() {
+  int campos = 0;
+  if (lerDouble("Lat:", &r_lat))    campos++;
+  if (lerDouble("Lon:", &r_lon))    campos++;
+  if (lerFloat("Alt:", &r_alt))     campos++;
+  if (lerFloat("AltB:", &r_alt_b))  campos++;
+  if (lerLong("Sat:", &r_sat))      campos++;
+  if (lerLong("Fix:", &r_fix))      campos++;
+  if (lerFloat("T:", &r_temp))      campos++;
+  if (lerFloat("P:", &r_press))     campos++;
+  if (lerFloat("Pitch:", &r_pitch)) campos++;
+  if (lerFloat("Roll:", &r_roll))   campos++;
+  if (lerFloat("Yaw:", &r_yaw))     campos++;
+  if (lerFloat("AX:", &r_ax))       campos++;
+  if (lerFloat("AY:", &r_ay))       campos++;
+  if (lerFloat("AZ:", &r_az))       campos++;
+  if (lerFloat("AXavg:", &r_axavg)) campos++;
+  if (lerFloat("AYavg:", &r_ayavg)) campos++;
+  if (lerFloat("AZavg:", &r_azavg)) campos++;
+  if (lerFloat("Bat:", &r_bat))     campos++;
+  if (lerLong("Ack:", &r_ack))      campos++;
 
-  // snprintf devolve o tamanho que SERIA escrito. Sem o teto, pos pode passar
-  // de BUFFER_SIZE e (BUFFER_SIZE - pos) vira um size_t enorme na chamada
-  // seguinte, anulando a protecao do proprio snprintf.
-  int ack_no_pacote = ack_val;
-
-  int pos = 0;
-  #define ADD(...) do { \
-      if (pos < BUFFER_SIZE - 1) { \
-        int _n = snprintf(txpacket + pos, BUFFER_SIZE - pos, __VA_ARGS__); \
-        if (_n > 0) pos = (_n >= BUFFER_SIZE - pos) ? BUFFER_SIZE - 1 : pos + _n; \
-      } \
-    } while (0)
-
-  ADD("PT2UNB\n");
-  ADD("Lat:%.7f\n", (double)t_lat / 10000000.0);
-  ADD("Lon:%.7f\n", (double)t_lon / 10000000.0);
-  ADD("Alt:%.1f\n", t_alt);
-  ADD("AltB:%.1f\n", altBar);
-  ADD("Sat:%d\n", t_siv);
-  ADD("Fix:%d\n", t_fix);
-  ADD("T:%.1f\n", temp);
-  ADD("P:%.1f\n", press);
-  ADD("Time:%02d:%02d:%02d\n", t_hora, t_min, sec_atual);
-  ADD("Pitch:%.2f\n", lastPitch);
-  ADD("Roll:%.2f\n", lastRoll);
-  ADD("Yaw:%.2f\n", lastYaw);
-  ADD("AX:%.3f\n", lastAccelX);
-  ADD("AY:%.3f\n", lastAccelY);
-  ADD("AZ:%.3f\n", lastAccelZ);
-  ADD("AXavg:%.3f\n", avgAccelX);
-  ADD("AYavg:%.3f\n", avgAccelY);
-  ADD("AZavg:%.3f\n", avgAccelZ);
-  ADD("Bat:%.2f\n", lastBatVolts);
-  ADD("Ack:%d\n", ack_no_pacote);
-  #undef ADD
-
-  if (openLogConectado) {
-    loteContador++;
-    char cab[48];
-    snprintf(cab, sizeof(cab), "LOTE_%lu,%lu", loteContador, millis());
-    logSD(cab);
-    logSD(txpacket);
+  const char *pt = strstr(rxpacket, "Time:");
+  if (pt != NULL && sscanf(pt, "Time:%d:%d:%d", &r_hora, &r_minuto, &r_segundo) == 3) {
+    campos++;
   }
 
-  Serial.printf("[TX slot %02d] telemetria %d bytes | Ack:%d | Bat:%.2f V\n", sec_atual, pos, ack_no_pacote, lastBatVolts);
-
-  Radio.Standby();
-  reconfigurarLoRaTX();
-  Radio.Send((uint8_t *)txpacket, strlen(txpacket));
-  cntTx++;
-
-  if (ack_pendente) {
-    ack_val = 0;
-    ack_pendente = false;
-    Serial.println(F("[ACK] ACK de comando consumido. Estado neutro (0) restaurado."));
+  if (campos < CAMPOS_ESPERADOS) {
+    cntDescartado++;
+    Serial.printf("[AVISO] Pacote incompleto: %d/%d campos. Descartado (total: %lu).\n",
+                  campos, CAMPOS_ESPERADOS, cntDescartado);
+    abrirEscuta();
+    return;
   }
+
+  Serial.println(F("\n------- PT2UNB -------"));
+  Serial.printf("RSSI:%d dBm | SNR:%d dB\n", rxRssi, rxSnr);
+  Serial.print(F("Lat:"));    Serial.println(r_lat, 7);
+  Serial.print(F("Lon:"));    Serial.println(r_lon, 7);
+  Serial.print(F("Alt:"));    Serial.println(r_alt, 1);
+  Serial.print(F("AltB:"));   Serial.println(r_alt_b, 1);
+  Serial.print(F("Sat:"));    Serial.println(r_sat);
+  Serial.print(F("Fix:"));    Serial.println(r_fix);
+  Serial.print(F("T:"));      Serial.println(r_temp, 1);
+  Serial.print(F("P:"));      Serial.println(r_press, 1);
+  Serial.printf("Time:%02d:%02d:%02d\n", r_hora, r_minuto, r_segundo);
+  Serial.print(F("Pitch:"));  Serial.println(r_pitch, 2);
+  Serial.print(F("Roll:"));   Serial.println(r_roll, 2);
+  Serial.print(F("Yaw:"));    Serial.println(r_yaw, 2);
+  Serial.print(F("AX:"));     Serial.println(r_ax, 3);
+  Serial.print(F("AY:"));     Serial.println(r_ay, 3);
+  Serial.print(F("AZ:"));     Serial.println(r_az, 3);
+  Serial.print(F("AXavg:"));  Serial.println(r_axavg, 3);
+  Serial.print(F("AYavg:"));  Serial.println(r_ayavg, 3);
+  Serial.print(F("AZavg:"));  Serial.println(r_azavg, 3);
+  Serial.print(F("Bat:"));    Serial.println(r_bat, 2);
+  Serial.printf("Ack:%ld\n", (long)r_ack);
+  Serial.println(F("----------------------"));
+
+  if (!has_cmd) {
+    abrirEscuta();
+    return;
+  }
+
+  // Exige ao menos uma transmissao antes de aceitar a confirmacao, para nao
+  // confundir um Ack: remanescente de uma sessao anterior com uma resposta.
+  if (tentativas > 0 && r_ack == pending_cmd + 1) {
+    Serial.printf(">>> COMANDO %d CONFIRMADO pelo balao (Ack:%ld) apos %d tentativa(s).\n\n",
+                  pending_cmd, (long)r_ack, tentativas);
+    has_cmd = false;
+    abrirEscuta();
+    return;
+  }
+
+  if (tentativas >= MAX_TENTATIVAS) {
+    Serial.printf(">>> COMANDO %d NAO confirmado apos %d tentativas. Desistindo.\n",
+                  pending_cmd, tentativas);
+    Serial.println(F("    Verifique alcance, antena e se o bordo esta transmitindo.\n"));
+    has_cmd = false;
+    abrirEscuta();
+    return;
+  }
+
+  Serial.printf("[TDM] Comando %d aguardando janela (tentativa %d de %d, em %d ms).\n",
+                pending_cmd, tentativas + 1, MAX_TENTATIVAS, ATRASO_COMANDO_MS);
+  agendarEnvio();
 }
 
 // ==========================================================================
@@ -509,30 +262,15 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
 // ==========================================================================
 
 void loop() {
-  // === EVENTOS DO RADIO ===
   if (txDoneFlag) {
     txDoneFlag = false;
-    // O RX ja foi re-armado dentro do callback; aqui so registramos.
-    Serial.println(F("[LORA] TX concluido, radio de volta em escuta."));
+    Serial.println(F("[TX] Comando no ar. Voltando a escutar."));
   }
 
   if (rxDoneFlag) {
     rxDoneFlag = false;
     cntRxOk++;
-    Serial.printf("\n>>> [TELECOMANDO] RSSI:%d dBm | SNR:%d dB | %s\n", rxRssi, rxSnr, rxpacket);
-
-    int cmd_recebido = 0;
-    if (sscanf(rxpacket, "CMD:%d", &cmd_recebido) == 1) {
-      ack_val = cmd_recebido + 1;
-      ack_pendente = true;
-      Serial.printf(">>> COMANDO %d ACEITO. Proxima telemetria enviara Ack:%d\n\n", cmd_recebido, ack_val);
-      char linha[64];
-      snprintf(linha, sizeof(linha), "CMD,%lu,%d,rssi:%d,snr:%d", millis(), cmd_recebido, rxRssi, rxSnr);
-      logSD(linha);
-    } else {
-      Serial.println(F(">>> Pacote recebido nao e' um comando valido. Ignorado.\n"));
-    }
-    abrirEscuta();
+    processarTelemetria();
   }
 
   if (rxErrFlag) {
@@ -544,73 +282,43 @@ void loop() {
 
   servicoRadio();
 
-  // === 1. IMU E SD ===
-  if (millis() - lastImuTick >= imuInterval) {
-    lastImuTick = millis();
-    atualizarIMU();
-    lastPitch = pitch - pitchOffset;
-    lastRoll = roll - rollOffset;
-    lastYaw = yaw - yawOffset;
-    if (lastYaw > 180.0) lastYaw -= 360.0;
-    if (lastYaw < -180.0) lastYaw += 360.0;
+  // === DISPARO NA JANELA DE ESCUTA DO BORDO ===
+  // Comparacao com sinal para sobreviver ao rollover de millis().
+  if (envio_agendado && (int32_t)(millis() - envio_em_ms) >= 0) {
+    envio_agendado = false;
+    tentativas++;
 
-    if (openLogConectado) {
-      char imuLine[140];
-      snprintf(imuLine, sizeof(imuLine), "I,%lu,AX:%.2f,AY:%.2f,AZ:%.2f,GX:%.2f,GY:%.2f,GZ:%.2f,MX:%.2f,MY:%.2f,MZ:%.2f,P:%.2f,R:%.2f,Y:%.2f",
-               millis(), lastAccelX, lastAccelY, lastAccelZ, lastGyroX, lastGyroY, lastGyroZ, lastMagX, lastMagY, lastMagZ, lastPitch, lastRoll, lastYaw);
-      logSD(imuLine);
-    }
-  }
+    char txcmd[32];
+    snprintf(txcmd, sizeof(txcmd), "CMD:%d", pending_cmd);
+    Serial.printf("[TDM] Disparando '%s' (tentativa %d de %d).\n", txcmd, tentativas, MAX_TENTATIVAS);
 
-  // Roda todo ciclo do loop; so recalcula de fato quando a janela de tempo fecha.
-  atualizarMediaAceleracao();
-
-  servicoRadio();
-
-  // === 2. GPS (nao bloqueante gracas ao setAutoPVT) ===
-  // Todos os getters recebem maxWait 0: com autoPVT eles leem o cache, e o 0
-  // garante que nenhum caminho interno caia num poll bloqueante.
-  if (myGNSS.getPVT(0) == true) {
-    t_lat = myGNSS.getLatitude(0); t_lon = myGNSS.getLongitude(0);
-    t_alt = myGNSS.getAltitudeMSL(0) / 1000.0F;
-    t_siv = myGNSS.getSIV(0); t_fix = myGNSS.getFixType(0);
-    t_hora = myGNSS.getHour(0); t_min = myGNSS.getMinute(0); t_sec = myGNSS.getSecond(0);
-
-    // Ancora o relogio TDM apenas em hora de GPS realmente valida. Sem fix,
-    // getSecond() devolve 0 de forma constante; re-ancorar a cada PVT nesse
-    // estado congelaria current_sec e a telemetria pararia de sair. Sem hora
-    // valida o slot roda no relogio livre de millis(), e o enlace continua
-    // fechando porque o solo deriva a janela da propria telemetria.
-    if (myGNSS.getTimeValid(0)) {
-      tdm_sec_ancora = t_sec;
-      tdm_ancora_ms = millis();
-      tdm_valido = true;
-    }
+    Radio.Standby();
+    reconfigurarLoRaTX();
+    Radio.Send((uint8_t *)txcmd, strlen(txcmd));
+    cntTx++;
   }
 
   servicoRadio();
 
-  // === 3. SLOTS TDM ===
-  // IMPAR = transmite telemetria | PAR = janela de escuta de 1000 ms.
-  // O intervalo minimo protege contra o segundo do GPS oscilar e disparar
-  // o mesmo slot duas vezes, o que colidiria com o comando do solo.
-  uint8_t current_sec = tdmSegundoAtual();
-
-  if (current_sec != last_tdm_sec) {
-    last_tdm_sec = current_sec;
-
-    if (current_sec % 2 == 1) {
-      if (millis() - ultimoTxMs >= SLOT_INTERVALO_MIN_MS) {
-        ultimoTxMs = millis();
-        montarEEnviarTelemetria(current_sec);
+  // === ENTRADA DO USUARIO (NAO BLOQUEANTE) ===
+  // readStringUntil() bloquearia ate 1 s no timeout padrao de Stream, o que
+  // custaria telemetria e deslocaria o disparo do comando.
+  while (Serial.available() > 0) {
+    char c = (char)Serial.read();
+    if (c == '\n' || c == '\r') {
+      if (serialLen > 0) {
+        serialBuf[serialLen] = '\0';
+        pending_cmd = atoi(serialBuf);
+        has_cmd = true;
+        tentativas = 0;
+        Serial.println(F("\n====================================="));
+        Serial.printf(">> COMANDO [%d] ENFILEIRADO <<\n", pending_cmd);
+        Serial.printf("   Sera enviado na proxima janela de escuta do balao.\n");
+        Serial.println(F("====================================="));
+        serialLen = 0;
       }
-    } else {
-      if (millis() - ultimaJanelaMs >= SLOT_INTERVALO_MIN_MS) {
-        ultimaJanelaMs = millis();
-        Serial.printf("[RX slot %02d] escuta aberta por 1000 ms. (tx:%lu rx:%lu err:%lu log_pulado:%lu)\n",
-                      current_sec, cntTx, cntRxOk, cntRxErr, cntLogPulado);
-        abrirEscuta();
-      }
+    } else if (serialLen < sizeof(serialBuf) - 1) {
+      serialBuf[serialLen++] = c;
     }
   }
 
@@ -619,20 +327,7 @@ void loop() {
 
 // ==========================================================================
 //  CALLBACKS
-//  Rodam no contexto do loop (via IrqProcess), nao numa ISR real, entao
-//  podem chamar a API do radio com seguranca.
 // ==========================================================================
-
-void OnTxDone(void) {
-  // Volta a escutar IMEDIATAMENTE, sem depender de mais uma volta do loop.
-  abrirEscuta();
-  txDoneFlag = true;
-}
-
-void OnTxTimeout(void) {
-  abrirEscuta();
-  txDoneFlag = true;
-}
 
 void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
   if (size >= BUFFER_SIZE) size = BUFFER_SIZE - 1;
@@ -641,6 +336,16 @@ void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
   rxRssi = rssi;
   rxSnr = snr;
   rxDoneFlag = true;
+}
+
+void OnTxDone(void) {
+  abrirEscuta();
+  txDoneFlag = true;
+}
+
+void OnTxTimeout(void) {
+  abrirEscuta();
+  txDoneFlag = true;
 }
 
 void OnRxTimeout(void) {
