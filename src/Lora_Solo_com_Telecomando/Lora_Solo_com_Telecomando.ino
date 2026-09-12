@@ -4,6 +4,10 @@
   - O solo nao tem GPS: ele deriva a janela a partir do instante em que a
     telemetria termina de chegar, e mira o CENTRO da janela de escuta.
   - Retransmite o comando ate o campo Ack: da telemetria confirmar.
+
+  ATUALIZACAO: adicionada leitura/impressao dos campos de aceleracao
+  enviados pelo bordo (AX, AY, AZ instantaneos e AXavg, AYavg, AZavg,
+  medias da janela de 1s calculada no bordo).
 */
 
 #include "LoRaWan_APP.h"
@@ -35,10 +39,11 @@
 // Quantas janelas tentar antes de desistir de um comando.
 #define MAX_TENTATIVAS                              5
 
-// A telemetria carrega 14 campos. Com o CRC ligado, um pacote que chega
-// integro tem todos. Menos que isso e' corrupcao: descarta em vez de
-// imprimir os valores da leitura anterior como se fossem novos.
-#define CAMPOS_ESPERADOS                            14
+// A telemetria agora carrega 20 campos (14 originais + AX/AY/AZ +
+// AXavg/AYavg/AZavg). Com o CRC ligado, um pacote que chega integro tem
+// todos. Menos que isso e' corrupcao: descarta em vez de imprimir os
+// valores da leitura anterior como se fossem novos.
+#define CAMPOS_ESPERADOS                            20
 
 char rxpacket[BUFFER_SIZE];
 static RadioEvents_t RadioEvents;
@@ -64,6 +69,8 @@ int32_t r_sat, r_fix, r_ack = 0;
 int r_hora, r_minuto, r_segundo;
 float r_temp, r_press, r_bat;
 float r_pitch, r_roll, r_yaw;
+float r_ax, r_ay, r_az;
+float r_axavg, r_ayavg, r_azavg;
 
 // --- VARIAVEIS DE TELECOMANDO ---
 int pending_cmd = 0;
@@ -175,6 +182,12 @@ void processarTelemetria() {
   if (lerFloat("Pitch:", &r_pitch)) campos++;
   if (lerFloat("Roll:", &r_roll))   campos++;
   if (lerFloat("Yaw:", &r_yaw))     campos++;
+  if (lerFloat("AX:", &r_ax))       campos++;
+  if (lerFloat("AY:", &r_ay))       campos++;
+  if (lerFloat("AZ:", &r_az))       campos++;
+  if (lerFloat("AXavg:", &r_axavg)) campos++;
+  if (lerFloat("AYavg:", &r_ayavg)) campos++;
+  if (lerFloat("AZavg:", &r_azavg)) campos++;
   if (lerFloat("Bat:", &r_bat))     campos++;
   if (lerLong("Ack:", &r_ack))      campos++;
 
@@ -193,19 +206,25 @@ void processarTelemetria() {
 
   Serial.println(F("\n------- PT2UNB -------"));
   Serial.printf("RSSI:%d dBm | SNR:%d dB\n", rxRssi, rxSnr);
-  Serial.print(F("Lat:"));   Serial.println(r_lat, 7);
-  Serial.print(F("Lon:"));   Serial.println(r_lon, 7);
-  Serial.print(F("Alt:"));   Serial.println(r_alt, 1);
-  Serial.print(F("AltB:"));  Serial.println(r_alt_b, 1);
-  Serial.print(F("Sat:"));   Serial.println(r_sat);
-  Serial.print(F("Fix:"));   Serial.println(r_fix);
-  Serial.print(F("T:"));     Serial.println(r_temp, 1);
-  Serial.print(F("P:"));     Serial.println(r_press, 1);
+  Serial.print(F("Lat:"));    Serial.println(r_lat, 7);
+  Serial.print(F("Lon:"));    Serial.println(r_lon, 7);
+  Serial.print(F("Alt:"));    Serial.println(r_alt, 1);
+  Serial.print(F("AltB:"));   Serial.println(r_alt_b, 1);
+  Serial.print(F("Sat:"));    Serial.println(r_sat);
+  Serial.print(F("Fix:"));    Serial.println(r_fix);
+  Serial.print(F("T:"));      Serial.println(r_temp, 1);
+  Serial.print(F("P:"));      Serial.println(r_press, 1);
   Serial.printf("Time:%02d:%02d:%02d\n", r_hora, r_minuto, r_segundo);
-  Serial.print(F("Pitch:")); Serial.println(r_pitch, 2);
-  Serial.print(F("Roll:"));  Serial.println(r_roll, 2);
-  Serial.print(F("Yaw:"));   Serial.println(r_yaw, 2);
-  Serial.print(F("Bat:"));   Serial.println(r_bat, 2);
+  Serial.print(F("Pitch:"));  Serial.println(r_pitch, 2);
+  Serial.print(F("Roll:"));   Serial.println(r_roll, 2);
+  Serial.print(F("Yaw:"));    Serial.println(r_yaw, 2);
+  Serial.print(F("AX:"));     Serial.println(r_ax, 3);
+  Serial.print(F("AY:"));     Serial.println(r_ay, 3);
+  Serial.print(F("AZ:"));     Serial.println(r_az, 3);
+  Serial.print(F("AXavg:"));  Serial.println(r_axavg, 3);
+  Serial.print(F("AYavg:"));  Serial.println(r_ayavg, 3);
+  Serial.print(F("AZavg:"));  Serial.println(r_azavg, 3);
+  Serial.print(F("Bat:"));    Serial.println(r_bat, 2);
   Serial.printf("Ack:%ld\n", (long)r_ack);
   Serial.println(F("----------------------"));
 
