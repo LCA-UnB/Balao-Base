@@ -56,6 +56,7 @@ class SondeTrackerApp:
             "Alt": 0.0, "AltB": 0.0, "Sat": 0, "Fix": 0,
             "T": 0.0, "P": 0.0, "Time": "--:--:--",
             "Pitch": 0.0, "Roll": 0.0, "Yaw": 0.0,
+            "AXavg": 0.0, "AYavg": 0.0, "AZavg": 0.0, # <-- Novos campos
             "Bat": 0.0, "Ack": 0,
             "RSSI": 0, "SNR": 0,
             "WindSpeed": "--", "WindDir": "--",
@@ -180,9 +181,9 @@ class SondeTrackerApp:
         self.lbl_bat = self.create_data_label(ptu_frame, "Bat: -- V", COLOR_ACCENT_GREEN, 9, True)
         self.lbl_bat.grid(row=0, column=2, sticky=tk.W)
 
-        # --- IMU ---
+        # --- IMU (Atitude) ---
         imu_frame = self.create_card_frame(self.left_frame, "ATITUDE & STATUS")
-        imu_frame.pack(fill=tk.X)
+        imu_frame.pack(fill=tk.X, pady=(0, 6))
         for i in range(4): imu_frame.grid_columnconfigure(i, weight=1)
         self.lbl_pitch = self.create_data_label(imu_frame, "P: --°")
         self.lbl_pitch.grid(row=0, column=0, sticky=tk.W)
@@ -192,6 +193,17 @@ class SondeTrackerApp:
         self.lbl_yaw.grid(row=0, column=2, sticky=tk.W)
         self.lbl_ack = self.create_data_label(imu_frame, "Ack: --", COLOR_ACCENT_BLUE, 9, True)
         self.lbl_ack.grid(row=0, column=3, sticky=tk.W)
+        
+        # --- ACELERAÇÃO (Novo Card) ---
+        accel_frame = self.create_card_frame(self.left_frame, "ACELERAÇÃO MÉDIA")
+        accel_frame.pack(fill=tk.X, pady=(0, 6))
+        for i in range(3): accel_frame.grid_columnconfigure(i, weight=1)
+        self.lbl_ax = self.create_data_label(accel_frame, "AX: --")
+        self.lbl_ax.grid(row=0, column=0, sticky=tk.W)
+        self.lbl_ay = self.create_data_label(accel_frame, "AY: --")
+        self.lbl_ay.grid(row=0, column=1, sticky=tk.W)
+        self.lbl_az = self.create_data_label(accel_frame, "AZ: --")
+        self.lbl_az.grid(row=0, column=2, sticky=tk.W)
 
         # --- MAPA ---
         self.map_widget = tkintermapview.TkinterMapView(self.center_map_frame, corner_radius=6)
@@ -199,7 +211,7 @@ class SondeTrackerApp:
         self.map_widget.set_position(self.telemetry["Lat"], self.telemetry["Lon"])
         self.map_widget.set_zoom(14)
 
-        # --- GRÁFICOS (4 posições na Figure) ---
+        # --- GRÁFICOS ---
         self.graph_card_frame = tk.Frame(self.right_graph_container, bg=COLOR_BG_CARD, highlightbackground=COLOR_GRAPH_GRID, highlightthickness=1)
         self.graph_card_frame.pack(fill=tk.BOTH, expand=True)
         
@@ -539,6 +551,11 @@ class SondeTrackerApp:
         self.lbl_roll.config(text=f"R: {self.telemetry.get('Roll', '--')}°")
         self.lbl_yaw.config(text=f"Y: {self.telemetry.get('Yaw', '--')}°")
         self.lbl_ack.config(text=f"Ack: {self.telemetry.get('Ack', '--')}")
+        
+        # --- ATUALIZAR ACELERAÇÕES (Corrigido) ---
+        self.lbl_ax.config(text=f"AX: {self.telemetry.get('AXavg', '--')}")
+        self.lbl_ay.config(text=f"AY: {self.telemetry.get('AYavg', '--')}")
+        self.lbl_az.config(text=f"AZ: {self.telemetry.get('AZavg', '--')}")
 
         try:
             lat, lon, alt = float(self.telemetry.get('Lat', 0)), float(self.telemetry.get('Lon', 0)), self.telemetry.get('Alt', '--')
