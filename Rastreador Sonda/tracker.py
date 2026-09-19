@@ -35,6 +35,9 @@ COLOR_TRACK_LINE = "#ff7849"
 FONT_FAMILY = "Segoe UI"
 FONT_MONO = "Consolas"
 
+# A linha A termina a telemetria em MZ; a linha B (telecomando), em Ack.
+PACKET_END_KEYS = {"MZ", "Ack"}
+
 
 class SondeTrackerApp:
     def __init__(self, root):
@@ -625,7 +628,7 @@ class SondeTrackerApp:
                 elif ":" in line:
                     key, value = line.split(":", 1)
                     self.telemetry[key.strip()] = value.strip()
-                    if key.strip() == "MZ":
+                    if key.strip() in PACKET_END_KEYS:
                         self.append_to_history()
                         self.last_packet_time = datetime.datetime.now()
                         self.needs_gui_update = True
