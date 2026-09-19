@@ -1,0 +1,308 @@
+------- PT2UNB -------
+RSSI:-41 dBm | SNR:12 dB
+Lat:-15.7641665
+Lon:-47.8690414
+Alt:1044.4
+AltB:978.8
+Sat:13
+Fix:3
+T:27.6
+P:900.9
+Time:11:42:53
+Pitch:-5.46
+Roll:-16.09
+Yaw:-45.04
+AXavg:0.373
+AYavg:9.701
+AZavg:-1.078
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-41 dBm | SNR:12 dB
+Lat:-15.7641672
+Lon:-47.8690415
+Alt:1044.2
+AltB:979.7
+Sat:13
+Fix:3
+T:27.7
+P:900.8
+Time:11:42:55
+Pitch:-5.41
+Roll:-16.08
+Yaw:-43.24
+AXavg:0.399
+AYavg:9.704
+AZavg:-1.141
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-40 dBm | SNR:12 dB
+Lat:-15.7641683
+Lon:-47.8690421
+Alt:1043.9
+AltB:978.2
+Sat:13
+Fix:3
+T:27.9
+P:900.9
+Time:11:42:57
+Pitch:-5.54
+Roll:-16.05
+Yaw:-49.92
+AXavg:0.385
+AYavg:9.704
+AZavg:-1.139
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-41 dBm | SNR:13 dB
+Lat:-15.7641687
+Lon:-47.8690424
+Alt:1043.7
+AltB:977.9
+Sat:13
+Fix:3
+T:28.0
+P:901.0
+Time:11:42:59
+Pitch:-5.66
+Roll:-16.05
+Yaw:-46.69
+AXavg:0.410
+AYavg:9.693
+AZavg:-1.125
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-40 dBm | SNR:12 dB
+Lat:-15.7641698
+Lon:-47.8690427
+Alt:1043.3
+AltB:979.1
+Sat:13
+Fix:3
+T:28.2
+P:900.8
+Time:11:43:01
+Pitch:-5.62
+Roll:-16.07
+Yaw:-62.06
+AXavg:0.362
+AYavg:9.707
+AZavg:-1.168
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-39 dBm | SNR:13 dB
+Lat:-15.7641709
+Lon:-47.8690427
+Alt:1042.9
+AltB:979.5
+Sat:12
+Fix:3
+T:28.3
+P:900.8
+Time:11:43:03
+Pitch:-5.66
+Roll:-16.12
+Yaw:-47.45
+AXavg:0.415
+AYavg:9.730
+AZavg:-1.121
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-41 dBm | SNR:13 dB
+Lat:-15.7641716
+Lon:-47.8690430
+Alt:1042.7
+AltB:978.5
+Sat:13
+Fix:3
+T:28.4
+P:900.9
+Time:11:43:05
+Pitch:-5.75
+Roll:-16.12
+Yaw:-44.12
+AXavg:0.419
+AYavg:9.710
+AZavg:-1.173
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-73 dBm | SNR:12 dB
+Lat:-15.7641720
+Lon:-47.8690430
+Alt:1042.4
+AltB:979.9
+Sat:12
+Fix:3
+T:28.5
+P:900.7
+Time:11:43:07
+Pitch:-5.74
+Roll:-16.21
+Yaw:-46.12
+AXavg:0.387
+AYavg:9.707
+AZavg:-1.134
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-77 dBm | SNR:12 dB
+Lat:-15.7641724
+Lon:-47.8690434
+Alt:1042.0
+AltB:979.9
+Sat:13
+Fix:3
+T:28.5
+P:900.7
+Time:11:43:09
+Pitch:-5.78
+Roll:-16.16
+Yaw:-46.56
+AXavg:0.386
+AYavg:9.716
+AZavg:-1.179
+Bat:4.20
+Ack:0
+----------------------
+=====================================
+>> COMANDO [1] ENFILEIRADO <<
+Sera enviado na proxima janela de escuta do balao.
+=====================================
+------- PT2UNB -------
+RSSI:-72 dBm | SNR:12 dB
+Lat:-15.7641725
+Lon:-47.8690435
+Alt:1041.9
+AltB:979.6
+Sat:13
+Fix:3
+T:28.5
+P:900.8
+Time:11:43:11
+Pitch:-5.87
+Roll:-16.24
+Yaw:-43.59
+AXavg:0.401
+AYavg:9.717
+AZavg:-1.148
+Bat:4.20
+Ack:0
+----------------------
+[TDM] Comando 1 aguardando janela (tentativa 1 de 5, em 1250 ms).
+[TDM] Disparando 'CMD:1' (tentativa 1 de 5).
+[TX] Comando no ar. Voltando a escutar.
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:-15.7641725
+Lon:-47.8690433
+Alt:1041.8
+AltB:980.4
+Sat:13
+Fix:3
+T:28.6
+P:900.7
+Time:11:43:13
+Pitch:-5.92
+Roll:-16.29
+Yaw:-56.07
+AXavg:0.410
+AYavg:9.736
+AZavg:-1.171
+Bat:4.20
+Ack:2
+----------------------
+>>> COMANDO 1 CONFIRMADO pelo balao (Ack:2) apos 1 tentativa(s).
+------- PT2UNB -------
+RSSI:-42 dBm | SNR:13 dB
+Lat:-15.7641720
+Lon:-47.8690431
+Alt:1041.6
+AltB:979.0
+Sat:12
+Fix:3
+T:28.7
+P:900.8
+Time:11:43:15
+Pitch:-5.94
+Roll:-16.26
+Yaw:-59.27
+AXavg:0.383
+AYavg:9.732
+AZavg:-1.110
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-79 dBm | SNR:12 dB
+Lat:-15.7641714
+Lon:-47.8690427
+Alt:1041.5
+AltB:979.5
+Sat:12
+Fix:3
+T:28.8
+P:900.8
+Time:11:43:17
+Pitch:-5.92
+Roll:-16.30
+Yaw:-47.34
+AXavg:0.399
+AYavg:9.717
+AZavg:-1.124
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-81 dBm | SNR:11 dB
+Lat:-15.7641705
+Lon:-47.8690421
+Alt:1041.4
+AltB:980.2
+Sat:12
+Fix:3
+T:29.0
+P:900.7
+Time:11:43:19
+Pitch:-5.87
+Roll:-16.33
+Yaw:-44.69
+AXavg:0.396
+AYavg:9.694
+AZavg:-1.123
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-81 dBm | SNR:12 dB
+Lat:-15.7641702
+Lon:-47.8690419
+Alt:1041.4
+AltB:980.3
+Sat:13
+Fix:3
+T:29.1
+P:900.7
+Time:11:43:21
+Pitch:-5.83
+Roll:-16.35
+Yaw:-44.88
+AXavg:0.372
+AYavg:9.706
+AZavg:-1.166
+Bat:4.20
+Ack:0
+----------------------
