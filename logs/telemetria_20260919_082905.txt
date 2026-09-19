@@ -1,0 +1,6660 @@
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:12 dB
+Lat:-34.7453361
+Lon:-10.4378152
+Alt:6888.3
+AltB:930.7
+Sat:0
+Fix:0
+T:20.0
+P:906.1
+Time:11:29:05
+Pitch:-8.48
+Roll:1.29
+Yaw:-7.70
+AXavg:0.782
+AYavg:9.748
+AZavg:-0.146
+Bat:4.10
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:12 dB
+Lat:-35.8465636
+Lon:-10.4809147
+Alt:7273.9
+AltB:930.3
+Sat:0
+Fix:0
+T:20.0
+P:906.2
+Time:11:29:07
+Pitch:-8.82
+Roll:1.27
+Yaw:-9.12
+AXavg:0.791
+AYavg:9.756
+AZavg:-0.163
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:13 dB
+Lat:-35.8512507
+Lon:-10.4768427
+Alt:7275.6
+AltB:930.3
+Sat:0
+Fix:0
+T:20.0
+P:906.2
+Time:11:29:09
+Pitch:-9.02
+Roll:1.33
+Yaw:-8.40
+AXavg:0.794
+AYavg:9.736
+AZavg:-0.165
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:-35.8606230
+Lon:-10.4686965
+Alt:7278.9
+AltB:930.0
+Sat:0
+Fix:0
+T:20.0
+P:906.2
+Time:11:29:11
+Pitch:-9.24
+Roll:1.22
+Yaw:-8.99
+AXavg:0.806
+AYavg:9.757
+AZavg:-0.156
+Bat:4.11
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:-35.8699925
+Lon:-10.4605473
+Alt:7282.2
+AltB:930.0
+Sat:0
+Fix:0
+T:20.0
+P:906.2
+Time:11:29:13
+Pitch:-9.47
+Roll:1.23
+Yaw:-9.59
+AXavg:0.767
+AYavg:9.756
+AZavg:-0.172
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:-35.8840416
+Lon:-10.4483178
+Alt:7287.1
+AltB:931.6
+Sat:0
+Fix:0
+T:20.0
+P:906.0
+Time:11:29:15
+Pitch:-9.59
+Roll:1.17
+Yaw:-9.21
+AXavg:0.802
+AYavg:9.769
+AZavg:-0.179
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:-35.8887233
+Lon:-10.4442397
+Alt:7288.8
+AltB:929.3
+Sat:0
+Fix:0
+T:20.0
+P:906.3
+Time:11:29:17
+Pitch:-9.70
+Roll:1.23
+Yaw:-9.44
+AXavg:0.800
+AYavg:9.774
+AZavg:-0.233
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:-35.4284403
+Lon:-10.4129743
+Alt:7126.8
+AltB:931.3
+Sat:0
+Fix:0
+T:20.0
+P:906.1
+Time:11:29:19
+Pitch:-9.88
+Roll:1.24
+Yaw:-9.65
+AXavg:0.794
+AYavg:9.787
+AZavg:-0.161
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:-35.4379226
+Lon:-10.4050170
+Alt:7130.2
+AltB:930.2
+Sat:0
+Fix:0
+T:20.0
+P:906.2
+Time:11:29:21
+Pitch:-10.04
+Roll:1.32
+Yaw:-9.59
+AXavg:0.787
+AYavg:9.740
+AZavg:-0.147
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:12 dB
+Lat:-35.9164373
+Lon:-10.4193330
+Alt:7298.6
+AltB:930.6
+Sat:0
+Fix:0
+T:20.0
+P:906.1
+Time:11:29:23
+Pitch:-10.07
+Roll:1.26
+Yaw:-8.96
+AXavg:0.819
+AYavg:9.766
+AZavg:-0.168
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:-35.4809262
+Lon:-10.3902192
+Alt:7145.3
+AltB:930.9
+Sat:0
+Fix:0
+T:20.0
+P:906.1
+Time:11:29:25
+Pitch:-10.24
+Roll:1.24
+Yaw:-9.52
+AXavg:0.805
+AYavg:9.762
+AZavg:-0.162
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:-35.9398153
+Lon:-10.3989091
+Alt:7306.8
+AltB:930.9
+Sat:0
+Fix:0
+T:20.0
+P:906.1
+Time:11:29:27
+Pitch:-10.24
+Roll:1.24
+Yaw:-9.51
+AXavg:0.807
+AYavg:9.755
+AZavg:-0.136
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:12 dB
+Lat:-35.4758251
+Lon:-10.3731581
+Alt:7143.5
+AltB:930.6
+Sat:0
+Fix:0
+T:20.0
+P:906.1
+Time:11:29:29
+Pitch:-10.35
+Roll:1.27
+Yaw:-9.25
+AXavg:0.803
+AYavg:9.759
+AZavg:-0.177
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:13 dB
+Lat:-34.4680126
+Lon:-10.3194405
+Alt:6792.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.1
+P:906.1
+Time:11:29:31
+Pitch:-10.43
+Roll:1.23
+Yaw:-9.85
+AXavg:0.782
+AYavg:9.757
+AZavg:-0.182
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:-34.9437005
+Lon:-10.3325201
+Alt:6957.3
+AltB:930.9
+Sat:0
+Fix:0
+T:20.1
+P:906.1
+Time:11:29:33
+Pitch:-10.43
+Roll:1.20
+Yaw:-9.86
+AXavg:0.769
+AYavg:9.760
+AZavg:-0.158
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:-35.0099282
+Lon:-10.3272770
+Alt:6980.4
+AltB:931.5
+Sat:0
+Fix:0
+T:20.1
+P:906.0
+Time:11:29:35
+Pitch:-10.54
+Roll:1.27
+Yaw:-9.79
+AXavg:0.795
+AYavg:9.750
+AZavg:-0.166
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:13 dB
+Lat:-36.4767146
+Lon:-10.3844041
+Alt:7496.9
+AltB:931.3
+Sat:0
+Fix:0
+T:20.1
+P:906.1
+Time:11:29:37
+Pitch:-10.53
+Roll:1.21
+Yaw:-10.12
+AXavg:0.808
+AYavg:9.732
+AZavg:-0.141
+Bat:4.16
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:13 dB
+Lat:-35.9958528
+Lon:-10.3498136
+Alt:7326.6
+AltB:931.2
+Sat:0
+Fix:0
+T:20.1
+P:906.1
+Time:11:29:39
+Pitch:-10.41
+Roll:1.09
+Yaw:-10.07
+AXavg:0.779
+AYavg:9.765
+AZavg:-0.168
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:12 dB
+Lat:-36.0005181
+Lon:-10.3457174
+Alt:7328.2
+AltB:930.2
+Sat:0
+Fix:0
+T:20.2
+P:906.2
+Time:11:29:41
+Pitch:-10.44
+Roll:1.19
+Yaw:-10.43
+AXavg:0.773
+AYavg:9.772
+AZavg:-0.147
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:-36.0098468
+Lon:-10.3375226
+Alt:7331.5
+AltB:930.5
+Sat:0
+Fix:0
+T:20.1
+P:906.1
+Time:11:29:43
+Pitch:-10.56
+Roll:1.21
+Yaw:-9.99
+AXavg:0.811
+AYavg:9.758
+AZavg:-0.249
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:12 dB
+Lat:-36.0191727
+Lon:-10.3293247
+Alt:7334.8
+AltB:930.2
+Sat:0
+Fix:0
+T:20.2
+P:906.2
+Time:11:29:45
+Pitch:-10.51
+Roll:1.27
+Yaw:-9.90
+AXavg:0.777
+AYavg:9.772
+AZavg:-0.185
+Bat:4.11
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:12 dB
+Lat:-36.0284958
+Lon:-10.3211238
+Alt:7338.1
+AltB:931.5
+Sat:0
+Fix:0
+T:20.1
+P:906.0
+Time:11:29:47
+Pitch:-10.42
+Roll:1.32
+Yaw:-10.34
+AXavg:0.802
+AYavg:9.754
+AZavg:-0.238
+Bat:4.12
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:12 dB
+Lat:-35.5184655
+Lon:-10.2869491
+Alt:7158.4
+AltB:929.8
+Sat:0
+Fix:0
+T:20.2
+P:906.2
+Time:11:29:49
+Pitch:-10.40
+Roll:1.24
+Yaw:-9.82
+AXavg:0.781
+AYavg:9.748
+AZavg:-0.196
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-66 dBm | SNR:12 dB
+Lat:-35.0300929
+Lon:-10.2627455
+Alt:6987.4
+AltB:930.4
+Sat:0
+Fix:0
+T:20.2
+P:906.2
+Time:11:29:51
+Pitch:-10.37
+Roll:1.25
+Yaw:-9.60
+AXavg:0.812
+AYavg:9.765
+AZavg:-0.161
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:-35.0961617
+Lon:-10.2572574
+Alt:7010.5
+AltB:930.8
+Sat:0
+Fix:0
+T:20.2
+P:906.1
+Time:11:29:53
+Pitch:-10.40
+Roll:1.20
+Yaw:-10.21
+AXavg:0.799
+AYavg:9.761
+AZavg:-0.173
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:-36.0657610
+Lon:-10.2882894
+Alt:7351.2
+AltB:931.4
+Sat:0
+Fix:0
+T:20.2
+P:906.0
+Time:11:29:55
+Pitch:-10.39
+Roll:1.15
+Yaw:-9.52
+AXavg:0.803
+AYavg:9.751
+AZavg:-0.184
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:13 dB
+Lat:-34.5943760
+Lon:-10.2211967
+Alt:6835.7
+AltB:930.2
+Sat:0
+Fix:0
+T:20.2
+P:906.2
+Time:11:29:57
+Pitch:-10.34
+Roll:1.22
+Yaw:-9.94
+AXavg:0.760
+AYavg:9.758
+AZavg:-0.173
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:13 dB
+Lat:-33.2123640
+Lon:-10.1570489
+Alt:6360.8
+AltB:931.1
+Sat:0
+Fix:0
+T:20.2
+P:906.1
+Time:11:29:59
+Pitch:-10.34
+Roll:1.33
+Yaw:-10.25
+AXavg:0.790
+AYavg:9.770
+AZavg:-0.205
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:12 dB
+Lat:-33.2174003
+Lon:-10.1535509
+Alt:6362.5
+AltB:931.1
+Sat:0
+Fix:0
+T:20.2
+P:906.1
+Time:11:30:01
+Pitch:-10.30
+Roll:1.35
+Yaw:-9.72
+AXavg:0.806
+AYavg:9.739
+AZavg:-0.158
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-76 dBm | SNR:12 dB
+Lat:-32.8395308
+Lon:-10.1324251
+Alt:6234.3
+AltB:929.8
+Sat:0
+Fix:0
+T:20.2
+P:906.2
+Time:11:30:03
+Pitch:-10.31
+Roll:1.43
+Yaw:-9.84
+AXavg:0.776
+AYavg:9.725
+AZavg:-0.158
+Bat:4.08
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:12 dB
+Lat:-33.7808871
+Lon:-10.1593313
+Alt:6555.0
+AltB:932.4
+Sat:0
+Fix:0
+T:20.2
+P:905.9
+Time:11:30:05
+Pitch:-10.03
+Roll:1.86
+Yaw:-9.20
+AXavg:0.902
+AYavg:9.798
+AZavg:-0.293
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:0.0
+AltB:931.1
+Sat:0
+Fix:0
+T:20.2
+P:906.1
+Time:00:00:13
+Pitch:-0.62
+Roll:0.03
+Yaw:-0.77
+AXavg:0.796
+AYavg:9.755
+AZavg:-0.169
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:928.8
+Sat:0
+Fix:0
+T:20.2
+P:906.3
+Time:00:00:15
+Pitch:-2.46
+Roll:0.22
+Yaw:-2.71
+AXavg:0.799
+AYavg:9.737
+AZavg:-0.171
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:20.3
+P:906.1
+Time:00:00:17
+Pitch:-4.01
+Roll:0.21
+Yaw:-4.09
+AXavg:0.778
+AYavg:9.753
+AZavg:-0.169
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:20.2
+P:906.1
+Time:00:00:19
+Pitch:-5.27
+Roll:0.55
+Yaw:-5.61
+AXavg:0.787
+AYavg:9.709
+AZavg:-0.162
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:20.2
+P:906.1
+Time:00:00:21
+Pitch:-6.22
+Roll:0.62
+Yaw:-5.79
+AXavg:0.823
+AYavg:9.765
+AZavg:-0.194
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:20.2
+P:906.2
+Time:00:00:23
+Pitch:-6.97
+Roll:0.88
+Yaw:-6.83
+AXavg:0.822
+AYavg:9.763
+AZavg:-0.181
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:20.2
+P:906.0
+Time:00:00:25
+Pitch:-7.72
+Roll:0.83
+Yaw:-7.58
+AXavg:0.814
+AYavg:9.745
+AZavg:-0.205
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-65 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.7
+Sat:0
+Fix:0
+T:20.3
+P:906.2
+Time:00:00:27
+Pitch:-8.16
+Roll:0.70
+Yaw:-8.44
+AXavg:0.796
+AYavg:9.743
+AZavg:-0.182
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-81 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.7
+Sat:0
+Fix:0
+T:20.3
+P:906.0
+Time:00:00:29
+Pitch:-8.60
+Roll:0.82
+Yaw:-7.90
+AXavg:0.801
+AYavg:9.768
+AZavg:-0.163
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:20.3
+P:906.1
+Time:00:00:31
+Pitch:-9.16
+Roll:0.63
+Yaw:-8.91
+AXavg:0.775
+AYavg:9.774
+AZavg:-0.171
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:20.3
+P:906.1
+Time:00:00:33
+Pitch:-9.44
+Roll:0.77
+Yaw:-9.32
+AXavg:0.825
+AYavg:9.748
+AZavg:-0.153
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:20.3
+P:906.1
+Time:00:00:35
+Pitch:-9.62
+Roll:0.90
+Yaw:-9.09
+AXavg:0.775
+AYavg:9.754
+AZavg:-0.175
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.3
+P:906.0
+Time:00:00:37
+Pitch:-9.77
+Roll:0.79
+Yaw:-9.49
+AXavg:0.786
+AYavg:9.740
+AZavg:-0.165
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-60 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.7
+Sat:0
+Fix:0
+T:20.3
+P:906.0
+Time:00:00:39
+Pitch:-9.88
+Roll:0.67
+Yaw:-9.10
+AXavg:0.786
+AYavg:9.731
+AZavg:-0.152
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-61 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.4
+P:906.0
+Time:00:00:41
+Pitch:-10.02
+Roll:0.65
+Yaw:-9.75
+AXavg:0.795
+AYavg:9.750
+AZavg:-0.206
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-60 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:20.4
+P:906.1
+Time:00:00:43
+Pitch:-10.18
+Roll:0.77
+Yaw:-10.08
+AXavg:0.798
+AYavg:9.766
+AZavg:-0.166
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:20.4
+P:906.1
+Time:00:00:45
+Pitch:-10.23
+Roll:0.85
+Yaw:-9.20
+AXavg:0.801
+AYavg:9.767
+AZavg:-0.166
+Bat:4.12
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-65 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.0
+Sat:0
+Fix:0
+T:20.4
+P:906.2
+Time:00:00:47
+Pitch:-10.26
+Roll:0.58
+Yaw:-9.84
+AXavg:0.783
+AYavg:9.762
+AZavg:-0.129
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-66 dBm | SNR:11 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:20.4
+P:906.0
+Time:00:00:49
+Pitch:-10.39
+Roll:0.83
+Yaw:-9.92
+AXavg:0.784
+AYavg:9.732
+AZavg:-0.163
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:20.4
+P:906.1
+Time:00:00:51
+Pitch:-10.32
+Roll:0.67
+Yaw:-9.90
+AXavg:0.774
+AYavg:9.753
+AZavg:-0.195
+Bat:4.12
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.5
+P:906.1
+Time:00:00:53
+Pitch:-10.40
+Roll:0.88
+Yaw:-10.58
+AXavg:0.795
+AYavg:9.780
+AZavg:-0.125
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.5
+P:906.1
+Time:00:00:55
+Pitch:-10.43
+Roll:0.77
+Yaw:-10.34
+AXavg:0.772
+AYavg:9.818
+AZavg:-0.177
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:20.5
+P:906.1
+Time:00:00:57
+Pitch:-10.41
+Roll:0.77
+Yaw:-10.29
+AXavg:0.803
+AYavg:9.692
+AZavg:-0.173
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:20.5
+P:906.2
+Time:00:00:59
+Pitch:-10.40
+Roll:0.72
+Yaw:-9.95
+AXavg:0.784
+AYavg:9.765
+AZavg:-0.176
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:20.5
+P:906.1
+Time:00:01:01
+Pitch:-10.45
+Roll:0.92
+Yaw:-10.65
+AXavg:0.792
+AYavg:9.767
+AZavg:-0.189
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:20.5
+P:906.0
+Time:00:01:03
+Pitch:-10.46
+Roll:0.83
+Yaw:-10.67
+AXavg:0.801
+AYavg:9.759
+AZavg:-0.178
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:20.5
+P:906.0
+Time:00:01:05
+Pitch:-10.39
+Roll:0.90
+Yaw:-10.40
+AXavg:0.783
+AYavg:9.748
+AZavg:-0.205
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:20.5
+P:906.1
+Time:00:01:07
+Pitch:-10.37
+Roll:0.80
+Yaw:-10.44
+AXavg:0.798
+AYavg:9.757
+AZavg:-0.199
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.8
+Sat:0
+Fix:0
+T:20.6
+P:906.2
+Time:00:01:09
+Pitch:-10.48
+Roll:0.91
+Yaw:-10.12
+AXavg:0.781
+AYavg:9.764
+AZavg:-0.176
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-66 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:20.6
+P:906.0
+Time:00:01:11
+Pitch:-10.39
+Roll:0.85
+Yaw:-10.09
+AXavg:0.782
+AYavg:9.785
+AZavg:-0.235
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-58 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:20.6
+P:906.0
+Time:00:01:13
+Pitch:-10.31
+Roll:1.07
+Yaw:-9.91
+AXavg:0.789
+AYavg:9.775
+AZavg:-0.176
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:20.6
+P:906.1
+Time:00:01:15
+Pitch:-10.31
+Roll:1.03
+Yaw:-9.71
+AXavg:0.810
+AYavg:9.749
+AZavg:-0.168
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-58 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.8
+Sat:0
+Fix:0
+T:20.6
+P:906.2
+Time:00:01:17
+Pitch:-10.31
+Roll:0.83
+Yaw:-9.65
+AXavg:0.736
+AYavg:9.777
+AZavg:-0.124
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-58 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:20.6
+P:906.0
+Time:00:01:19
+Pitch:-10.34
+Roll:1.11
+Yaw:-9.93
+AXavg:0.805
+AYavg:9.760
+AZavg:-0.200
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.1
+Sat:0
+Fix:0
+T:20.6
+P:906.0
+Time:00:01:21
+Pitch:-10.40
+Roll:1.02
+Yaw:-10.34
+AXavg:0.784
+AYavg:9.742
+AZavg:-0.180
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:20.7
+P:906.1
+Time:00:01:23
+Pitch:-10.41
+Roll:1.01
+Yaw:-10.58
+AXavg:0.825
+AYavg:9.764
+AZavg:-0.204
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.7
+P:906.0
+Time:00:01:25
+Pitch:-10.49
+Roll:0.66
+Yaw:-9.52
+AXavg:0.822
+AYavg:9.753
+AZavg:-0.187
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:20.7
+P:906.2
+Time:00:01:27
+Pitch:-10.53
+Roll:0.66
+Yaw:-9.91
+AXavg:0.822
+AYavg:9.800
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:20.7
+P:906.1
+Time:00:01:29
+Pitch:-10.60
+Roll:0.79
+Yaw:-11.04
+AXavg:0.788
+AYavg:9.774
+AZavg:-0.216
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:20.7
+P:906.1
+Time:00:01:31
+Pitch:-10.57
+Roll:0.81
+Yaw:-9.54
+AXavg:0.775
+AYavg:9.770
+AZavg:-0.206
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-65 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:20.7
+P:906.2
+Time:00:01:33
+Pitch:-10.58
+Roll:0.76
+Yaw:-10.63
+AXavg:0.802
+AYavg:9.765
+AZavg:-0.174
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:20.8
+P:906.0
+Time:00:01:35
+Pitch:-10.54
+Roll:0.72
+Yaw:-10.46
+AXavg:0.802
+AYavg:9.762
+AZavg:-0.171
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-61 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:01:37
+Pitch:-10.53
+Roll:0.75
+Yaw:-10.61
+AXavg:0.781
+AYavg:9.770
+AZavg:-0.215
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:20.8
+P:906.2
+Time:00:01:39
+Pitch:-10.58
+Roll:0.77
+Yaw:-10.08
+AXavg:0.781
+AYavg:9.782
+AZavg:-0.204
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:20.8
+P:906.0
+Time:00:01:41
+Pitch:-10.47
+Roll:0.82
+Yaw:-9.81
+AXavg:0.785
+AYavg:9.758
+AZavg:-0.209
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.7
+Sat:0
+Fix:0
+T:20.8
+P:906.2
+Time:00:01:43
+Pitch:-10.52
+Roll:0.82
+Yaw:-10.92
+AXavg:0.824
+AYavg:9.759
+AZavg:-0.188
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-65 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.8
+P:906.0
+Time:00:01:45
+Pitch:-10.51
+Roll:0.74
+Yaw:-10.39
+AXavg:0.818
+AYavg:9.742
+AZavg:-0.183
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-65 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.0
+Sat:0
+Fix:0
+T:20.8
+P:906.2
+Time:00:01:47
+Pitch:-10.51
+Roll:0.79
+Yaw:-10.57
+AXavg:0.783
+AYavg:9.755
+AZavg:-0.162
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-66 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:01:49
+Pitch:-10.54
+Roll:0.82
+Yaw:-10.04
+AXavg:0.861
+AYavg:9.744
+AZavg:-0.237
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-66 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:01:51
+Pitch:-10.53
+Roll:1.01
+Yaw:-10.13
+AXavg:0.762
+AYavg:9.769
+AZavg:-0.134
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:20.8
+P:906.2
+Time:00:01:53
+Pitch:-10.52
+Roll:1.08
+Yaw:-10.49
+AXavg:0.812
+AYavg:9.752
+AZavg:-0.240
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.3
+Sat:0
+Fix:0
+T:20.8
+P:906.0
+Time:00:01:55
+Pitch:-10.52
+Roll:0.88
+Yaw:-10.19
+AXavg:0.769
+AYavg:9.760
+AZavg:-0.187
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-60 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:01:57
+Pitch:-10.58
+Roll:0.75
+Yaw:-10.80
+AXavg:0.795
+AYavg:9.746
+AZavg:-0.178
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-58 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.6
+Sat:0
+Fix:0
+T:20.8
+P:905.9
+Time:00:01:59
+Pitch:-10.55
+Roll:0.88
+Yaw:-10.40
+AXavg:0.788
+AYavg:9.750
+AZavg:-0.181
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:20.8
+P:906.0
+Time:00:02:01
+Pitch:-10.63
+Roll:1.22
+Yaw:-10.36
+AXavg:0.805
+AYavg:9.721
+AZavg:-0.175
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:02:03
+Pitch:-10.65
+Roll:1.22
+Yaw:-10.34
+AXavg:0.798
+AYavg:9.753
+AZavg:-0.188
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.9
+Sat:0
+Fix:0
+T:20.9
+P:906.0
+Time:00:02:05
+Pitch:-10.57
+Roll:1.20
+Yaw:-10.31
+AXavg:0.781
+AYavg:9.744
+AZavg:-0.224
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:20.8
+P:906.0
+Time:00:02:07
+Pitch:-10.70
+Roll:1.46
+Yaw:-9.79
+AXavg:0.814
+AYavg:9.766
+AZavg:-0.189
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:02:09
+Pitch:-10.69
+Roll:1.47
+Yaw:-10.28
+AXavg:0.806
+AYavg:9.766
+AZavg:-0.194
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-60 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:20.9
+P:906.1
+Time:00:02:11
+Pitch:-10.77
+Roll:1.38
+Yaw:-9.86
+AXavg:0.805
+AYavg:9.735
+AZavg:-0.178
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-60 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.3
+Sat:0
+Fix:0
+T:20.8
+P:906.0
+Time:00:02:13
+Pitch:-10.79
+Roll:1.28
+Yaw:-9.95
+AXavg:0.798
+AYavg:9.742
+AZavg:-0.165
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:20.9
+P:906.1
+Time:00:02:15
+Pitch:-10.74
+Roll:1.23
+Yaw:-9.92
+AXavg:0.794
+AYavg:9.745
+AZavg:-0.169
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-83 dBm | SNR:10 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:02:17
+Pitch:-10.69
+Roll:1.18
+Yaw:-10.07
+AXavg:0.825
+AYavg:9.761
+AZavg:-0.186
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.8
+P:906.1
+Time:00:02:19
+Pitch:-10.77
+Roll:1.30
+Yaw:-10.29
+AXavg:0.800
+AYavg:9.759
+AZavg:-0.159
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-66 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.9
+Sat:0
+Fix:0
+T:20.9
+P:906.0
+Time:00:02:21
+Pitch:-10.69
+Roll:1.15
+Yaw:-10.61
+AXavg:0.789
+AYavg:9.752
+AZavg:-0.133
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-81 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:20.9
+P:906.2
+Time:00:02:23
+Pitch:-10.74
+Roll:1.15
+Yaw:-10.13
+AXavg:0.818
+AYavg:9.747
+AZavg:-0.187
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-72 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:20.9
+P:906.1
+Time:00:02:25
+Pitch:-10.68
+Roll:1.04
+Yaw:-10.81
+AXavg:0.794
+AYavg:9.781
+AZavg:-0.181
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.3
+Sat:0
+Fix:0
+T:20.9
+P:906.0
+Time:00:02:27
+Pitch:-10.69
+Roll:0.97
+Yaw:-10.15
+AXavg:0.810
+AYavg:9.762
+AZavg:-0.201
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-73 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:20.9
+P:906.1
+Time:00:02:29
+Pitch:-10.79
+Roll:1.04
+Yaw:-10.94
+AXavg:0.815
+AYavg:9.743
+AZavg:-0.200
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:20.9
+P:906.1
+Time:00:02:31
+Pitch:-10.76
+Roll:1.03
+Yaw:-9.81
+AXavg:0.816
+AYavg:9.738
+AZavg:-0.198
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:20.9
+P:906.1
+Time:00:02:33
+Pitch:-10.68
+Roll:0.73
+Yaw:-10.58
+AXavg:0.805
+AYavg:9.774
+AZavg:-0.189
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:20.9
+P:906.0
+Time:00:02:35
+Pitch:-10.71
+Roll:0.95
+Yaw:-10.01
+AXavg:0.815
+AYavg:9.758
+AZavg:-0.168
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:20.9
+P:906.2
+Time:00:02:37
+Pitch:-10.69
+Roll:0.95
+Yaw:-9.93
+AXavg:0.800
+AYavg:9.757
+AZavg:-0.153
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-60 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:20.9
+P:906.1
+Time:00:02:39
+Pitch:-10.71
+Roll:0.86
+Yaw:-10.37
+AXavg:0.778
+AYavg:9.771
+AZavg:-0.201
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:21.0
+P:906.0
+Time:00:02:41
+Pitch:-10.67
+Roll:0.81
+Yaw:-10.73
+AXavg:0.814
+AYavg:9.767
+AZavg:-0.199
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-61 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.0
+P:906.1
+Time:00:02:43
+Pitch:-10.61
+Roll:0.86
+Yaw:-10.27
+AXavg:0.788
+AYavg:9.760
+AZavg:-0.167
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-66 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.0
+P:906.1
+Time:00:02:45
+Pitch:-10.67
+Roll:0.77
+Yaw:-9.85
+AXavg:0.808
+AYavg:9.747
+AZavg:-0.188
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:21.0
+P:906.1
+Time:00:02:47
+Pitch:-10.74
+Roll:0.88
+Yaw:-10.76
+AXavg:0.823
+AYavg:9.769
+AZavg:-0.192
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.0
+P:906.2
+Time:00:02:49
+Pitch:-10.65
+Roll:0.61
+Yaw:-10.58
+AXavg:0.778
+AYavg:9.740
+AZavg:-0.167
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.0
+P:906.1
+Time:00:02:51
+Pitch:-10.57
+Roll:0.63
+Yaw:-10.51
+AXavg:0.791
+AYavg:9.780
+AZavg:-0.203
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-79 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.0
+P:906.1
+Time:00:02:53
+Pitch:-10.66
+Roll:0.62
+Yaw:-10.79
+AXavg:0.786
+AYavg:9.765
+AZavg:-0.215
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:21.1
+P:906.1
+Time:00:02:55
+Pitch:-10.63
+Roll:0.60
+Yaw:-10.22
+AXavg:0.807
+AYavg:9.757
+AZavg:-0.217
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-84 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.1
+P:906.2
+Time:00:02:57
+Pitch:-10.63
+Roll:0.67
+Yaw:-10.22
+AXavg:0.783
+AYavg:9.765
+AZavg:-0.202
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-91 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.7
+Sat:0
+Fix:0
+T:21.1
+P:906.2
+Time:00:02:59
+Pitch:-10.69
+Roll:0.68
+Yaw:-10.77
+AXavg:0.810
+AYavg:9.781
+AZavg:-0.155
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-90 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.7
+Sat:0
+Fix:0
+T:21.1
+P:906.2
+Time:00:03:01
+Pitch:-10.74
+Roll:0.71
+Yaw:-10.66
+AXavg:0.796
+AYavg:9.754
+AZavg:-0.171
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.1
+Sat:0
+Fix:0
+T:21.1
+P:906.2
+Time:00:03:03
+Pitch:-10.72
+Roll:0.73
+Yaw:-10.26
+AXavg:0.782
+AYavg:9.759
+AZavg:-0.222
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.1
+Sat:0
+Fix:0
+T:21.1
+P:906.2
+Time:00:03:05
+Pitch:-10.75
+Roll:0.80
+Yaw:-10.45
+AXavg:0.821
+AYavg:9.752
+AZavg:-0.216
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:21.1
+P:906.0
+Time:00:03:07
+Pitch:-10.80
+Roll:0.60
+Yaw:-10.74
+AXavg:0.789
+AYavg:9.753
+AZavg:-0.181
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.7
+Sat:0
+Fix:0
+T:21.1
+P:906.0
+Time:00:03:09
+Pitch:-10.71
+Roll:0.67
+Yaw:-10.63
+AXavg:0.808
+AYavg:9.753
+AZavg:-0.164
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.2
+P:906.0
+Time:00:03:11
+Pitch:-10.65
+Roll:0.67
+Yaw:-10.91
+AXavg:0.814
+AYavg:9.760
+AZavg:-0.180
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.0
+Sat:0
+Fix:0
+T:21.2
+P:906.2
+Time:00:03:13
+Pitch:-10.69
+Roll:0.73
+Yaw:-10.05
+AXavg:0.822
+AYavg:9.752
+AZavg:-0.207
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-70 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.2
+P:906.0
+Time:00:03:15
+Pitch:-10.75
+Roll:0.68
+Yaw:-10.85
+AXavg:0.810
+AYavg:9.761
+AZavg:-0.214
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.6
+Sat:0
+Fix:0
+T:21.2
+P:905.9
+Time:00:03:17
+Pitch:-10.87
+Roll:0.78
+Yaw:-10.56
+AXavg:0.816
+AYavg:9.769
+AZavg:-0.217
+Bat:4.19
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-85 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:21.2
+P:906.1
+Time:00:03:19
+Pitch:-10.86
+Roll:0.77
+Yaw:-10.41
+AXavg:0.747
+AYavg:9.741
+AZavg:-0.151
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-78 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.2
+P:906.0
+Time:00:03:21
+Pitch:-10.88
+Roll:0.79
+Yaw:-10.60
+AXavg:0.784
+AYavg:9.786
+AZavg:-0.198
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-81 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.2
+P:906.1
+Time:00:03:23
+Pitch:-10.90
+Roll:0.84
+Yaw:-10.58
+AXavg:0.803
+AYavg:9.711
+AZavg:-0.195
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.2
+P:906.1
+Time:00:03:25
+Pitch:-11.03
+Roll:0.75
+Yaw:-10.92
+AXavg:0.785
+AYavg:9.776
+AZavg:-0.217
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:21.3
+P:906.0
+Time:00:03:27
+Pitch:-11.02
+Roll:0.63
+Yaw:-10.25
+AXavg:0.792
+AYavg:9.749
+AZavg:-0.191
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:29
+Pitch:-10.98
+Roll:0.64
+Yaw:-11.09
+AXavg:0.789
+AYavg:9.765
+AZavg:-0.186
+Bat:4.19
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-78 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.0
+Sat:0
+Fix:0
+T:21.2
+P:906.2
+Time:00:03:31
+Pitch:-10.97
+Roll:0.61
+Yaw:-10.72
+AXavg:0.793
+AYavg:9.761
+AZavg:-0.202
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-75 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.2
+P:906.1
+Time:00:03:33
+Pitch:-10.97
+Roll:0.63
+Yaw:-11.26
+AXavg:0.802
+AYavg:9.766
+AZavg:-0.237
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-75 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.3
+P:906.2
+Time:00:03:35
+Pitch:-10.92
+Roll:0.67
+Yaw:-10.32
+AXavg:0.788
+AYavg:9.750
+AZavg:-0.192
+Bat:4.11
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-77 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:37
+Pitch:-10.84
+Roll:0.72
+Yaw:-10.73
+AXavg:0.808
+AYavg:9.764
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.0
+Sat:0
+Fix:0
+T:21.3
+P:906.2
+Time:00:03:39
+Pitch:-10.71
+Roll:0.64
+Yaw:-10.47
+AXavg:0.771
+AYavg:9.776
+AZavg:-0.150
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.0
+Sat:0
+Fix:0
+T:21.3
+P:906.2
+Time:00:03:41
+Pitch:-10.79
+Roll:0.62
+Yaw:-10.75
+AXavg:0.809
+AYavg:9.758
+AZavg:-0.161
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-77 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:43
+Pitch:-10.85
+Roll:0.59
+Yaw:-10.44
+AXavg:0.813
+AYavg:9.756
+AZavg:-0.221
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-80 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:45
+Pitch:-10.79
+Roll:0.64
+Yaw:-10.55
+AXavg:0.792
+AYavg:9.782
+AZavg:-0.199
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-78 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:47
+Pitch:-10.83
+Roll:0.72
+Yaw:-10.58
+AXavg:0.805
+AYavg:9.771
+AZavg:-0.210
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-84 dBm | SNR:11 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.3
+P:906.2
+Time:00:03:49
+Pitch:-10.83
+Roll:0.65
+Yaw:-10.21
+AXavg:0.778
+AYavg:9.769
+AZavg:-0.226
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-78 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.3
+P:906.2
+Time:00:03:51
+Pitch:-10.79
+Roll:0.70
+Yaw:-10.69
+AXavg:0.812
+AYavg:9.764
+AZavg:-0.185
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:53
+Pitch:-10.83
+Roll:0.73
+Yaw:-10.74
+AXavg:0.782
+AYavg:9.749
+AZavg:-0.162
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:55
+Pitch:-10.87
+Roll:0.77
+Yaw:-10.58
+AXavg:0.785
+AYavg:9.746
+AZavg:-0.212
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-79 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.3
+P:906.2
+Time:00:03:57
+Pitch:-10.89
+Roll:0.65
+Yaw:-10.63
+AXavg:0.786
+AYavg:9.743
+AZavg:-0.209
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-72 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:03:59
+Pitch:-10.89
+Roll:0.63
+Yaw:-10.83
+AXavg:0.805
+AYavg:9.751
+AZavg:-0.205
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.6
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:04:01
+Pitch:-10.96
+Roll:0.42
+Yaw:-11.00
+AXavg:0.809
+AYavg:9.767
+AZavg:-0.206
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:04:03
+Pitch:-10.93
+Roll:0.42
+Yaw:-10.41
+AXavg:0.808
+AYavg:9.729
+AZavg:-0.214
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.3
+P:906.1
+Time:00:04:05
+Pitch:-11.08
+Roll:0.05
+Yaw:-10.69
+AXavg:0.783
+AYavg:9.753
+AZavg:-0.180
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.9
+Sat:0
+Fix:0
+T:21.3
+P:906.0
+Time:00:04:07
+Pitch:-11.05
+Roll:0.09
+Yaw:-10.66
+AXavg:0.813
+AYavg:9.752
+AZavg:-0.215
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-68 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.5
+Sat:0
+Fix:0
+T:21.4
+P:906.1
+Time:00:04:09
+Pitch:-11.08
+Roll:0.28
+Yaw:-10.98
+AXavg:0.799
+AYavg:9.750
+AZavg:-0.239
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-67 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.4
+P:906.1
+Time:00:04:11
+Pitch:-11.00
+Roll:0.28
+Yaw:-10.34
+AXavg:0.783
+AYavg:9.807
+AZavg:-0.221
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:21.4
+P:906.0
+Time:00:04:13
+Pitch:-10.98
+Roll:0.34
+Yaw:-10.87
+AXavg:0.806
+AYavg:9.746
+AZavg:-0.212
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.5
+Sat:0
+Fix:0
+T:21.4
+P:906.1
+Time:00:04:15
+Pitch:-10.98
+Roll:0.47
+Yaw:-11.37
+AXavg:0.790
+AYavg:9.768
+AZavg:-0.196
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-62 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.9
+Sat:0
+Fix:0
+T:21.4
+P:906.2
+Time:00:04:17
+Pitch:-10.94
+Roll:0.93
+Yaw:-10.77
+AXavg:0.779
+AYavg:9.782
+AZavg:-0.244
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.4
+P:906.2
+Time:00:04:19
+Pitch:-10.84
+Roll:0.52
+Yaw:-10.82
+AXavg:0.749
+AYavg:9.776
+AZavg:-0.192
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-72 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.5
+Sat:0
+Fix:0
+T:21.4
+P:906.2
+Time:00:04:21
+Pitch:-10.76
+Roll:0.60
+Yaw:-10.36
+AXavg:0.789
+AYavg:9.746
+AZavg:-0.182
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.4
+P:906.2
+Time:00:04:23
+Pitch:-10.68
+Roll:0.56
+Yaw:-10.27
+AXavg:0.808
+AYavg:9.775
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-72 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.8
+Sat:0
+Fix:0
+T:21.4
+P:906.2
+Time:00:04:25
+Pitch:-10.68
+Roll:0.76
+Yaw:-10.22
+AXavg:0.844
+AYavg:9.813
+AZavg:-0.230
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.8
+Sat:0
+Fix:0
+T:21.4
+P:906.0
+Time:00:04:27
+Pitch:-13.38
+Roll:0.88
+Yaw:-12.72
+AXavg:0.785
+AYavg:9.753
+AZavg:-0.170
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-74 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.4
+P:906.2
+Time:00:04:29
+Pitch:-12.85
+Roll:1.24
+Yaw:-12.92
+AXavg:0.775
+AYavg:9.793
+AZavg:-0.195
+Bat:4.16
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-73 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:21.4
+P:906.1
+Time:00:04:31
+Pitch:-12.40
+Roll:1.06
+Yaw:-11.99
+AXavg:0.803
+AYavg:9.739
+AZavg:-0.156
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.5
+Sat:0
+Fix:0
+T:21.5
+P:906.2
+Time:00:04:33
+Pitch:-12.09
+Roll:0.97
+Yaw:-11.74
+AXavg:0.794
+AYavg:9.772
+AZavg:-0.208
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-69 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.4
+P:906.1
+Time:00:04:35
+Pitch:-11.77
+Roll:0.93
+Yaw:-11.22
+AXavg:0.784
+AYavg:9.748
+AZavg:-0.160
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-71 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:21.5
+P:906.0
+Time:00:04:37
+Pitch:-11.59
+Roll:0.84
+Yaw:-11.41
+AXavg:0.822
+AYavg:9.743
+AZavg:-0.204
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-65 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.5
+P:906.2
+Time:00:04:39
+Pitch:-11.36
+Roll:0.75
+Yaw:-10.56
+AXavg:0.792
+AYavg:9.761
+AZavg:-0.214
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-73 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.5
+P:906.1
+Time:00:04:41
+Pitch:-11.27
+Roll:0.73
+Yaw:-10.98
+AXavg:0.788
+AYavg:9.786
+AZavg:-0.214
+Bat:4.10
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-64 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:933.1
+Sat:0
+Fix:0
+T:21.5
+P:905.9
+Time:00:04:43
+Pitch:-11.16
+Roll:0.86
+Yaw:-10.65
+AXavg:0.805
+AYavg:9.764
+AZavg:-0.208
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:21.5
+P:906.1
+Time:00:04:45
+Pitch:-11.07
+Roll:0.80
+Yaw:-10.78
+AXavg:0.800
+AYavg:9.751
+AZavg:-0.159
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-60 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.5
+P:906.2
+Time:00:04:47
+Pitch:-11.05
+Roll:0.76
+Yaw:-10.57
+AXavg:0.787
+AYavg:9.768
+AZavg:-0.227
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.1
+Sat:0
+Fix:0
+T:21.5
+P:906.2
+Time:00:04:49
+Pitch:-11.10
+Roll:0.75
+Yaw:-10.65
+AXavg:0.796
+AYavg:9.759
+AZavg:-0.183
+Bat:4.19
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-58 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:04:51
+Pitch:-10.97
+Roll:0.66
+Yaw:-10.87
+AXavg:0.802
+AYavg:9.752
+AZavg:-0.226
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-63 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.7
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:04:53
+Pitch:-10.96
+Roll:0.57
+Yaw:-11.29
+AXavg:0.768
+AYavg:9.742
+AZavg:-0.177
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.1
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:04:55
+Pitch:-10.88
+Roll:0.56
+Yaw:-10.84
+AXavg:0.806
+AYavg:9.764
+AZavg:-0.188
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:04:57
+Pitch:-10.82
+Roll:0.47
+Yaw:-10.27
+AXavg:0.805
+AYavg:9.778
+AZavg:-0.166
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:04:59
+Pitch:-10.80
+Roll:0.41
+Yaw:-10.66
+AXavg:0.833
+AYavg:9.753
+AZavg:-0.213
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:01
+Pitch:-10.87
+Roll:0.42
+Yaw:-10.53
+AXavg:0.807
+AYavg:9.754
+AZavg:-0.208
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:03
+Pitch:-10.87
+Roll:0.42
+Yaw:-10.68
+AXavg:0.790
+AYavg:9.757
+AZavg:-0.213
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:05
+Pitch:-10.78
+Roll:0.35
+Yaw:-10.47
+AXavg:0.781
+AYavg:9.745
+AZavg:-0.224
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-56 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.7
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:07
+Pitch:-10.84
+Roll:0.39
+Yaw:-10.34
+AXavg:0.787
+AYavg:9.774
+AZavg:-0.167
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-56 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:09
+Pitch:-10.81
+Roll:0.22
+Yaw:-11.07
+AXavg:0.798
+AYavg:9.751
+AZavg:-0.159
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-57 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:11
+Pitch:-10.87
+Roll:0.24
+Yaw:-10.78
+AXavg:0.797
+AYavg:9.734
+AZavg:-0.225
+Bat:4.11
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-56 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:13
+Pitch:-10.91
+Roll:0.27
+Yaw:-10.79
+AXavg:0.798
+AYavg:9.749
+AZavg:-0.226
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-61 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:15
+Pitch:-11.21
+Roll:0.72
+Yaw:-10.91
+AXavg:0.619
+AYavg:9.396
+AZavg:-0.040
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-58 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:17
+Pitch:-11.26
+Roll:0.77
+Yaw:-10.80
+AXavg:0.806
+AYavg:9.776
+AZavg:-0.168
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-61 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:19
+Pitch:-11.13
+Roll:0.64
+Yaw:-10.88
+AXavg:0.803
+AYavg:9.783
+AZavg:-0.216
+Bat:4.16
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-59 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:21
+Pitch:-11.47
+Roll:0.40
+Yaw:-11.11
+AXavg:0.795
+AYavg:9.747
+AZavg:-0.153
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-58 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.7
+P:906.0
+Time:00:05:23
+Pitch:-11.57
+Roll:0.83
+Yaw:-11.27
+AXavg:0.816
+AYavg:9.780
+AZavg:-0.246
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.1
+Sat:0
+Fix:0
+T:21.6
+P:906.3
+Time:00:05:25
+Pitch:-11.38
+Roll:0.50
+Yaw:-11.34
+AXavg:0.825
+AYavg:9.725
+AZavg:-0.151
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-55 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:27
+Pitch:-12.06
+Roll:0.71
+Yaw:-12.15
+AXavg:0.816
+AYavg:9.940
+AZavg:-0.200
+Bat:4.08
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.1
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:29
+Pitch:-11.85
+Roll:0.66
+Yaw:-11.61
+AXavg:0.764
+AYavg:9.752
+AZavg:-0.157
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:31
+Pitch:-11.67
+Roll:0.26
+Yaw:-11.57
+AXavg:0.801
+AYavg:9.793
+AZavg:-0.190
+Bat:4.10
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:21.5
+P:906.1
+Time:00:05:33
+Pitch:-11.50
+Roll:0.21
+Yaw:-11.41
+AXavg:0.814
+AYavg:9.761
+AZavg:-0.236
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-51 dBm | SNR:11 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.5
+P:906.1
+Time:00:05:35
+Pitch:-11.52
+Roll:0.04
+Yaw:-11.68
+AXavg:0.827
+AYavg:9.761
+AZavg:-0.196
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.8
+Sat:0
+Fix:0
+T:21.5
+P:906.2
+Time:00:05:37
+Pitch:-11.36
+Roll:0.20
+Yaw:-11.11
+AXavg:0.783
+AYavg:9.749
+AZavg:-0.234
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:39
+Pitch:-11.34
+Roll:0.15
+Yaw:-11.65
+AXavg:0.805
+AYavg:9.763
+AZavg:-0.195
+Bat:4.08
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-55 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:41
+Pitch:-11.13
+Roll:0.24
+Yaw:-11.04
+AXavg:0.785
+AYavg:9.751
+AZavg:-0.182
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:43
+Pitch:-11.08
+Roll:0.28
+Yaw:-10.60
+AXavg:0.794
+AYavg:9.765
+AZavg:-0.179
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.7
+Sat:0
+Fix:0
+T:21.5
+P:906.0
+Time:00:05:45
+Pitch:-11.04
+Roll:0.31
+Yaw:-11.28
+AXavg:0.796
+AYavg:9.753
+AZavg:-0.195
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.7
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:47
+Pitch:-11.02
+Roll:0.43
+Yaw:-10.85
+AXavg:0.794
+AYavg:9.762
+AZavg:-0.184
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.1
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:49
+Pitch:-11.08
+Roll:0.44
+Yaw:-10.53
+AXavg:0.789
+AYavg:9.773
+AZavg:-0.197
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:05:51
+Pitch:-11.05
+Roll:0.38
+Yaw:-10.90
+AXavg:0.809
+AYavg:9.753
+AZavg:-0.174
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.4
+Sat:0
+Fix:0
+T:21.5
+P:906.3
+Time:00:05:53
+Pitch:-11.00
+Roll:0.42
+Yaw:-11.19
+AXavg:0.782
+AYavg:9.765
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:05:55
+Pitch:-10.90
+Roll:0.36
+Yaw:-10.93
+AXavg:0.803
+AYavg:9.751
+AZavg:-0.142
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:21.6
+P:906.0
+Time:00:05:57
+Pitch:-10.90
+Roll:0.36
+Yaw:-10.23
+AXavg:0.778
+AYavg:9.766
+AZavg:-0.217
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.1
+Sat:0
+Fix:0
+T:21.5
+P:906.0
+Time:00:05:59
+Pitch:-10.86
+Roll:0.41
+Yaw:-10.86
+AXavg:0.796
+AYavg:9.737
+AZavg:-0.226
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:06:01
+Pitch:-10.91
+Roll:0.46
+Yaw:-10.38
+AXavg:0.789
+AYavg:9.763
+AZavg:-0.201
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:06:03
+Pitch:-10.83
+Roll:0.41
+Yaw:-10.66
+AXavg:0.786
+AYavg:9.743
+AZavg:-0.204
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.7
+Sat:0
+Fix:0
+T:21.6
+P:906.0
+Time:00:06:05
+Pitch:-10.83
+Roll:0.43
+Yaw:-10.65
+AXavg:0.786
+AYavg:9.743
+AZavg:-0.192
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:06:07
+Pitch:-10.83
+Roll:0.53
+Yaw:-10.79
+AXavg:0.818
+AYavg:9.745
+AZavg:-0.181
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:06:09
+Pitch:-10.77
+Roll:0.48
+Yaw:-10.22
+AXavg:0.788
+AYavg:9.768
+AZavg:-0.205
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:06:11
+Pitch:-10.80
+Roll:0.45
+Yaw:-10.79
+AXavg:0.769
+AYavg:9.772
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.6
+P:906.1
+Time:00:06:13
+Pitch:-10.80
+Roll:0.43
+Yaw:-10.29
+AXavg:0.789
+AYavg:9.748
+AZavg:-0.214
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:927.3
+Sat:0
+Fix:0
+T:21.7
+P:906.5
+Time:00:06:15
+Pitch:-10.76
+Roll:0.44
+Yaw:-10.77
+AXavg:0.807
+AYavg:9.742
+AZavg:-0.198
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:21.6
+P:906.2
+Time:00:06:17
+Pitch:-10.76
+Roll:0.58
+Yaw:-10.15
+AXavg:0.792
+AYavg:9.730
+AZavg:-0.227
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:11 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:21.6
+P:906.0
+Time:00:06:19
+Pitch:-10.73
+Roll:0.61
+Yaw:-10.69
+AXavg:0.795
+AYavg:9.757
+AZavg:-0.234
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.0
+Sat:0
+Fix:0
+T:21.7
+P:906.2
+Time:00:06:21
+Pitch:-10.74
+Roll:0.60
+Yaw:-10.33
+AXavg:0.796
+AYavg:9.754
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.7
+P:906.1
+Time:00:06:23
+Pitch:-10.75
+Roll:0.59
+Yaw:-10.69
+AXavg:0.793
+AYavg:9.755
+AZavg:-0.205
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.6
+Sat:0
+Fix:0
+T:21.7
+P:906.2
+Time:00:06:25
+Pitch:-10.70
+Roll:0.59
+Yaw:-10.66
+AXavg:0.791
+AYavg:9.728
+AZavg:-0.227
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.7
+P:906.1
+Time:00:06:27
+Pitch:-10.68
+Roll:0.52
+Yaw:-10.65
+AXavg:0.787
+AYavg:9.744
+AZavg:-0.224
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.7
+P:906.2
+Time:00:06:29
+Pitch:-10.74
+Roll:0.48
+Yaw:-10.74
+AXavg:0.788
+AYavg:9.759
+AZavg:-0.204
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:21.7
+P:906.1
+Time:00:06:31
+Pitch:-10.75
+Roll:0.54
+Yaw:-10.52
+AXavg:0.803
+AYavg:9.736
+AZavg:-0.180
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.8
+P:906.2
+Time:00:06:33
+Pitch:-10.73
+Roll:0.56
+Yaw:-10.51
+AXavg:0.795
+AYavg:9.754
+AZavg:-0.219
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:21.7
+P:906.0
+Time:00:06:35
+Pitch:-10.77
+Roll:0.50
+Yaw:-10.40
+AXavg:0.806
+AYavg:9.754
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.8
+P:906.1
+Time:00:06:37
+Pitch:-10.81
+Roll:0.45
+Yaw:-10.45
+AXavg:0.793
+AYavg:9.751
+AZavg:-0.203
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.5
+Sat:0
+Fix:0
+T:21.8
+P:906.1
+Time:00:06:39
+Pitch:-10.71
+Roll:0.52
+Yaw:-10.53
+AXavg:0.803
+AYavg:9.771
+AZavg:-0.223
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.8
+P:906.1
+Time:00:06:41
+Pitch:-10.73
+Roll:0.41
+Yaw:-11.27
+AXavg:0.791
+AYavg:9.748
+AZavg:-0.213
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.8
+P:906.1
+Time:00:06:43
+Pitch:-10.78
+Roll:0.40
+Yaw:-9.90
+AXavg:0.786
+AYavg:9.761
+AZavg:-0.216
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.2
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:06:45
+Pitch:-10.87
+Roll:0.45
+Yaw:-10.34
+AXavg:0.805
+AYavg:9.761
+AZavg:-0.208
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.9
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:06:47
+Pitch:-10.89
+Roll:0.44
+Yaw:-11.24
+AXavg:0.814
+AYavg:9.787
+AZavg:-0.238
+Bat:4.11
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:06:49
+Pitch:-10.80
+Roll:0.40
+Yaw:-11.01
+AXavg:0.804
+AYavg:9.802
+AZavg:-0.173
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:06:51
+Pitch:-10.85
+Roll:0.41
+Yaw:-10.51
+AXavg:0.810
+AYavg:9.765
+AZavg:-0.249
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.8
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:06:53
+Pitch:-10.90
+Roll:0.42
+Yaw:-10.73
+AXavg:0.805
+AYavg:9.767
+AZavg:-0.208
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.8
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:06:55
+Pitch:-10.96
+Roll:0.39
+Yaw:-10.63
+AXavg:0.796
+AYavg:9.746
+AZavg:-0.180
+Bat:4.08
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.8
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:06:57
+Pitch:-10.94
+Roll:0.39
+Yaw:-10.08
+AXavg:0.794
+AYavg:9.764
+AZavg:-0.231
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:22.0
+P:906.1
+Time:00:06:59
+Pitch:-10.99
+Roll:0.46
+Yaw:-10.62
+AXavg:0.801
+AYavg:9.742
+AZavg:-0.223
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:07:01
+Pitch:-10.93
+Roll:0.45
+Yaw:-10.58
+AXavg:0.784
+AYavg:9.751
+AZavg:-0.234
+Bat:4.08
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:22.0
+P:906.1
+Time:00:07:03
+Pitch:-10.93
+Roll:0.39
+Yaw:-11.33
+AXavg:0.790
+AYavg:9.766
+AZavg:-0.197
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:22.0
+P:906.1
+Time:00:07:05
+Pitch:-10.93
+Roll:0.24
+Yaw:-10.65
+AXavg:0.794
+AYavg:9.752
+AZavg:-0.162
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:07:07
+Pitch:-10.94
+Roll:0.33
+Yaw:-11.18
+AXavg:0.791
+AYavg:9.744
+AZavg:-0.216
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:22.0
+P:906.2
+Time:00:07:09
+Pitch:-10.99
+Roll:0.26
+Yaw:-10.90
+AXavg:0.781
+AYavg:9.757
+AZavg:-0.191
+Bat:4.11
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:07:11
+Pitch:-11.08
+Roll:0.26
+Yaw:-10.60
+AXavg:0.820
+AYavg:9.768
+AZavg:-0.238
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:22.0
+P:906.1
+Time:00:07:13
+Pitch:-11.03
+Roll:0.35
+Yaw:-10.90
+AXavg:0.802
+AYavg:9.766
+AZavg:-0.228
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:07:15
+Pitch:-10.97
+Roll:0.36
+Yaw:-10.82
+AXavg:0.815
+AYavg:9.747
+AZavg:-0.244
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:07:17
+Pitch:-10.88
+Roll:0.36
+Yaw:-10.92
+AXavg:0.793
+AYavg:9.789
+AZavg:-0.213
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:21.9
+P:906.1
+Time:00:07:19
+Pitch:-10.87
+Roll:0.37
+Yaw:-10.74
+AXavg:0.797
+AYavg:9.774
+AZavg:-0.193
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:928.8
+Sat:0
+Fix:0
+T:21.9
+P:906.3
+Time:00:07:21
+Pitch:-10.91
+Roll:0.42
+Yaw:-10.74
+AXavg:0.823
+AYavg:9.750
+AZavg:-0.225
+Bat:4.11
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.2
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:07:23
+Pitch:-10.86
+Roll:0.37
+Yaw:-11.26
+AXavg:0.773
+AYavg:9.775
+AZavg:-0.188
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:21.9
+P:906.1
+Time:00:07:25
+Pitch:-10.94
+Roll:0.35
+Yaw:-11.16
+AXavg:0.792
+AYavg:9.772
+AZavg:-0.170
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.4
+Sat:0
+Fix:0
+T:21.9
+P:906.3
+Time:00:07:27
+Pitch:-10.70
+Roll:0.29
+Yaw:-10.77
+AXavg:0.877
+AYavg:9.814
+AZavg:-0.214
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.9
+P:906.1
+Time:00:07:29
+Pitch:-10.22
+Roll:-1.12
+Yaw:-10.62
+AXavg:0.792
+AYavg:9.768
+AZavg:-0.188
+Bat:4.12
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-56 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.5
+Sat:0
+Fix:0
+T:21.9
+P:906.2
+Time:00:07:31
+Pitch:-10.40
+Roll:-0.77
+Yaw:-10.67
+AXavg:0.814
+AYavg:9.747
+AZavg:-0.190
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:21.8
+P:906.0
+Time:00:07:33
+Pitch:-10.41
+Roll:-0.73
+Yaw:-10.86
+AXavg:0.775
+AYavg:9.729
+AZavg:-0.164
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.2
+Sat:0
+Fix:0
+T:21.9
+P:906.3
+Time:00:07:35
+Pitch:-10.52
+Roll:-0.54
+Yaw:-11.06
+AXavg:0.766
+AYavg:9.770
+AZavg:-0.231
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:21.8
+P:906.2
+Time:00:07:37
+Pitch:-10.66
+Roll:-0.13
+Yaw:-11.08
+AXavg:0.809
+AYavg:9.736
+AZavg:-0.147
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:21.8
+P:906.1
+Time:00:07:39
+Pitch:-10.69
+Roll:-0.17
+Yaw:-10.91
+AXavg:0.817
+AYavg:9.740
+AZavg:-0.245
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-54 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:21.9
+P:906.1
+Time:00:07:41
+Pitch:-10.69
+Roll:0.02
+Yaw:-10.66
+AXavg:0.801
+AYavg:9.773
+AZavg:-0.193
+Bat:4.15
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.8
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:07:43
+Pitch:-10.88
+Roll:0.27
+Yaw:-10.59
+AXavg:0.799
+AYavg:9.731
+AZavg:-0.227
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.5
+Sat:0
+Fix:0
+T:21.9
+P:906.1
+Time:00:07:45
+Pitch:-10.98
+Roll:0.34
+Yaw:-10.82
+AXavg:0.788
+AYavg:9.724
+AZavg:-0.219
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.5
+Sat:0
+Fix:0
+T:21.9
+P:906.1
+Time:00:07:47
+Pitch:-10.82
+Roll:0.18
+Yaw:-10.56
+AXavg:0.765
+AYavg:9.810
+AZavg:-0.250
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:21.9
+P:906.1
+Time:00:07:49
+Pitch:-10.91
+Roll:0.21
+Yaw:-10.99
+AXavg:0.786
+AYavg:9.880
+AZavg:-0.258
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:21.9
+P:906.0
+Time:00:07:51
+Pitch:-10.94
+Roll:0.11
+Yaw:-11.44
+AXavg:0.758
+AYavg:9.767
+AZavg:-0.201
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:22.0
+P:906.2
+Time:00:07:53
+Pitch:-10.89
+Roll:0.07
+Yaw:-11.40
+AXavg:0.778
+AYavg:9.750
+AZavg:-0.215
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:22.0
+P:906.2
+Time:00:07:55
+Pitch:-10.91
+Roll:0.03
+Yaw:-10.50
+AXavg:0.808
+AYavg:9.773
+AZavg:-0.242
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-51 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.8
+Sat:0
+Fix:0
+T:22.0
+P:906.1
+Time:00:07:57
+Pitch:-10.97
+Roll:0.12
+Yaw:-11.10
+AXavg:0.789
+AYavg:9.764
+AZavg:-0.208
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.4
+Sat:0
+Fix:0
+T:22.0
+P:906.0
+Time:00:07:59
+Pitch:-10.96
+Roll:0.22
+Yaw:-10.86
+AXavg:0.802
+AYavg:9.758
+AZavg:-0.209
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-51 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:22.0
+P:906.2
+Time:00:08:01
+Pitch:-10.94
+Roll:0.27
+Yaw:-10.81
+AXavg:0.798
+AYavg:9.727
+AZavg:-0.225
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.8
+Sat:0
+Fix:0
+T:22.0
+P:906.0
+Time:00:08:03
+Pitch:-10.97
+Roll:0.31
+Yaw:-11.21
+AXavg:0.789
+AYavg:9.761
+AZavg:-0.228
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.7
+Sat:0
+Fix:0
+T:22.0
+P:905.9
+Time:00:08:05
+Pitch:-10.96
+Roll:0.35
+Yaw:-11.37
+AXavg:0.786
+AYavg:9.748
+AZavg:-0.234
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:22.0
+P:906.2
+Time:00:08:07
+Pitch:-11.00
+Roll:0.44
+Yaw:-10.98
+AXavg:0.840
+AYavg:9.744
+AZavg:-0.203
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.1
+Sat:0
+Fix:0
+T:22.0
+P:906.0
+Time:00:08:09
+Pitch:-10.96
+Roll:0.47
+Yaw:-10.78
+AXavg:0.808
+AYavg:9.783
+AZavg:-0.189
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.1
+Sat:0
+Fix:0
+T:22.0
+P:906.1
+Time:00:08:11
+Pitch:-11.05
+Roll:0.50
+Yaw:-10.86
+AXavg:0.784
+AYavg:9.781
+AZavg:-0.226
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.0
+P:906.0
+Time:00:08:13
+Pitch:-11.03
+Roll:0.47
+Yaw:-10.64
+AXavg:0.784
+AYavg:9.746
+AZavg:-0.212
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.0
+P:906.0
+Time:00:08:15
+Pitch:-10.95
+Roll:0.49
+Yaw:-10.76
+AXavg:0.799
+AYavg:9.749
+AZavg:-0.245
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.0
+P:906.1
+Time:00:08:17
+Pitch:-10.95
+Roll:0.41
+Yaw:-10.24
+AXavg:0.810
+AYavg:9.749
+AZavg:-0.171
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.4
+Sat:0
+Fix:0
+T:22.0
+P:906.2
+Time:00:08:19
+Pitch:-10.96
+Roll:0.51
+Yaw:-10.38
+AXavg:0.782
+AYavg:9.749
+AZavg:-0.260
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:08:21
+Pitch:-11.01
+Roll:0.37
+Yaw:-11.02
+AXavg:0.771
+AYavg:9.722
+AZavg:-0.240
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.1
+Sat:0
+Fix:0
+T:22.1
+P:906.2
+Time:00:08:23
+Pitch:-11.05
+Roll:0.43
+Yaw:-10.72
+AXavg:0.801
+AYavg:9.768
+AZavg:-0.233
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:08:25
+Pitch:-11.01
+Roll:0.43
+Yaw:-10.46
+AXavg:0.763
+AYavg:9.744
+AZavg:-0.282
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:08:27
+Pitch:-11.05
+Roll:0.31
+Yaw:-11.09
+AXavg:0.781
+AYavg:9.744
+AZavg:-0.257
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:29
+Pitch:-11.03
+Roll:0.35
+Yaw:-10.71
+AXavg:0.795
+AYavg:9.752
+AZavg:-0.169
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:08:31
+Pitch:-10.97
+Roll:0.22
+Yaw:-10.86
+AXavg:0.777
+AYavg:9.768
+AZavg:-0.227
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:33
+Pitch:-10.93
+Roll:0.22
+Yaw:-10.81
+AXavg:0.803
+AYavg:9.747
+AZavg:-0.224
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:35
+Pitch:-10.86
+Roll:0.29
+Yaw:-11.29
+AXavg:0.795
+AYavg:9.746
+AZavg:-0.219
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:37
+Pitch:-11.00
+Roll:0.31
+Yaw:-11.06
+AXavg:0.792
+AYavg:9.752
+AZavg:-0.231
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:08:39
+Pitch:-10.99
+Roll:0.37
+Yaw:-10.65
+AXavg:0.788
+AYavg:9.743
+AZavg:-0.201
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:41
+Pitch:-10.98
+Roll:0.36
+Yaw:-10.83
+AXavg:0.792
+AYavg:9.765
+AZavg:-0.241
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-51 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:43
+Pitch:-11.03
+Roll:0.37
+Yaw:-11.25
+AXavg:0.775
+AYavg:9.768
+AZavg:-0.171
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-52 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:45
+Pitch:-11.00
+Roll:0.35
+Yaw:-10.86
+AXavg:0.848
+AYavg:9.746
+AZavg:-0.195
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-53 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.3
+Sat:0
+Fix:0
+T:22.1
+P:905.9
+Time:00:08:47
+Pitch:-10.91
+Roll:0.26
+Yaw:-10.25
+AXavg:0.781
+AYavg:9.776
+AZavg:-0.222
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:49
+Pitch:-10.82
+Roll:0.35
+Yaw:-10.84
+AXavg:0.777
+AYavg:9.723
+AZavg:-0.170
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:929.3
+Sat:0
+Fix:0
+T:22.1
+P:906.3
+Time:00:08:51
+Pitch:-10.91
+Roll:0.44
+Yaw:-10.36
+AXavg:0.776
+AYavg:9.759
+AZavg:-0.207
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:08:53
+Pitch:-10.95
+Roll:0.34
+Yaw:-11.36
+AXavg:0.766
+AYavg:9.744
+AZavg:-0.194
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:08:55
+Pitch:-10.94
+Roll:0.26
+Yaw:-10.63
+AXavg:0.804
+AYavg:9.760
+AZavg:-0.243
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:57
+Pitch:-11.02
+Roll:0.35
+Yaw:-11.04
+AXavg:0.799
+AYavg:9.750
+AZavg:-0.274
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:08:59
+Pitch:-11.02
+Roll:0.31
+Yaw:-10.90
+AXavg:0.763
+AYavg:9.762
+AZavg:-0.234
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:22.1
+P:906.2
+Time:00:09:01
+Pitch:-10.93
+Roll:0.33
+Yaw:-10.97
+AXavg:0.802
+AYavg:9.743
+AZavg:-0.223
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:09:03
+Pitch:-10.97
+Roll:0.44
+Yaw:-10.24
+AXavg:0.769
+AYavg:9.753
+AZavg:-0.226
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:09:05
+Pitch:-10.88
+Roll:0.33
+Yaw:-10.38
+AXavg:0.769
+AYavg:9.684
+AZavg:-0.238
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:09:07
+Pitch:-10.93
+Roll:0.30
+Yaw:-10.80
+AXavg:0.783
+AYavg:9.787
+AZavg:-0.243
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:09:09
+Pitch:-10.87
+Roll:0.35
+Yaw:-10.34
+AXavg:0.831
+AYavg:9.752
+AZavg:-0.236
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:09:11
+Pitch:-10.83
+Roll:0.16
+Yaw:-10.58
+AXavg:0.810
+AYavg:9.742
+AZavg:-0.197
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:09:13
+Pitch:-10.84
+Roll:0.11
+Yaw:-10.59
+AXavg:0.798
+AYavg:9.746
+AZavg:-0.245
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.7
+Sat:0
+Fix:0
+T:22.1
+P:906.1
+Time:00:09:15
+Pitch:-10.89
+Roll:0.32
+Yaw:-10.92
+AXavg:0.806
+AYavg:9.745
+AZavg:-0.192
+Bat:4.08
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.3
+Sat:0
+Fix:0
+T:22.1
+P:906.2
+Time:00:09:17
+Pitch:-10.87
+Roll:0.33
+Yaw:-10.92
+AXavg:0.802
+AYavg:9.742
+AZavg:-0.188
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:09:19
+Pitch:-10.81
+Roll:0.34
+Yaw:-10.48
+AXavg:0.791
+AYavg:9.742
+AZavg:-0.196
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.3
+Sat:0
+Fix:0
+T:22.1
+P:905.9
+Time:00:09:21
+Pitch:-10.77
+Roll:0.25
+Yaw:-10.84
+AXavg:0.779
+AYavg:9.769
+AZavg:-0.206
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.0
+Sat:0
+Fix:0
+T:22.2
+P:906.1
+Time:00:09:23
+Pitch:-10.74
+Roll:0.30
+Yaw:-10.79
+AXavg:0.769
+AYavg:9.765
+AZavg:-0.241
+Bat:4.12
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:09:25
+Pitch:-10.67
+Roll:0.20
+Yaw:-10.19
+AXavg:0.794
+AYavg:9.733
+AZavg:-0.227
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:22.1
+P:906.0
+Time:00:09:27
+Pitch:-10.70
+Roll:0.17
+Yaw:-10.61
+AXavg:0.793
+AYavg:9.763
+AZavg:-0.224
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.0
+Sat:0
+Fix:0
+T:22.2
+P:906.0
+Time:00:09:29
+Pitch:-10.73
+Roll:0.08
+Yaw:-11.23
+AXavg:0.802
+AYavg:9.775
+AZavg:-0.265
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.2
+P:906.1
+Time:00:09:31
+Pitch:-10.75
+Roll:0.09
+Yaw:-10.50
+AXavg:0.798
+AYavg:9.715
+AZavg:-0.192
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:09:33
+Pitch:-10.76
+Roll:0.14
+Yaw:-10.87
+AXavg:0.797
+AYavg:9.765
+AZavg:-0.241
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.6
+Sat:0
+Fix:0
+T:22.2
+P:906.0
+Time:00:09:35
+Pitch:-10.73
+Roll:0.19
+Yaw:-10.83
+AXavg:0.778
+AYavg:9.742
+AZavg:-0.198
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.3
+Sat:0
+Fix:0
+T:22.2
+P:906.0
+Time:00:09:37
+Pitch:-10.75
+Roll:0.19
+Yaw:-10.10
+AXavg:0.812
+AYavg:9.748
+AZavg:-0.218
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:22.3
+P:906.2
+Time:00:09:39
+Pitch:-10.70
+Roll:0.22
+Yaw:-10.60
+AXavg:0.777
+AYavg:9.759
+AZavg:-0.201
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:22.3
+P:906.0
+Time:00:09:41
+Pitch:-10.74
+Roll:0.15
+Yaw:-11.04
+AXavg:0.825
+AYavg:9.750
+AZavg:-0.249
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.5
+Sat:0
+Fix:0
+T:22.3
+P:906.0
+Time:00:09:43
+Pitch:-10.89
+Roll:0.27
+Yaw:-10.75
+AXavg:0.795
+AYavg:9.745
+AZavg:-0.215
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.9
+Sat:0
+Fix:0
+T:22.3
+P:906.0
+Time:00:09:45
+Pitch:-10.95
+Roll:0.27
+Yaw:-10.45
+AXavg:0.765
+AYavg:9.783
+AZavg:-0.250
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:09:47
+Pitch:-10.92
+Roll:0.06
+Yaw:-11.07
+AXavg:0.813
+AYavg:9.787
+AZavg:-0.214
+Bat:4.19
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:13 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:09:49
+Pitch:-10.91
+Roll:0.05
+Yaw:-10.86
+AXavg:0.797
+AYavg:9.747
+AZavg:-0.218
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:932.5
+Sat:0
+Fix:0
+T:22.3
+P:905.9
+Time:00:09:51
+Pitch:-10.84
+Roll:0.13
+Yaw:-10.59
+AXavg:0.794
+AYavg:9.765
+AZavg:-0.234
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:933.5
+Sat:0
+Fix:0
+T:22.3
+P:905.8
+Time:00:09:53
+Pitch:-10.91
+Roll:0.24
+Yaw:-10.28
+AXavg:0.782
+AYavg:9.748
+AZavg:-0.229
+Bat:4.19
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:22.4
+P:906.1
+Time:00:09:55
+Pitch:-10.99
+Roll:0.17
+Yaw:-10.90
+AXavg:0.791
+AYavg:9.694
+AZavg:-0.214
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:928.5
+Sat:0
+Fix:0
+T:22.3
+P:906.4
+Time:00:09:57
+Pitch:-10.94
+Roll:0.24
+Yaw:-10.83
+AXavg:0.776
+AYavg:9.762
+AZavg:-0.227
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:09:59
+Pitch:-11.00
+Roll:0.19
+Yaw:-10.91
+AXavg:0.772
+AYavg:9.749
+AZavg:-0.180
+Bat:4.18
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.2
+Sat:0
+Fix:0
+T:22.3
+P:906.2
+Time:00:10:01
+Pitch:-11.09
+Roll:0.20
+Yaw:-10.81
+AXavg:0.769
+AYavg:9.720
+AZavg:-0.244
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:10:03
+Pitch:-11.08
+Roll:0.20
+Yaw:-11.55
+AXavg:0.789
+AYavg:9.742
+AZavg:-0.245
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:10:05
+Pitch:-11.05
+Roll:0.22
+Yaw:-10.93
+AXavg:0.782
+AYavg:9.757
+AZavg:-0.266
+Bat:4.19
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.3
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:10:07
+Pitch:-11.12
+Roll:0.32
+Yaw:-11.15
+AXavg:0.792
+AYavg:9.752
+AZavg:-0.232
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.9
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:10:09
+Pitch:-11.05
+Roll:0.22
+Yaw:-10.76
+AXavg:0.784
+AYavg:9.763
+AZavg:-0.220
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.9
+Sat:0
+Fix:0
+T:22.3
+P:906.0
+Time:00:10:11
+Pitch:-11.11
+Roll:0.19
+Yaw:-10.83
+AXavg:0.782
+AYavg:9.783
+AZavg:-0.228
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-50 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:930.5
+Sat:0
+Fix:0
+T:22.3
+P:906.1
+Time:00:10:13
+Pitch:-11.05
+Roll:0.13
+Yaw:-10.98
+AXavg:0.783
+AYavg:9.748
+AZavg:-0.204
+Bat:4.20
+Ack:0
+----------------------
+------- PT2UNB -------
+RSSI:-49 dBm | SNR:12 dB
+Lat:0.0000000
+Lon:0.0000000
+Alt:-17.0
+AltB:931.2
+Sat:0
+Fix:0
+T:22.4
+P:906.1
+Time:00:10:15
+Pitch:-11.03
+Roll:0.02
+Yaw:-11.20
+AXavg:0.810
+AYavg:9.772
+AZavg:-0.236
+Bat:4.07
+Ack:0
+----------------------
