@@ -30,19 +30,24 @@ Toda a telemetria transmitida usa o indicativo de radioamadorismo **`PT2UNB`** c
 ```
 Balao-Base/
 ├── src/
-│   ├── LoraBordo/                        Transmissor de bordo (BME280 + BNO086)
-│   ├── LoraSolo/                         Receptor de solo (par do LoraBordo)
-│   ├── Lora_Bordo_Com_Telecomando/       Transmissor de bordo (GY-86 + telecomando TDM)
-│   ├── Lora_Solo_com_Telecomando/        Receptor/transmissor de solo (par do anterior)
-│   ├── LiberacaoCarga/                   Balança HX711 + acionamento de relé
-│   └── gy80testado/                      Bancada de teste do IMU 10DOF
-├── Rastreador Sonda/
-│   ├── tracker.py                        Estação de solo gráfica (Python/Tkinter)
-│   ├── tracker.spec                      Receita do PyInstaller
-│   ├── build/                            Artefatos do PyInstaller (versionados)
-│   └── dist/                             tracker.exe + logs de missão (versionados)
-├── logs/                                 Logs de telemetria de voos realizados
-├── config.txt                            Configuração do OpenLog (copiar para o SD)
+│   ├── tracker.py                         Nova interface, missões e reprodução
+│   ├── trackerV1.2.py                     Interface legada
+│   ├── mission.py / mission_ui.py         Gravação e controles de missão
+│   ├── telemetry.py / station.py          Parser e recepção serial
+│   ├── replay.py / antenna.py             Reprodução e geometria da antena
+│   ├── LoraBordo/                         Transmissor BME280 + BNO086
+│   ├── LoraSolo/                          Receptor da linha A
+│   ├── Lora_Bordo_Com_Telecomando/         Transmissor GY-86 + telecomando
+│   ├── Lora_Solo_com_Telecomando/          Receptor/transmissor da linha B
+│   ├── LiberacaoCarga/                    HX711 + relé
+│   └── gy80testado/                       Bancada de teste IMU
+├── Tracker Win64x/build/                  Artefatos de build anteriores
+├── docs/MISSION_LOGS.md                   Operação, formatos e recuperação
+├── tests/                                Testes automatizados
+├── tools/soak_mission.py                  Ensaio de missão prolongada
+├── logs/                                 Logs históricos versionados
+├── requirements-tracker.txt              Dependências da nova interface
+├── config.txt                            Configuração do OpenLog
 └── README.md
 ```
 
@@ -202,30 +207,18 @@ A aproximação vale até **~11 km**; acima disso ela diverge. Ainda assim é ú
 
 ## Estação de solo: Rastreador Sonda
 
-[`Rastreador Sonda/tracker.py`](Rastreador%20Sonda/tracker.py) — aplicação gráfica em Python/Tkinter que serve de monitor de missão.
+A nova interface está em [`src/tracker.py`](src/tracker.py). Ela lê a serial USB do receptor Heltec a 115200 baud e oferece mapa, gráficos, distância tracker–sonda, apontamento 3D e telecomando. Aceita as linhas A e B, preservando campos ausentes como indisponíveis.
 
-Importante: o tracker **não fala LoRa**. Ele lê pela porta serial (115200 baud) a saída do **Heltec de solo** rodando o `LoraSolo.ino`, e faz o parse das linhas `chave:valor` que aquele sketch imprime.
+O sistema de logs agora organiza a aquisição em **missões**, com criação, encerramento e retomada. Cada missão guarda captura serial exata, telemetria estruturada e eventos em SQLite. A gravação é independente da recepção, com sincronização aproximadamente a cada segundo, fila limitada que preserva os dados recentes em caso de falha e indicadores de perda/recuperação.
 
-O que ele oferece:
-
-- **Mapa ao vivo** (`tkintermapview`) com marcador da sonda e rastro do trajeto percorrido.
-- **Gráficos** (`matplotlib`, embutidos via `TkAgg`) de altitude, temperatura + umidade e pressão, com o eixo X no horário real do GPS.
-- **Dinâmica de voo** derivada de pontos GPS consecutivos: velocidade e direção do vento (deslocamento horizontal por haversine) e velocidade vertical.
-- **Qualidade do enlace**: RSSI e SNR extraídos do cabeçalho de cada pacote.
-- **Log automático**: ao conectar, abre `telemetria_<AAAAMMDD>_<HHMMSS>.txt` e grava cada linha recebida com flush imediato.
-
-### Rodando
+Também há exportação CSV/captura bruta e reprodução das novas missões com pausa, velocidade e busca temporal. A reprodução usa a configuração histórica do tracker e funciona com o rádio desconectado.
 
 ```bash
-pip install pyserial tkintermapview matplotlib
-python "Rastreador Sonda/tracker.py"
+python -m pip install -r requirements-tracker.txt
+python src/tracker.py
 ```
 
-Há também um executável Windows pré-compilado em `Rastreador Sonda/dist/tracker.exe`. Para regerá-lo:
-
-```bash
-pyinstaller "Rastreador Sonda/tracker.spec"
-```
+Requer Python 3.10+ e Tkinter. Leia o [guia de missões, recuperação, formatos e testes](docs/MISSION_LOGS.md) antes da operação de campo. A versão [`src/trackerV1.2.py`](src/trackerV1.2.py) permanece disponível como interface legada. Os executáveis Windows anteriores não foram recompilados.
 
 ---
 
@@ -346,10 +339,10 @@ Pontos levantados na revisão do código atual. Estão registrados aqui para que
 
 1. **`gy80testado` não usa um GY-80.** Apesar do nome, o sketch instancia MPU6050 + HMC5883L + MS5611, que é a combinação do **GY-86/GY-87 (10DOF)** — o mesmo conjunto da linha B. O GY-80 traz ADXL345 + L3G4200D + BMP085. O nome do diretório está enganoso.
 
-2. **O Rastreador Sonda só funciona com a linha A.** O tracker fecha cada pacote e atualiza os históricos quando vê a chave `MZ` (`if key == "MZ"`), e plota umidade a partir de `U`. O pacote da linha B não tem nenhum dos dois, então os gráficos e o rastro não avançam com o firmware de telecomando. Adaptar exige mudar a chave de fechamento do pacote.
+2. **A nova interface aceita as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, evita a cópia formatada da linha A e preserva os campos ausentes como indisponíveis. A interface legada V1.2 fecha os pacotes em `Ack`.
 
-3. **Logs duplicados no versionamento.** `logs/telemetria_matheus.txt` e `logs/telemetria_matheus_2.txt` são byte a byte idênticos a `Rastreador Sonda/dist/telemetria_20260624_134115.txt` e `.../telemetria_20260625_150455.txt`, respectivamente. São as mesmas capturas guardadas em dois lugares.
+3. **Os logs históricos continuam versionados em `logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
 
-4. **Artefatos de build versionados.** `Rastreador Sonda/build/` e `Rastreador Sonda/dist/` (incluindo o `tracker.exe`) estão no repositório. São regeráveis a partir do `tracker.spec` e seriam candidatos naturais a um `.gitignore`.
+4. **Artefatos antigos de build continuam em `Tracker Win64x/build/`.** Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
 
 5. **O relé da liberação de carga fica acionado em repouso.** A condição é `peso <= 300 → relé HIGH`. Como a balança é tarada no boot, o peso parte de ~0 e o relé sobe imediatamente na bancada. O comportamento pretendido depende de haver carga aplicada desde o início — vale confirmar a polaridade antes de integrar ao voo.
