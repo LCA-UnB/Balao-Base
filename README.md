@@ -45,13 +45,14 @@ Balao-Base/
 ├── Rastreador Sonda/
 │   └── tracker.py                         Interface redesenhada do PR 17
 ├── Tracker Win64x/build/                  Artefatos de build anteriores
-├── docs/MISSION_LOGS.md                   Operação, formatos e recuperação
+├── docs/
+│   ├── MISSION_LOGS.md                    Operação, formatos e recuperação
+│   └── logs/                              Logs históricos versionados
 ├── tests/                                 Testes automatizados
 ├── tools/                                 Ferramentas auxiliares (ver tools/README.md)
 │   ├── calibrar_bateria/                  Sketch + guia de calibração do ADC da bateria
 │   ├── rtl_sdr/                           Estação RS41 com RTL-SDR e SondeHub
 │   └── ensaio_missao/                     Ensaio de missão prolongada
-├── logs/                                  Logs históricos versionados
 ├── requirements-tracker.txt               Dependências da nova interface
 ├── config.txt                             Configuração do OpenLog
 └── README.md
@@ -329,13 +330,13 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 
 ## Logs de missão
 
-`logs/` guarda telemetria capturada em voos já realizados, no formato de saída do Rastreador Sonda:
+`docs/logs/` guarda telemetria capturada em voos já realizados, no formato de saída do Rastreador Sonda:
 
 | Arquivo | Linhas |
 |---|---|
-| `logs/telemetria_lucas.txt` | 82.051 |
-| `logs/telemetria_matheus.txt` | 15.750 |
-| `logs/telemetria_matheus_2.txt` | 41.172 |
+| `docs/logs/telemetria_lucas.txt` | 82.051 |
+| `docs/logs/telemetria_matheus.txt` | 15.750 |
+| `docs/logs/telemetria_matheus_2.txt` | 41.172 |
 
 ---
 
@@ -364,7 +365,7 @@ Pontos levantados na revisão do código atual. Estão registrados aqui para que
 
 2. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `Rastreador Sonda/tracker.py` também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
 
-3. **Os logs históricos continuam versionados em `logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
+3. **Os logs históricos continuam versionados em `docs/logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
 
 4. **Artefatos antigos de build continuam em `Tracker Win64x/build/`.** Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
 
