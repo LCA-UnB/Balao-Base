@@ -217,7 +217,9 @@ A nova interface está em [`src/tracker.py`](src/tracker.py). Ela lê a serial U
 
 O sistema de logs agora organiza a aquisição em **missões**, com criação, encerramento e retomada. Cada missão guarda captura serial exata, telemetria estruturada e eventos em SQLite. A gravação é independente da recepção, com sincronização aproximadamente a cada segundo, fila limitada que preserva os dados recentes em caso de falha e indicadores de perda/recuperação.
 
-Também há exportação CSV/captura bruta e reprodução das novas missões com pausa, velocidade e busca temporal. A reprodução usa a configuração histórica do tracker e funciona com o rádio desconectado.
+Também há exportação CSV, KML e captura bruta, e reprodução das novas missões com pausa, velocidade e busca temporal. A reprodução usa a configuração histórica do tracker e funciona com o rádio desconectado.
+
+O botão **Exportar KML** gera um arquivo para o Google Earth com o trajeto da sonda (altitude MSL, como o GPS), os marcadores do primeiro ponto, do ponto mais alto e do último ponto, e a posição do tracker, se estiver configurada. Só entram pacotes com GPS 3D válido; se a missão não tiver nenhum, a interface avisa e não cria o arquivo.
 
 ```bash
 python -m pip install -r requirements-tracker.txt

@@ -12,7 +12,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 import serial
 
 from antenna import Position
-from mission import MissionWriter, export_csv, export_raw, read_metadata
+from mission import MissionWriter, export_csv, export_kml, export_raw, read_metadata
 from replay import MissionReplay
 from station import StationReceiver
 
@@ -53,8 +53,8 @@ class MissionControls:
                       font=("Segoe UI", 12), padx=22, pady=12, cursor="hand2")
             for title, command in (("Nova missão", self.new_mission), ("Retomar missão", self.resume_mission),
                                    ("Encerrar missão", self.end_mission), ("Reproduzir", self.open_replay),
-                                   ("Exportar CSV", self.save_csv), ("Exportar bruto", self.save_raw),
-                                   ("Detalhes", self.log_details))]
+                                   ("Exportar CSV", self.save_csv), ("Exportar KML", self.save_kml),
+                                   ("Exportar bruto", self.save_raw), ("Detalhes", self.log_details))]
         self._mission_layout = None
         self.mission_buttons.bind("<Configure>", lambda event: self._flow_mission_buttons())
         self.lbl_mode = self._label(actions, "AO VIVO", 9, "#38d683", "bold")
@@ -501,9 +501,13 @@ class MissionControls:
         path = self.replay.path if self.replay else (self.mission.path if self.mission else self._choose_mission("Exportar missão"))
         if not path:
             return
-        extension = ".csv" if kind == "csv" else ".bin"
+        extension, label, exporter, unit = {
+            "csv": (".csv", "CSV", export_csv, "pacotes"),
+            "kml": (".kml", "KML (Google Earth)", export_kml, "pontos"),
+            "raw": (".bin", "Serial bruta", export_raw, "bytes"),
+        }[kind]
         destination = filedialog.asksaveasfilename(parent=self.root, title="Exportar dados gravados", defaultextension=extension,
-                                                  filetypes=[("CSV" if kind == "csv" else "Serial bruta", "*" + extension)])
+                                                  filetypes=[(label, "*" + extension)])
         if not destination:
             return
         if Path(destination).resolve() in {Path(path).resolve(), Path(str(path) + "-wal").resolve(), Path(str(path) + "-shm").resolve()}:
@@ -513,14 +517,17 @@ class MissionControls:
         self.lbl_log_status.config(text="Exportando registros já gravados…")
         def work():
             try:
-                count = (export_csv if kind == "csv" else export_raw)(path, destination)
-                self.background_results.put(("export", f"Exportados {count} {'pacotes' if kind == 'csv' else 'bytes'}.\n{destination}"))
+                count = exporter(path, destination)
+                self.background_results.put(("export", f"Exportados {count} {unit}.\n{destination}"))
             except Exception as error:
                 self.background_results.put(("error", str(error)))
         threading.Thread(target=work, name="mission-export", daemon=True).start()
 
     def save_csv(self):
         self._export("csv")
+
+    def save_kml(self):
+        self._export("kml")
 
     def save_raw(self):
         self._export("raw")

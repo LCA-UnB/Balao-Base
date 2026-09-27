@@ -391,6 +391,78 @@ def export_csv(path, destination):
     return count
 
 
+KML_NS = "http://www.opengis.net/kml/2.2"
+KML_STYLES = (("trajeto", "line", "ff497fff"), ("sonda", "icon", "ff83d638"),
+              ("topo", "icon", "ff47b5ff"), ("antena", "icon", "ffd9c827"))
+
+
+def export_kml(path, destination):
+    """Trajetória da sonda em KML (Google Earth), só com pacotes de GPS 3D válido.
+
+    Altitudes em metros sobre o nível do mar (altitudeMode absolute), como o GPS da sonda.
+    Devolve a quantidade de pontos exportados; sem nenhum ponto válido não cria arquivo.
+    """
+    import xml.etree.ElementTree as ET
+    points, tracker = [], None
+    for record in packet_rows(path):
+        tracker = record.get("tracker") or tracker
+        if not record["gps_valid"]:
+            continue
+        fields = record["fields"]
+        points.append((float(fields["Lon"]), float(fields["Lat"]), float(fields["Alt"]),
+                       record["received_at"], fields.get("Time")))
+    if not points:
+        raise ValueError("A missão não tem nenhum pacote com GPS 3D válido para exportar.")
+    name = read_metadata(path).get("name") or "Missão"
+
+    def text(parent, tag, value):
+        ET.SubElement(parent, tag).text = str(value)
+
+    def coordinates(point):
+        return f"{point[0]:.7f},{point[1]:.7f},{point[2]:.1f}"
+
+    def placemark(parent, title, style, description, coordinate):
+        node = ET.SubElement(parent, "Placemark")
+        text(node, "name", title)
+        text(node, "description", description)
+        text(node, "styleUrl", "#" + style)
+        point = ET.SubElement(node, "Point")
+        text(point, "altitudeMode", "absolute")
+        text(point, "coordinates", coordinate)
+
+    root = ET.Element("kml", xmlns=KML_NS)
+    document = ET.SubElement(root, "Document")
+    text(document, "name", name)
+    text(document, "description", f"{len(points)} pontos com GPS 3D válido. Altitude em metros sobre o nível do mar (MSL).")
+    for identifier, kind, color in KML_STYLES:
+        style = ET.SubElement(document, "Style", id=identifier)
+        if kind == "line":
+            line = ET.SubElement(style, "LineStyle")
+            text(line, "color", color)
+            text(line, "width", 3)
+            text(ET.SubElement(style, "PolyStyle"), "color", "40" + color[2:])
+        else:
+            text(ET.SubElement(style, "IconStyle"), "color", color)
+    top = max(points, key=lambda point: point[2])
+    for title, style, point in (("Primeiro ponto", "sonda", points[0]), ("Ponto mais alto", "topo", top),
+                                ("Último ponto", "sonda", points[-1])):
+        placemark(document, title, style,
+                  f"Altitude {point[2]:.1f} m · GPS {point[4] or '—'} UTC · recebido {point[3]}", coordinates(point))
+    if tracker:
+        placemark(document, "Tracker / antena", "antena", f"Altitude {tracker['altitude']:.1f} m MSL",
+                  f"{tracker['longitude']:.7f},{tracker['latitude']:.7f},{tracker['altitude']:.1f}")
+    route = ET.SubElement(document, "Placemark")
+    text(route, "name", "Trajeto da sonda")
+    text(route, "styleUrl", "#trajeto")
+    line = ET.SubElement(route, "LineString")
+    text(line, "extrude", 1)
+    text(line, "altitudeMode", "absolute")
+    text(line, "coordinates", "\n".join(coordinates(point) for point in points))
+    ET.indent(root)
+    ET.ElementTree(root).write(destination, encoding="utf-8", xml_declaration=True)
+    return len(points)
+
+
 def export_raw(path, destination):
     count = 0
     with read_database(path) as db, open(destination, "wb") as output:

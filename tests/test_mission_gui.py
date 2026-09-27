@@ -167,6 +167,45 @@ class MissionUITests(unittest.TestCase):
                 app.center_dialog(dialog, 720, 460)
                 dialog.geometry.assert_called_once_with(f'1080x690+{screen[0] - 1080}+0')
 
+    def click_export_kml(self, destination):
+        import tkinter as tk
+        def find(widget):
+            if isinstance(widget, tk.Button) and widget.cget('text') == 'Exportar KML':
+                return widget
+            return next((found for child in widget.winfo_children() if (found := find(child))), None)
+        button = find(self.root)
+        self.assertIsNotNone(button)
+        with patch('mission_ui.filedialog.asksaveasfilename', return_value=str(destination)):
+            button.invoke()
+        deadline = time.monotonic() + 5
+        while self.app.background_results.empty() and time.monotonic() < deadline:
+            time.sleep(.01)
+        self.app.gui_updater_loop()
+
+    def test_export_kml_button_writes_file_and_reports_missing_gps(self):
+        import xml.etree.ElementTree as ET
+        mission = self.app.mission
+        mission.submit('packet', packet(), received_at=utc_now(), elapsed=1)
+        self.assertTrue(mission.flush())
+        destination = Path(self.temp.name) / 'trajeto.kml'
+        with patch('mission_ui.messagebox.showinfo') as info:
+            self.click_export_kml(destination)
+        self.assertIn('Exportados 1 pontos', info.call_args.args[1])
+        self.assertEqual(ET.parse(destination).getroot().tag, '{http://www.opengis.net/kml/2.2}kml')
+        self.assertFalse(self.app.export_busy)
+
+        empty = MissionWriter.create(self.temp.name, 'SemGPS', sync_interval=.01)
+        empty.submit('packet', dict(packet(), gps_valid=False), received_at=utc_now(), elapsed=1)
+        self.assertTrue(empty.flush())
+        self.app.mission = empty
+        without_gps = Path(self.temp.name) / 'sem-gps.kml'
+        self.click_export_kml(without_gps)
+        self.assertEqual(len(self.errors), 1)
+        self.assertIn('GPS 3D válido', self.errors[0][1])
+        self.assertFalse(without_gps.exists())
+        self.errors.clear()
+        empty.abandon()
+
     def test_live_fields_clear_and_charts_stay_bounded(self):
         record = dict(packet(), received_at=utc_now(), elapsed=0)
         self.app._apply_record(record)
