@@ -45,7 +45,6 @@ Balao-Base/
 ├── Rastreador Sonda/
 │   └── tracker.py                         Interface redesenhada do PR 17
 ├── Tracker Win64x/build/                  Artefatos de build anteriores
-├── Voo_19_09_2026/                        Dados e análises do voo
 ├── docs/MISSION_LOGS.md                   Operação, formatos e recuperação
 ├── tests/                                 Testes automatizados
 ├── tools/                                 Ferramentas auxiliares (ver tools/README.md)
