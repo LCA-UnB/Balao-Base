@@ -42,7 +42,9 @@ Balao-Base/
 │   ├── Lora_Solo_com_Telecomando/         Receptor/transmissor da linha B
 │   ├── LiberacaoCarga/                    HX711 + relé
 │   └── gy80testado/                       Bancada de teste IMU
-├── docs/MISSION_LOGS.md                   Operação, formatos e recuperação
+├── docs/
+│   ├── MISSION_LOGS.md                    Operação, formatos e recuperação
+│   └── logs/                              Logs históricos versionados
 ├── tests/                                 Testes automatizados
 ├── tools/                                 Ferramentas auxiliares (ver tools/README.md)
 │   ├── calibrar_bateria/                  Sketch + guia de calibração do ADC da bateria
@@ -50,7 +52,6 @@ Balao-Base/
 │   ├── tracker_win64x/                    Artefatos de build do trackerV1.2 para Windows (legado)
 │   ├── rtl_sdr/                           Estação RS41 com RTL-SDR e SondeHub
 │   └── ensaio_missao/                     Ensaio de missão prolongada
-├── logs/                                  Logs históricos versionados
 ├── requirements-tracker.txt               Dependências da nova interface
 ├── config.txt                             Configuração do OpenLog
 └── README.md
@@ -333,13 +334,16 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 
 ## Logs de missão
 
-`logs/` guarda telemetria capturada em voos já realizados, no formato de saída do Rastreador Sonda:
+`docs/logs/` guarda telemetria capturada no voo de 19/09/2026, no formato de saída do Rastreador Sonda. O nome do arquivo é `telemetria_AAAAMMDD_HHMMSS.txt`, com a data e a hora (do computador de solo) em que a captura começou; cada reconexão da interface gera um arquivo novo:
 
 | Arquivo | Linhas |
 |---|---|
-| `logs/telemetria_lucas.txt` | 82.051 |
-| `logs/telemetria_matheus.txt` | 15.750 |
-| `logs/telemetria_matheus_2.txt` | 41.172 |
+| `docs/logs/telemetria_20260919_082905.txt` | 6.660 |
+| `docs/logs/telemetria_20260919_084252.txt` | 308 |
+| `docs/logs/telemetria_20260919_095827.txt` | 0 (vazio) |
+| `docs/logs/telemetria_20260919_110107.txt` | 13.958 |
+| `docs/logs/telemetria_20260919_112448.txt` | 2.809 |
+| `docs/logs/telemetria_20260919_113050.txt` | 60.713 |
 
 ---
 
@@ -368,7 +372,7 @@ Pontos levantados na revisão do código atual. Estão registrados aqui para que
 
 2. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `tools/rastreador_sonda/tracker.py` (legada) também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
 
-3. **Os logs históricos continuam versionados em `logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
+3. **Os logs históricos continuam versionados em `docs/logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
 
 4. **Artefatos antigos de build (legados) continuam em `tools/tracker_win64x/build/`.** São só arquivos intermediários do PyInstaller para a `src/trackerV1.2.py`, sem o `.exe`. Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
 
