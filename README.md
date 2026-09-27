@@ -330,13 +330,16 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 
 ## Logs de missão
 
-`docs/logs/` guarda telemetria capturada em voos já realizados, no formato de saída do Rastreador Sonda:
+`docs/logs/` guarda telemetria capturada no voo de 19/09/2026, no formato de saída do Rastreador Sonda. O nome do arquivo é `telemetria_AAAAMMDD_HHMMSS.txt`, com a data e a hora (do computador de solo) em que a captura começou; cada reconexão da interface gera um arquivo novo:
 
 | Arquivo | Linhas |
 |---|---|
-| `docs/logs/telemetria_lucas.txt` | 82.051 |
-| `docs/logs/telemetria_matheus.txt` | 15.750 |
-| `docs/logs/telemetria_matheus_2.txt` | 41.172 |
+| `docs/logs/telemetria_20260919_082905.txt` | 6.660 |
+| `docs/logs/telemetria_20260919_084252.txt` | 308 |
+| `docs/logs/telemetria_20260919_095827.txt` | 0 (vazio) |
+| `docs/logs/telemetria_20260919_110107.txt` | 13.958 |
+| `docs/logs/telemetria_20260919_112448.txt` | 2.809 |
+| `docs/logs/telemetria_20260919_113050.txt` | 60.713 |
 
 ---
 
