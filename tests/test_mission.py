@@ -10,9 +10,10 @@ import threading
 import time
 import unittest
 from unittest.mock import patch
+import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
-from mission import MissionWriter, export_csv, export_raw, packet_rows, read_database, read_metadata
+from mission import MissionWriter, export_csv, export_kml, export_raw, packet_rows, read_database, read_metadata
 from telemetry import PacketParser, enrich_packet
 from replay import MissionReplay
 
@@ -57,6 +58,29 @@ class WriterTests(unittest.TestCase):
         self.assertEqual(rows[0]['gps_time_utc'], '23:59:59')
         self.assertGreater(float(rows[0]['distance_m']), 0)
         self.assertEqual(rows[0]['tracker_altitude_msl_m'], '1000')
+
+    def test_kml_export_track_markers_and_no_gps(self):
+        writer = self.writer()
+        writer.submit('packet', packet(), elapsed=1)
+        self.assertTrue(writer.flush())
+        output = Path(self.temp.name) / 'trajeto.kml'
+        self.assertEqual(export_kml(writer.path, output), 1)
+        ns = {'k': 'http://www.opengis.net/kml/2.2'}
+        document = ET.parse(output).getroot().find('k:Document', ns)
+        names = [node.findtext('k:name', namespaces=ns) for node in document.findall('k:Placemark', ns)]
+        self.assertEqual(names, ['Primeiro ponto', 'Ponto mais alto', 'Último ponto', 'Tracker / antena', 'Trajeto da sonda'])
+        route = document.find('k:Placemark/k:LineString/k:coordinates', ns).text.strip()
+        self.assertEqual(route, '-47.0000000,-15.0000000,3000.0')
+        tracker = document.findall('k:Placemark', ns)[3].find('k:Point/k:coordinates', ns).text
+        self.assertEqual(tracker, '-47.1000000,-15.1000000,1000.0')
+
+        empty = self.writer()
+        empty.submit('packet', dict(packet(), gps_valid=False), elapsed=1)
+        self.assertTrue(empty.flush())
+        destination = Path(self.temp.name) / 'vazio.kml'
+        with self.assertRaises(ValueError):
+            export_kml(empty.path, destination)
+        self.assertFalse(destination.exists())
 
     def test_resume_keeps_mission_and_closing_blocks_resume(self):
         writer = self.writer()
