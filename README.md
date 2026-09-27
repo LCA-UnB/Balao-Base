@@ -346,7 +346,7 @@ Pontos levantados na revisão do código atual. Estão registrados aqui para que
 
 1. **`gy80testado` não usa um GY-80.** Apesar do nome, o sketch instancia MPU6050 + HMC5883L + MS5611, que é a combinação do **GY-86/GY-87 (10DOF)** — o mesmo conjunto da linha B. O GY-80 traz ADXL345 + L3G4200D + BMP085. O nome do diretório está enganoso.
 
-2. **O Rastreador Sonda só funciona com a linha A.** O tracker fecha cada pacote e atualiza os históricos quando vê a chave `MZ` (`if key == "MZ"`), e plota umidade a partir de `U`. O pacote da linha B não tem nenhum dos dois, então os gráficos e o rastro não avançam com o firmware de telecomando. Adaptar exige mudar a chave de fechamento do pacote.
+2. **O Rastreador Sonda aceita as duas linhas de telemetria.** O tracker fecha os pacotes da linha A ao receber `MZ` e os da linha B ao receber `Ack`. Como a linha B não envia umidade (`U`) nem magnetômetro, esses indicadores permanecem sem dados nessa configuração, mas os demais campos, gráficos e o rastro são atualizados normalmente.
 
 3. **Logs duplicados no versionamento.** `logs/telemetria_matheus.txt` e `logs/telemetria_matheus_2.txt` são byte a byte idênticos a `Rastreador Sonda/dist/telemetria_20260624_134115.txt` e `.../telemetria_20260625_150455.txt`, respectivamente. São as mesmas capturas guardadas em dois lugares.
 
