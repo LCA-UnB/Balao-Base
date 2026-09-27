@@ -213,7 +213,7 @@ A aproximação vale até **~11 km**; acima disso ela diverge. Ainda assim é ú
 
 ## Estação de solo: Rastreador Sonda
 
-A nova interface está em [`src/tracker.py`](src/tracker.py). Ela lê a serial USB do receptor Heltec a 115200 baud e oferece mapa, gráficos, distância tracker–sonda, apontamento 3D e telecomando. Aceita as linhas A e B, preservando campos ausentes como indisponíveis.
+A nova interface está em [`src/tracker.py`](src/tracker.py). Ela lê a serial USB do receptor Heltec a 115200 baud e oferece mapa, gráficos, distância tracker–sonda, apontamento 3D e telecomando. Aceita as linhas A e B, preservando campos ausentes como indisponíveis. O zoom da interface começa em 120% (ou o máximo que a tela comporta) e muda com **Ctrl +** e **Ctrl -**, de 70% a 200%; **Ctrl 0** volta ao padrão.
 
 O sistema de logs agora organiza a aquisição em **missões**, com criação, encerramento e retomada. Cada missão guarda captura serial exata, telemetria estruturada e eventos em SQLite. A gravação é independente da recepção, com sincronização aproximadamente a cada segundo, fila limitada que preserva os dados recentes em caso de falha e indicadores de perda/recuperação.
 

@@ -2,6 +2,7 @@ import math
 import tkinter as tk
 from tkinter import messagebox, ttk
 from mission_ui import MissionControls
+from zoom import ZoomControls, scaled
 
 import matplotlib
 import serial
@@ -33,13 +34,12 @@ COLOR_TRACK_LINE = "#ff7849"
 FONT_FAMILY = "Segoe UI"
 FONT_MONO = "Consolas"
 
-class SondeTrackerApp(MissionControls):
+class SondeTrackerApp(MissionControls, ZoomControls):
     def __init__(self, root):
         self.root = root
         self.root.title("LoRa Telemetry Ground Station — Monitor de Missão")
-        self.root.geometry("1440x900")
-        self.root.minsize(1080, 720)
         self.root.configure(bg=COLOR_BG_MAIN)
+        self.init_zoom()
 
         self.serial_port = None
         self.is_connected = False
@@ -76,6 +76,7 @@ class SondeTrackerApp(MissionControls):
         self.init_missions()
         self._configure_styles()
         self.setup_ui()
+        self.apply_zoom()
         self.root.after(500, self.gui_updater_loop)
         self.root.after(2000, self._poll_usb_ports)
 
@@ -93,7 +94,7 @@ class SondeTrackerApp(MissionControls):
             bordercolor=COLOR_BORDER,
             lightcolor=COLOR_BORDER,
             darkcolor=COLOR_BORDER,
-            padding=7,
+            padding=scaled(7, self.zoom),
         )
         self.style.map(
             "Telemetry.TCombobox",
@@ -110,7 +111,8 @@ class SondeTrackerApp(MissionControls):
         self.style.configure("Telemetry.TNotebook", background=COLOR_BG_CARD, borderwidth=0)
         self.style.configure(
             "Telemetry.TNotebook.Tab", background=COLOR_BG_ELEVATED,
-            foreground=COLOR_TEXT_MUTED, padding=(16, 8), font=(FONT_FAMILY, 10, "bold"),
+            foreground=COLOR_TEXT_MUTED, padding=(scaled(16, self.zoom), scaled(8, self.zoom)),
+            font=(FONT_FAMILY, scaled(10, self.zoom), "bold"),
         )
         self.style.map(
             "Telemetry.TNotebook.Tab", background=[("selected", COLOR_BG_CARD)],
@@ -118,14 +120,16 @@ class SondeTrackerApp(MissionControls):
         )
 
     def _label(self, parent, text, size=10, color=COLOR_TEXT_MAIN, weight="normal", **kwargs):
-        return tk.Label(
+        label = tk.Label(
             parent,
             text=text,
             bg=kwargs.pop("bg", parent.cget("bg")),
             fg=color,
-            font=(FONT_FAMILY, size, weight),
+            font=(FONT_FAMILY, scaled(size, self.zoom), weight),
             **kwargs,
         )
+        self.register_zoom_font(label, FONT_FAMILY, size, (weight,))
+        return label
 
     def _card(self, parent, title, subtitle=None):
         card = tk.Frame(

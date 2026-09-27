@@ -72,6 +72,41 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(self.app.capture_settings[1], [4,5])
         self.assertEqual(mission.snapshot()['written_records'], before)
 
+    def test_zoom_shortcuts_scale_fonts_layout_and_figures(self):
+        from zoom import ZOOM_MIN, scaled
+        app = self.app
+        def font_size(widget):
+            return int(self.root.tk.splitlist(str(widget.cget('font')))[1])
+        def snapshot():
+            return (font_size(app.lbl_callsign), int(app.sidebar_shell.cget('width')),
+                    round(app.fig.dpi), round(app.antenna_fig.dpi), self.root.minsize())
+        self.assertGreater(app.zoom, 1.0)
+        self.assertEqual(snapshot()[:3], (scaled(17, app.zoom), scaled(370, app.zoom), round(100 * app.zoom)))
+        app.set_zoom(1.0)
+        self.root.update()
+        original = snapshot()
+        self.assertEqual(original[:4], (17, 370, 100, 100))
+
+        self.root.focus_force()
+        self.root.event_generate('<Control-plus>')
+        self.root.update()
+        self.assertEqual(app.zoom, 1.1)
+        zoomed = snapshot()
+        self.assertEqual(zoomed[:4], (scaled(17, 1.1), scaled(370, 1.1), 110, 110))
+        self.assertEqual(original[4], (1080, 720))
+        self.assertEqual(zoomed[4], (round(1080 * 1.1), round(720 * 1.1)))
+        self.root.event_generate('<Control-minus>')
+        self.root.update()
+        self.assertEqual(snapshot()[:4], original[:4])
+
+        app.set_zoom(99)
+        self.assertEqual(app.zoom, app.zoom_max)
+        app.set_zoom(0)
+        self.assertEqual(app.zoom, ZOOM_MIN)
+        self.root.event_generate('<Control-0>')
+        self.root.update()
+        self.assertEqual(app.zoom, min(1.2, app.zoom_max))
+
     def test_live_fields_clear_and_charts_stay_bounded(self):
         record = dict(packet(), received_at=utc_now(), elapsed=0)
         self.app._apply_record(record)
