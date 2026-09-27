@@ -10,10 +10,10 @@ import tkinter.font as tkfont
 
 BASE_SIZE = (1440, 900)
 MIN_SIZE = (1080, 720)
-DEFAULT_ZOOM = 1.2
+DEFAULT_ZOOM = 1.5
 ZOOM_STEP = 0.1
-ZOOM_MIN = 0.7
-ZOOM_MAX = 2.0
+ZOOM_MIN = 1.0
+ZOOM_MAX = 3.0
 SCREEN_MARGIN = 80
 
 NAMED_FONTS = ("TkDefaultFont", "TkTextFont", "TkFixedFont", "TkMenuFont", "TkHeadingFont",
@@ -33,9 +33,10 @@ class ZoomControls:
     def init_zoom(self):
         """Chamar antes de criar os widgets: ajusta fontes nomeadas e janela."""
         width, height = self.root.winfo_screenwidth() - SCREEN_MARGIN, self.root.winfo_screenheight() - SCREEN_MARGIN
-        fits = int(min(ZOOM_MAX, width / MIN_SIZE[0], height / MIN_SIZE[1]) * 10) / 10
-        self.zoom_max = max(1.0, fits)
-        self.zoom = min(DEFAULT_ZOOM, self.zoom_max)
+        fits = int(min(width / MIN_SIZE[0], height / MIN_SIZE[1]) * 10) / 10
+        # O padrão respeita a tela; o limite máximo é sempre o pedido (a janela é limitada à tela).
+        self.default_zoom = max(ZOOM_MIN, min(DEFAULT_ZOOM, fits))
+        self.zoom = self.default_zoom
         self._zoom_applied = 1.0
         self._zoom_fonts, self._zoom_dims = {}, {}
         self._zoom_named = {name: tkfont.nametofont(name).cget("size") for name in NAMED_FONTS}
@@ -43,7 +44,7 @@ class ZoomControls:
             self.root.bind_all(sequence, lambda event: self.zoom_by(ZOOM_STEP))
         for sequence in ("<Control-minus>", "<Control-KP_Subtract>"):
             self.root.bind_all(sequence, lambda event: self.zoom_by(-ZOOM_STEP))
-        self.root.bind_all("<Control-0>", lambda event: self.set_zoom(DEFAULT_ZOOM))
+        self.root.bind_all("<Control-0>", lambda event: self.set_zoom(self.default_zoom))
         self._apply_named_fonts()
         self._fit_window(None)
 
@@ -51,7 +52,7 @@ class ZoomControls:
         return self.set_zoom(self.zoom + delta)
 
     def set_zoom(self, value):
-        value = round(min(self.zoom_max, max(ZOOM_MIN, value)), 2)
+        value = round(min(ZOOM_MAX, max(ZOOM_MIN, value)), 2)
         if value != self.zoom:
             previous, self.zoom = self.zoom, value
             self._apply_named_fonts()
@@ -73,6 +74,26 @@ class ZoomControls:
         else:
             size = [current * self.zoom / previous for current in (self.root.winfo_width(), self.root.winfo_height())]
         self.root.geometry("x".join(str(min(round(value), cap)) for value, cap in zip(size, limit)))
+
+    def dialog_size(self, width, height):
+        """Tamanho de um diálogo definido a 100%, escalado pelo zoom e limitado a 90% da tela."""
+        screen = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        return [min(round(base * self.zoom), int(limit * 0.9)) for base, limit in zip((width, height), screen)]
+
+    def center_dialog(self, dialog, width, height):
+        """Dimensiona o diálogo (mínimo a 100%, crescendo se o conteúdo pedir) e o centraliza sobre a janela principal."""
+        self.root.update_idletasks()
+        dialog.update_idletasks()
+        screen = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        size = [min(max(wanted, needed), int(limit * 0.9)) for wanted, needed, limit in
+                zip(self.dialog_size(width, height), (dialog.winfo_reqwidth(), dialog.winfo_reqheight()), screen)]
+        center = (self.root.winfo_rootx() + self.root.winfo_width() // 2, self.root.winfo_rooty() + self.root.winfo_height() // 2)
+        x, y = (max(0, min(middle - side // 2, limit - side)) for middle, side, limit in zip(center, size, screen))
+        placement = f"{size[0]}x{size[1]}+{x}+{y}"
+        dialog.geometry(placement)
+        # Alguns gerenciadores (Wayland/mosaico) ignoram a posição pedida antes de a janela existir.
+        self.root.after(50, lambda: dialog.winfo_exists() and dialog.geometry(placement))
+        return size
 
     def apply_zoom(self):
         """Reaplica o zoom a todos os widgets da janela principal."""

@@ -50,7 +50,7 @@ class MissionControls:
                                ("Exportar CSV", self.save_csv), ("Exportar bruto", self.save_raw),
                                ("Detalhes", self.log_details)):
             tk.Button(actions, text=title, command=command, bg="#1b2633", fg="#f2f5f8", relief=tk.FLAT,
-                      padx=9, pady=5, cursor="hand2").pack(side=tk.LEFT, padx=(0, 5))
+                      padx=14, pady=8, cursor="hand2").pack(side=tk.LEFT, padx=(0, 6))
         self.lbl_mode = self._label(actions, "AO VIVO", 9, "#38d683", "bold")
         self.lbl_mode.pack(side=tk.RIGHT)
         self.lbl_mission_health = self._label(bar, "Crie ou retome uma missão para conectar o rádio.", 9, "#94a3b5")
@@ -58,7 +58,7 @@ class MissionControls:
         self.replay_bar = tk.Frame(bar, bg="#101720")
         self.replay_bar.grid(row=2, column=0, sticky="ew", pady=(6, 0))
         self.replay_bar.grid_columnconfigure(2, weight=1)
-        self.btn_play = tk.Button(self.replay_bar, text="Reproduzir", command=self.toggle_replay, width=10)
+        self.btn_play = tk.Button(self.replay_bar, text="Reproduzir", command=self.toggle_replay, width=10, padx=8, pady=5)
         self.btn_play.grid(row=0, column=0, padx=(0, 7))
         self.replay_speed = ttk.Combobox(self.replay_bar, state="readonly", width=5, values=("0.5", "1", "2", "5", "10", "30", "60"))
         self.replay_speed.set("1")
@@ -71,7 +71,7 @@ class MissionControls:
         self.replay_seek.bind("<KeyRelease>", self.seek_replay)
         self.lbl_replay_time = self._label(self.replay_bar, "00:00:00 / 00:00:00", 9)
         self.lbl_replay_time.grid(row=0, column=3, padx=8)
-        tk.Button(self.replay_bar, text="Voltar ao vivo", command=self.exit_replay).grid(row=0, column=4)
+        tk.Button(self.replay_bar, text="Voltar ao vivo", command=self.exit_replay, padx=10, pady=5).grid(row=0, column=4)
         self.replay_bar.grid_remove()
 
     def _choose_mission(self, title):
@@ -89,7 +89,7 @@ class MissionControls:
         row.pack(fill=tk.X)
         self.cmd_entry = ttk.Entry(row, width=12)
         self.cmd_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        tk.Button(row, text="Enviar comando", command=self.send_command).pack(side=tk.RIGHT, padx=(6, 0))
+        tk.Button(row, text="Enviar comando", command=self.send_command, padx=10, pady=5).pack(side=tk.RIGHT, padx=(6, 0))
 
     def _release_mission(self):
         if self.is_connected or self.replay:

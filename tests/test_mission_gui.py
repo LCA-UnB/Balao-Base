@@ -73,14 +73,16 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(mission.snapshot()['written_records'], before)
 
     def test_zoom_shortcuts_scale_fonts_layout_and_figures(self):
-        from zoom import ZOOM_MIN, scaled
+        from zoom import ZOOM_MAX, ZOOM_MIN, scaled
         app = self.app
         def font_size(widget):
             return int(self.root.tk.splitlist(str(widget.cget('font')))[1])
         def snapshot():
             return (font_size(app.lbl_callsign), int(app.sidebar_shell.cget('width')),
                     round(app.fig.dpi), round(app.antenna_fig.dpi), self.root.minsize())
-        self.assertGreater(app.zoom, 1.0)
+        self.assertEqual((ZOOM_MIN, ZOOM_MAX), (1.0, 3.0))
+        self.assertGreaterEqual(app.default_zoom, 1.0)
+        self.assertLessEqual(app.default_zoom, 1.5)
         self.assertEqual(snapshot()[:3], (scaled(17, app.zoom), scaled(370, app.zoom), round(100 * app.zoom)))
         app.set_zoom(1.0)
         self.root.update()
@@ -100,12 +102,43 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(snapshot()[:4], original[:4])
 
         app.set_zoom(99)
-        self.assertEqual(app.zoom, app.zoom_max)
+        self.assertEqual(app.zoom, ZOOM_MAX)
         app.set_zoom(0)
         self.assertEqual(app.zoom, ZOOM_MIN)
         self.root.event_generate('<Control-0>')
         self.root.update()
-        self.assertEqual(app.zoom, min(1.2, app.zoom_max))
+        self.assertEqual(app.zoom, app.default_zoom)
+
+    def test_tracker_dialog_is_large_and_fits_its_content(self):
+        import tkinter as tk
+        app = self.app
+        app.set_zoom(1.5)
+        self.root.update()
+        app.configure_tracker()
+        dialog = next(child for child in self.root.winfo_children() if isinstance(child, tk.Toplevel))
+        self.root.update()
+        limit = (self.root.winfo_screenwidth() * .9, self.root.winfo_screenheight() * .9)
+        self.assertEqual(dialog.winfo_width(), min(720 * 1.5, limit[0]))
+        self.assertGreaterEqual(dialog.winfo_height(), 300 * 1.5)
+        self.assertLessEqual(dialog.winfo_height(), limit[1])
+        self.assertLessEqual(dialog.winfo_reqwidth(), dialog.winfo_width())
+        self.assertLessEqual(dialog.winfo_reqheight(), dialog.winfo_height())
+        dialog.destroy()
+
+    def test_center_dialog_uses_window_center_and_stays_on_screen(self):
+        from unittest.mock import MagicMock
+        app = self.app
+        app.set_zoom(1.5)
+        screen = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        with patch.object(self.root, 'winfo_rootx', return_value=200), patch.object(self.root, 'winfo_rooty', return_value=100), \
+                patch.object(self.root, 'winfo_width', return_value=1200), patch.object(self.root, 'winfo_height', return_value=800):
+            dialog = MagicMock(winfo_reqwidth=lambda: 0, winfo_reqheight=lambda: 0)
+            self.assertEqual(app.center_dialog(dialog, 720, 460), [1080, 690])
+            dialog.geometry.assert_called_once_with('1080x690+260+155')
+            with patch.object(self.root, 'winfo_rootx', return_value=screen[0] - 100), patch.object(self.root, 'winfo_rooty', return_value=-500):
+                dialog = MagicMock(winfo_reqwidth=lambda: 0, winfo_reqheight=lambda: 0)
+                app.center_dialog(dialog, 720, 460)
+                dialog.geometry.assert_called_once_with(f'1080x690+{screen[0] - 1080}+0')
 
     def test_live_fields_clear_and_charts_stay_bounded(self):
         record = dict(packet(), received_at=utc_now(), elapsed=0)

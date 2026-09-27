@@ -366,7 +366,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             card, text="Configurar tracker", command=self.configure_tracker,
             bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT,
             activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
-            padx=10, pady=6, cursor="hand2",
+            padx=14, pady=9, cursor="hand2",
         )
         self.btn_tracker.pack(fill=tk.X)
 
@@ -376,14 +376,17 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             return
         dialog = tk.Toplevel(self.root)
         dialog.title("Posição do tracker / antena")
-        dialog.configure(bg=COLOR_BG_CARD, padx=20, pady=16)
+        margin = scaled(32, self.zoom)
+        dialog.configure(bg=COLOR_BG_CARD, padx=margin, pady=margin)
         dialog.transient(self.root)
         dialog.resizable(False, False)
+        width = self.dialog_size(720, 0)[0]
+        dialog.grid_columnconfigure(1, weight=1)
         self._label(
             dialog, "Informe a posição da antena em solo.\n"
             "Altitude em metros sobre o nível do mar (MSL), como o GPS da sonda.",
-            10, justify=tk.LEFT,
-        ).grid(row=0, column=0, columnspan=2, pady=(0, 14), sticky="w")
+            13, justify=tk.LEFT, wraplength=width - 2 * margin,
+        ).grid(row=0, column=0, columnspan=2, pady=(0, scaled(20, self.zoom)), sticky="w")
         position = self.tracker_position
         values = [position.latitude, position.longitude, position.altitude] if position else ["", "", ""]
         if coordinates is not None:
@@ -392,10 +395,11 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         for row, (label, value) in enumerate(zip(
             ("Latitude (°)", "Longitude (°)", "Altitude MSL (m)"), values,
         ), start=1):
-            self._label(dialog, label).grid(row=row, column=0, sticky="w", pady=6)
-            entry = ttk.Entry(dialog, width=24)
+            self._label(dialog, label, 13).grid(row=row, column=0, sticky="w", pady=scaled(8, self.zoom))
+            entry = ttk.Entry(dialog, width=24, font=(FONT_FAMILY, scaled(13, self.zoom)))
             entry.insert(0, str(value))
-            entry.grid(row=row, column=1, sticky="ew", padx=(14, 0), pady=6)
+            entry.grid(row=row, column=1, sticky="ew", padx=(scaled(20, self.zoom), 0),
+                       pady=scaled(8, self.zoom), ipady=scaled(6, self.zoom))
             entries.append(entry)
 
         def apply_position():
@@ -423,8 +427,10 @@ class SondeTrackerApp(MissionControls, ZoomControls):
 
         tk.Button(
             dialog, text="Aplicar posição", command=apply_position,
-            bg=COLOR_ACCENT_GREEN, fg=COLOR_BG_MAIN, relief=tk.FLAT, padx=14, pady=8,
-        ).grid(row=4, column=0, columnspan=2, sticky="ew", pady=(14, 0))
+            bg=COLOR_ACCENT_GREEN, fg=COLOR_BG_MAIN, relief=tk.FLAT, padx=scaled(18, self.zoom),
+            pady=scaled(12, self.zoom), font=(FONT_FAMILY, scaled(13, self.zoom), "bold"), cursor="hand2",
+        ).grid(row=4, column=0, columnspan=2, sticky="ew", pady=(scaled(24, self.zoom), 0))
+        self.center_dialog(dialog, 720, 300)
         dialog.bind("<Return>", lambda event: apply_position())
         dialog.bind("<Escape>", lambda event: dialog.destroy())
         entries[2 if coordinates is not None else 0].focus_set()
@@ -456,7 +462,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             self.orientation_entries.append(entry)
         self.btn_orientation = tk.Button(
             orientation, text="Aplicar", command=self.apply_antenna_orientation,
-            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2",
+            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2", padx=10, pady=4,
         )
         self.btn_orientation.pack(side=tk.LEFT, padx=(8, 0))
 
