@@ -45,23 +45,28 @@ class MissionControls:
         bar.grid_columnconfigure(0, weight=1)
         actions = tk.Frame(bar, bg="#101720")
         actions.grid(row=0, column=0, sticky="ew")
-        for title, command in (("Nova missão", self.new_mission), ("Retomar missão", self.resume_mission),
-                               ("Encerrar missão", self.end_mission), ("Reproduzir", self.open_replay),
-                               ("Exportar CSV", self.save_csv), ("Exportar KML", self.save_kml),
-                               ("Exportar bruto", self.save_raw),
-                               ("Detalhes", self.log_details)):
-            tk.Button(actions, text=title, command=command, bg="#1b2633", fg="#f2f5f8", relief=tk.FLAT,
-                      padx=9, pady=5, cursor="hand2").pack(side=tk.LEFT, padx=(0, 5))
+        actions.grid_columnconfigure(0, weight=1)
+        self.mission_buttons = tk.Frame(actions, bg="#101720")
+        self.mission_buttons.grid(row=0, column=0, sticky="ew")
+        self.mission_action_buttons = [
+            tk.Button(self.mission_buttons, text=title, command=command, bg="#1b2633", fg="#f2f5f8", relief=tk.FLAT,
+                      font=("Segoe UI", 12), padx=22, pady=12, cursor="hand2")
+            for title, command in (("Nova missão", self.new_mission), ("Retomar missão", self.resume_mission),
+                                   ("Encerrar missão", self.end_mission), ("Reproduzir", self.open_replay),
+                                   ("Exportar CSV", self.save_csv), ("Exportar KML", self.save_kml),
+                                   ("Exportar bruto", self.save_raw), ("Detalhes", self.log_details))]
+        self._mission_layout = None
+        self.mission_buttons.bind("<Configure>", lambda event: self._flow_mission_buttons())
         self.lbl_mode = self._label(actions, "AO VIVO", 9, "#38d683", "bold")
-        self.lbl_mode.pack(side=tk.RIGHT)
+        self.lbl_mode.grid(row=0, column=1, sticky="ne", padx=(12, 0))
         self.lbl_mission_health = self._label(bar, "Crie ou retome uma missão para conectar o rádio.", 9, "#94a3b5")
         self.lbl_mission_health.grid(row=1, column=0, sticky="w", pady=(5, 0))
         self.replay_bar = tk.Frame(bar, bg="#101720")
         self.replay_bar.grid(row=2, column=0, sticky="ew", pady=(6, 0))
         self.replay_bar.grid_columnconfigure(2, weight=1)
-        self.btn_play = tk.Button(self.replay_bar, text="Reproduzir", command=self.toggle_replay, width=10)
+        self.btn_play = tk.Button(self.replay_bar, text="Reproduzir", command=self.toggle_replay, width=10, padx=14, pady=8, font=("Segoe UI", 11))
         self.btn_play.grid(row=0, column=0, padx=(0, 7))
-        self.replay_speed = ttk.Combobox(self.replay_bar, state="readonly", width=5, values=("0.5", "1", "2", "5", "10", "30", "60"))
+        self.replay_speed = ttk.Combobox(self.replay_bar, state="readonly", width=5, font=("Segoe UI", 11), values=("0.5", "1", "2", "5", "10", "30", "60"))
         self.replay_speed.set("1")
         self.replay_speed.grid(row=0, column=1)
         self.replay_speed.bind("<<ComboboxSelected>>", lambda event: self.replay.set_speed(self.replay_speed.get()) if self.replay else None)
@@ -72,8 +77,28 @@ class MissionControls:
         self.replay_seek.bind("<KeyRelease>", self.seek_replay)
         self.lbl_replay_time = self._label(self.replay_bar, "00:00:00 / 00:00:00", 9)
         self.lbl_replay_time.grid(row=0, column=3, padx=8)
-        tk.Button(self.replay_bar, text="Voltar ao vivo", command=self.exit_replay).grid(row=0, column=4)
+        tk.Button(self.replay_bar, text="Voltar ao vivo", command=self.exit_replay, padx=14, pady=8, font=("Segoe UI", 11)).grid(row=0, column=4)
         self.replay_bar.grid_remove()
+
+    def _flow_mission_buttons(self):
+        """Quebra os botões da barra em linhas quando a janela é estreita ou o zoom é grande."""
+        width = self.mission_buttons.winfo_width()
+        width = width if width > 1 else 10 ** 6
+        gap, layout, used, row, column = 8, [], 0, 0, 0
+        for button in self.mission_action_buttons:
+            need = button.winfo_reqwidth() + gap
+            if column and used + need > width:
+                row, column, used = row + 1, 0, 0
+            layout.append((row, column))
+            used, column = used + need, column + 1
+        if layout != self._mission_layout:
+            self._mission_layout = layout
+            for button, (row, column) in zip(self.mission_action_buttons, layout):
+                button.grid(row=row, column=column, padx=(0, gap), pady=(0, gap // 2))
+
+    def on_zoom_applied(self):
+        self._mission_layout = None
+        self.root.after_idle(self._flow_mission_buttons)
 
     def _choose_mission(self, title):
         return filedialog.askopenfilename(parent=self.root, title=title,
@@ -88,9 +113,9 @@ class MissionControls:
             setattr(self, attribute, value)
         row = tk.Frame(card, bg=card.cget("bg"))
         row.pack(fill=tk.X)
-        self.cmd_entry = ttk.Entry(row, width=12)
-        self.cmd_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        tk.Button(row, text="Enviar comando", command=self.send_command).pack(side=tk.RIGHT, padx=(6, 0))
+        self.cmd_entry = ttk.Entry(row, width=12, font=("Segoe UI", 12))
+        self.cmd_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=5)
+        tk.Button(row, text="Enviar comando", command=self.send_command, padx=16, pady=8, font=("Segoe UI", 11)).pack(side=tk.RIGHT, padx=(8, 0))
 
     def _release_mission(self):
         if self.is_connected or self.replay:

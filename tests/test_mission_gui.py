@@ -72,6 +72,101 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(self.app.capture_settings[1], [4,5])
         self.assertEqual(mission.snapshot()['written_records'], before)
 
+    def test_zoom_shortcuts_scale_fonts_layout_and_figures(self):
+        from zoom import ZOOM_MAX, ZOOM_MIN, scaled
+        app = self.app
+        def font_size(widget):
+            return int(self.root.tk.splitlist(str(widget.cget('font')))[1])
+        def snapshot():
+            return (font_size(app.lbl_callsign), int(app.sidebar_shell.cget('width')),
+                    round(app.fig.dpi), round(app.antenna_fig.dpi), self.root.minsize())
+        self.assertEqual((ZOOM_MIN, ZOOM_MAX), (1.0, 3.0))
+        self.assertGreaterEqual(app.default_zoom, 1.0)
+        self.assertLessEqual(app.default_zoom, 1.5)
+        self.assertEqual(snapshot()[:3], (scaled(17, app.zoom), scaled(370, app.zoom), round(100 * app.zoom)))
+        app.set_zoom(1.0)
+        self.root.update()
+        original = snapshot()
+        self.assertEqual(original[:4], (17, 370, 100, 100))
+
+        self.root.focus_force()
+        self.root.event_generate('<Control-plus>')
+        self.root.update()
+        self.assertEqual(app.zoom, 1.1)
+        zoomed = snapshot()
+        self.assertEqual(zoomed[:4], (scaled(17, 1.1), scaled(370, 1.1), 110, 110))
+        self.assertEqual(original[4], (1080, 820))
+        self.assertEqual(zoomed[4], (round(1080 * 1.1), round(820 * 1.1)))
+        self.root.event_generate('<Control-minus>')
+        self.root.update()
+        self.assertEqual(snapshot()[:4], original[:4])
+
+        app.set_zoom(99)
+        self.assertEqual(app.zoom, ZOOM_MAX)
+        app.set_zoom(0)
+        self.assertEqual(app.zoom, ZOOM_MIN)
+        self.root.event_generate('<Control-0>')
+        self.root.update()
+        self.assertEqual(app.zoom, app.default_zoom)
+
+    def test_mission_buttons_wrap_instead_of_leaving_the_window(self):
+        app = self.app
+        self.root.overrideredirect(True)  # sem o gerenciador de janelas decidindo o tamanho
+        def rows_and_overflow():
+            self.root.update()
+            frame = app.mission_buttons
+            rows = {button.grid_info()['row'] for button in app.mission_action_buttons}
+            overflow = max(button.winfo_x() + button.winfo_width() for button in app.mission_action_buttons) - frame.winfo_width()
+            return rows, overflow
+        app.set_zoom(1.0)
+        self.root.geometry('2400x900')
+        rows, overflow = rows_and_overflow()
+        self.assertEqual(rows, {0})
+        self.assertLessEqual(overflow, 0)
+        for zoom, width in ((1.5, 900), (3.0, 1400)):
+            app.set_zoom(zoom)
+            self.root.geometry(f'{width}x1400')
+            rows, overflow = rows_and_overflow()
+            self.assertGreater(len(rows), 1)
+            self.assertLessEqual(overflow, 0)
+
+    def test_tracker_dialog_is_large_and_fits_its_content(self):
+        import tkinter as tk
+        app = self.app
+        app.set_zoom(1.5)
+        self.root.update()
+        sizes, original = [], app.center_dialog
+        def spy(dialog, width, height):
+            sizes.append(original(dialog, width, height))
+            return sizes[-1]
+        with patch.object(app, 'center_dialog', side_effect=spy):
+            app.configure_tracker()
+        dialog = next(child for child in self.root.winfo_children() if isinstance(child, tk.Toplevel))
+        (width, height), = sizes
+        limit = (self.root.winfo_screenwidth() * .9, self.root.winfo_screenheight() * .9)
+        # O gerenciador de janelas decide o tamanho final; aqui vale o que o programa pede.
+        self.assertEqual(width, min(720 * 1.5, limit[0]))
+        self.assertGreaterEqual(height, min(300 * 1.5, limit[1]))
+        self.assertLessEqual(height, limit[1])
+        self.assertLessEqual(dialog.winfo_reqwidth(), width)
+        self.assertLessEqual(dialog.winfo_reqheight(), height)
+        dialog.destroy()
+
+    def test_center_dialog_uses_window_center_and_stays_on_screen(self):
+        from unittest.mock import MagicMock
+        app = self.app
+        app.set_zoom(1.5)
+        screen = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        with patch.object(self.root, 'winfo_rootx', return_value=200), patch.object(self.root, 'winfo_rooty', return_value=100), \
+                patch.object(self.root, 'winfo_width', return_value=1200), patch.object(self.root, 'winfo_height', return_value=800):
+            dialog = MagicMock(winfo_reqwidth=lambda: 0, winfo_reqheight=lambda: 0)
+            self.assertEqual(app.center_dialog(dialog, 720, 460), [1080, 690])
+            dialog.geometry.assert_called_once_with('1080x690+260+155')
+            with patch.object(self.root, 'winfo_rootx', return_value=screen[0] - 100), patch.object(self.root, 'winfo_rooty', return_value=-500):
+                dialog = MagicMock(winfo_reqwidth=lambda: 0, winfo_reqheight=lambda: 0)
+                app.center_dialog(dialog, 720, 460)
+                dialog.geometry.assert_called_once_with(f'1080x690+{screen[0] - 1080}+0')
+
     def click_export_kml(self, destination):
         import tkinter as tk
         def find(widget):
@@ -126,7 +221,8 @@ class MissionUITests(unittest.TestCase):
         self.app.update_charts()
         self.assertEqual(len(self.app.history_time), 21600)
         self.assertLessEqual(len(self.app.fig.axes[0].lines[0].get_xdata()), 1001)
-        self.root.geometry('1080x720')
+        self.root.overrideredirect(True)  # sem o gerenciador de janelas decidindo o tamanho
+        self.root.geometry('%dx%d' % self.root.minsize())
         self.app.navigation_tabs.select(1)
         self.root.update()
         self.assertGreater(self.app.antenna_canvas.get_tk_widget().winfo_height(), 150)

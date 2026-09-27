@@ -2,6 +2,7 @@ import math
 import tkinter as tk
 from tkinter import messagebox, ttk
 from mission_ui import MissionControls
+from zoom import ZoomControls, scaled
 
 import matplotlib
 import serial
@@ -33,13 +34,12 @@ COLOR_TRACK_LINE = "#ff7849"
 FONT_FAMILY = "Segoe UI"
 FONT_MONO = "Consolas"
 
-class SondeTrackerApp(MissionControls):
+class SondeTrackerApp(MissionControls, ZoomControls):
     def __init__(self, root):
         self.root = root
         self.root.title("LoRa Telemetry Ground Station — Monitor de Missão")
-        self.root.geometry("1440x900")
-        self.root.minsize(1080, 720)
         self.root.configure(bg=COLOR_BG_MAIN)
+        self.init_zoom()
 
         self.serial_port = None
         self.is_connected = False
@@ -76,6 +76,7 @@ class SondeTrackerApp(MissionControls):
         self.init_missions()
         self._configure_styles()
         self.setup_ui()
+        self.apply_zoom()
         self.root.after(500, self.gui_updater_loop)
         self.root.after(2000, self._poll_usb_ports)
 
@@ -93,7 +94,7 @@ class SondeTrackerApp(MissionControls):
             bordercolor=COLOR_BORDER,
             lightcolor=COLOR_BORDER,
             darkcolor=COLOR_BORDER,
-            padding=7,
+            padding=scaled(7, self.zoom),
         )
         self.style.map(
             "Telemetry.TCombobox",
@@ -110,7 +111,8 @@ class SondeTrackerApp(MissionControls):
         self.style.configure("Telemetry.TNotebook", background=COLOR_BG_CARD, borderwidth=0)
         self.style.configure(
             "Telemetry.TNotebook.Tab", background=COLOR_BG_ELEVATED,
-            foreground=COLOR_TEXT_MUTED, padding=(16, 8), font=(FONT_FAMILY, 10, "bold"),
+            foreground=COLOR_TEXT_MUTED, padding=(scaled(16, self.zoom), scaled(8, self.zoom)),
+            font=(FONT_FAMILY, scaled(10, self.zoom), "bold"),
         )
         self.style.map(
             "Telemetry.TNotebook.Tab", background=[("selected", COLOR_BG_CARD)],
@@ -118,14 +120,16 @@ class SondeTrackerApp(MissionControls):
         )
 
     def _label(self, parent, text, size=10, color=COLOR_TEXT_MAIN, weight="normal", **kwargs):
-        return tk.Label(
+        label = tk.Label(
             parent,
             text=text,
             bg=kwargs.pop("bg", parent.cget("bg")),
             fg=color,
-            font=(FONT_FAMILY, size, weight),
+            font=(FONT_FAMILY, scaled(size, self.zoom), weight),
             **kwargs,
         )
+        self.register_zoom_font(label, FONT_FAMILY, size, (weight,))
+        return label
 
     def _card(self, parent, title, subtitle=None):
         card = tk.Frame(
@@ -180,7 +184,7 @@ class SondeTrackerApp(MissionControls):
         self._build_charts()
 
     def _build_header(self):
-        header = tk.Frame(self.root, bg=COLOR_BG_SURFACE, height=76)
+        header = tk.Frame(self.root, bg=COLOR_BG_SURFACE, height=92)
         header.grid(row=0, column=0, sticky="ew")
         header.grid_propagate(False)
         header.grid_columnconfigure(1, weight=1)
@@ -209,7 +213,7 @@ class SondeTrackerApp(MissionControls):
         port_row = tk.Frame(port_group, bg=COLOR_BG_SURFACE)
         port_row.pack()
         self.port_cb = ttk.Combobox(
-            port_row, state="readonly", width=20, font=(FONT_FAMILY, 9),
+            port_row, state="readonly", width=20, font=(FONT_FAMILY, 11),
             style="Telemetry.TCombobox",
         )
         self.port_cb.pack(side=tk.LEFT)
@@ -218,7 +222,7 @@ class SondeTrackerApp(MissionControls):
             port_row, text="↻", command=self.refresh_ports,
             bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN,
             activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
-            relief=tk.FLAT, width=3, font=(FONT_FAMILY, 11, "bold"), cursor="hand2",
+            relief=tk.FLAT, width=3, font=(FONT_FAMILY, 13, "bold"), cursor="hand2",
         )
         self.btn_refresh.pack(side=tk.LEFT, padx=(6, 0), fill=tk.Y)
         self.btn_connect = tk.Button(
@@ -226,7 +230,7 @@ class SondeTrackerApp(MissionControls):
             bg=COLOR_ACCENT_GREEN, fg="#07140d",
             activebackground="#61e59c", activeforeground="#07140d",
             disabledforeground=COLOR_TEXT_SUBTLE, relief=tk.FLAT,
-            font=(FONT_FAMILY, 10, "bold"), padx=20, pady=10, cursor="hand2",
+            font=(FONT_FAMILY, 12, "bold"), padx=28, pady=12, cursor="hand2",
         )
         self.btn_connect.pack(side=tk.LEFT, padx=(12, 0), pady=(27, 14))
         self.refresh_ports()
@@ -259,7 +263,7 @@ class SondeTrackerApp(MissionControls):
         layer_group.grid(row=0, column=2, sticky="e", pady=8)
         self._label(layer_group, "MAPA", 8, COLOR_TEXT_MUTED, "bold").pack(side=tk.LEFT, padx=(0, 8))
         self.map_layer_cb = ttk.Combobox(
-            layer_group, state="readonly", width=14, font=(FONT_FAMILY, 9),
+            layer_group, state="readonly", width=14, font=(FONT_FAMILY, 11),
             style="Telemetry.TCombobox", values=["Padrão", "Satélite", "Topográfico"],
         )
         self.map_layer_cb.pack(side=tk.LEFT)
@@ -362,7 +366,7 @@ class SondeTrackerApp(MissionControls):
             card, text="Configurar tracker", command=self.configure_tracker,
             bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT,
             activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
-            padx=10, pady=6, cursor="hand2",
+            font=(FONT_FAMILY, 12), padx=18, pady=12, cursor="hand2",
         )
         self.btn_tracker.pack(fill=tk.X)
 
@@ -372,14 +376,17 @@ class SondeTrackerApp(MissionControls):
             return
         dialog = tk.Toplevel(self.root)
         dialog.title("Posição do tracker / antena")
-        dialog.configure(bg=COLOR_BG_CARD, padx=20, pady=16)
+        margin = scaled(32, self.zoom)
+        dialog.configure(bg=COLOR_BG_CARD, padx=margin, pady=margin)
         dialog.transient(self.root)
         dialog.resizable(False, False)
+        width = self.dialog_size(720, 0)[0]
+        dialog.grid_columnconfigure(1, weight=1)
         self._label(
             dialog, "Informe a posição da antena em solo.\n"
             "Altitude em metros sobre o nível do mar (MSL), como o GPS da sonda.",
-            10, justify=tk.LEFT,
-        ).grid(row=0, column=0, columnspan=2, pady=(0, 14), sticky="w")
+            14, justify=tk.LEFT, wraplength=width - 2 * margin,
+        ).grid(row=0, column=0, columnspan=2, pady=(0, scaled(20, self.zoom)), sticky="w")
         position = self.tracker_position
         values = [position.latitude, position.longitude, position.altitude] if position else ["", "", ""]
         if coordinates is not None:
@@ -388,10 +395,11 @@ class SondeTrackerApp(MissionControls):
         for row, (label, value) in enumerate(zip(
             ("Latitude (°)", "Longitude (°)", "Altitude MSL (m)"), values,
         ), start=1):
-            self._label(dialog, label).grid(row=row, column=0, sticky="w", pady=6)
-            entry = ttk.Entry(dialog, width=24)
+            self._label(dialog, label, 14).grid(row=row, column=0, sticky="w", pady=scaled(8, self.zoom))
+            entry = ttk.Entry(dialog, width=24, font=(FONT_FAMILY, scaled(15, self.zoom)))
             entry.insert(0, str(value))
-            entry.grid(row=row, column=1, sticky="ew", padx=(14, 0), pady=6)
+            entry.grid(row=row, column=1, sticky="ew", padx=(scaled(20, self.zoom), 0),
+                       pady=scaled(8, self.zoom), ipady=scaled(6, self.zoom))
             entries.append(entry)
 
         def apply_position():
@@ -419,8 +427,10 @@ class SondeTrackerApp(MissionControls):
 
         tk.Button(
             dialog, text="Aplicar posição", command=apply_position,
-            bg=COLOR_ACCENT_GREEN, fg=COLOR_BG_MAIN, relief=tk.FLAT, padx=14, pady=8,
-        ).grid(row=4, column=0, columnspan=2, sticky="ew", pady=(14, 0))
+            bg=COLOR_ACCENT_GREEN, fg=COLOR_BG_MAIN, relief=tk.FLAT, padx=scaled(18, self.zoom),
+            pady=scaled(12, self.zoom), font=(FONT_FAMILY, scaled(15, self.zoom), "bold"), cursor="hand2",
+        ).grid(row=4, column=0, columnspan=2, sticky="ew", pady=(scaled(24, self.zoom), 0))
+        self.center_dialog(dialog, 720, 300)
         dialog.bind("<Return>", lambda event: apply_position())
         dialog.bind("<Escape>", lambda event: dialog.destroy())
         entries[2 if coordinates is not None else 0].focus_set()
@@ -441,18 +451,18 @@ class SondeTrackerApp(MissionControls):
 
         orientation = tk.Frame(tab, bg=COLOR_BG_CARD)
         orientation.grid(row=1, column=0, sticky="ew", pady=8)
-        self.lbl_orientation_prompt = self._label(orientation, "Antena atual (opcional):", 9, COLOR_TEXT_MUTED)
+        self.lbl_orientation_prompt = self._label(orientation, "Antena atual (opcional):", 11, COLOR_TEXT_MUTED)
         self.lbl_orientation_prompt.pack(side=tk.LEFT)
         self.orientation_entries = []
         for label in ("Az °", "El °"):
-            self._label(orientation, label, 9).pack(side=tk.LEFT, padx=(8, 3))
-            entry = ttk.Entry(orientation, width=6)
-            entry.pack(side=tk.LEFT)
+            self._label(orientation, label, 11).pack(side=tk.LEFT, padx=(8, 3))
+            entry = ttk.Entry(orientation, width=7, font=(FONT_FAMILY, 12))
+            entry.pack(side=tk.LEFT, ipady=4)
             entry.bind("<Return>", lambda event: self.apply_antenna_orientation())
             self.orientation_entries.append(entry)
         self.btn_orientation = tk.Button(
             orientation, text="Aplicar", command=self.apply_antenna_orientation,
-            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2",
+            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2", font=(FONT_FAMILY, 11), padx=16, pady=6,
         )
         self.btn_orientation.pack(side=tk.LEFT, padx=(8, 0))
 
