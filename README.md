@@ -44,12 +44,13 @@ Balao-Base/
 │   └── gy80testado/                       Bancada de teste IMU
 ├── Rastreador Sonda/
 │   └── tracker.py                         Interface redesenhada do PR 17
-├── radiosonde_auto_rx/                    Estação RS41 com RTL-SDR e SondeHub
 ├── Tracker Win64x/build/                  Artefatos de build anteriores
-├── Voo_19_09_2026/                        Dados e análises do voo
 ├── docs/MISSION_LOGS.md                   Operação, formatos e recuperação
 ├── tests/                                 Testes automatizados
-├── tools/soak_mission.py                  Ensaio de missão prolongada
+├── tools/                                 Ferramentas auxiliares (ver tools/README.md)
+│   ├── calibrar_bateria/                  Sketch + guia de calibração do ADC da bateria
+│   ├── rtl_sdr/                           Estação RS41 com RTL-SDR e SondeHub
+│   └── ensaio_missao/                     Ensaio de missão prolongada
 ├── logs/                                  Logs históricos versionados
 ├── requirements-tracker.txt               Dependências da nova interface
 ├── config.txt                             Configuração do OpenLog
@@ -229,18 +230,18 @@ Requer Python 3.10+ e Tkinter. Leia o [guia de missões, recuperação, formatos
 
 ## Estação RS41 com RTL-SDR
 
-[`radiosonde_auto_rx/`](radiosonde_auto_rx/) contém uma estação independente para receber radiossondas meteorológicas comerciais com RTL-SDR, incluindo a Vaisala RS41. Ela varre 400,05–406 MHz, decodifica a telemetria, mantém logs por sonda, oferece um painel em `http://localhost:5000` e envia os pontos ao SondeHub com o indicativo `LCA-UNB`.
+[`tools/rtl_sdr/`](tools/rtl_sdr/) contém uma estação independente para receber radiossondas meteorológicas comerciais com RTL-SDR, incluindo a Vaisala RS41. Ela varre 400,05–406 MHz, decodifica a telemetria, mantém logs por sonda, oferece um painel em `http://localhost:5000` e envia os pontos ao SondeHub com o indicativo `LCA-UNB`.
 
 Essa estação não recebe os pacotes LoRa de 910,5 MHz do balão deste projeto. Para a telemetria própria, continue usando o Heltec de solo e o `Rastreador Sonda` descrito acima.
 
 Instalação e execução:
 
 ```bash
-bash radiosonde_auto_rx/concluir-instalacao.sh
-bash radiosonde_auto_rx/iniciar.sh
+bash tools/rtl_sdr/concluir-instalacao.sh
+bash tools/rtl_sdr/iniciar.sh
 ```
 
-Consulte [`radiosonde_auto_rx/LEIA-ME.md`](radiosonde_auto_rx/LEIA-ME.md) para dependências, configuração e observações sobre a publicação da posição da estação.
+Consulte [`tools/rtl_sdr/LEIA-ME.md`](tools/rtl_sdr/LEIA-ME.md) para dependências, configuração e observações sobre a publicação da posição da estação.
 
 ---
 

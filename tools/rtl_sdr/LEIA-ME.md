@@ -38,15 +38,15 @@ Feche o SDR++ ou qualquer outro programa que esteja usando o dongle antes de ini
 A partir da raiz do `Balao-Base`:
 
 ```bash
-bash radiosonde_auto_rx/concluir-instalacao.sh
+bash tools/rtl_sdr/concluir-instalacao.sh
 ```
 
-O script cria `radiosonde_auto_rx/venv`, instala as bibliotecas Python, compila os decodificadores nativos e valida a configuração.
+O script cria `tools/rtl_sdr/venv`, instala as bibliotecas Python, compila os decodificadores nativos e valida a configuração.
 
 ## Iniciar
 
 ```bash
-bash radiosonde_auto_rx/iniciar.sh
+bash tools/rtl_sdr/iniciar.sh
 ```
 
 Depois, abra <http://localhost:5000>. Use `Ctrl+C` no terminal para encerrar.
@@ -54,7 +54,7 @@ Depois, abra <http://localhost:5000>. Use `Ctrl+C` no terminal para encerrar.
 Argumentos adicionais do Auto-RX podem ser passados ao iniciador. Para fixar temporariamente uma RS41 em 403,001 MHz, por exemplo:
 
 ```bash
-bash radiosonde_auto_rx/iniciar.sh -f 403.001 -m RS41
+bash tools/rtl_sdr/iniciar.sh -f 403.001 -m RS41
 ```
 
 ## Validação realizada
