@@ -94,7 +94,7 @@ A visualização da antena usa os eixos locais leste/norte/cima, Terra esférica
 ```bash
 python -m unittest discover -s tests -v
 # Com dependências gráficas e um display (real ou Xvfb), também executa os testes Tk.
-python tools/soak_mission.py --packets 21600 --rate 100
+python tools/ensaio_missao/soak_mission.py --packets 21600 --rate 100
 ```
 
 O ensaio de carga usa 21.600 pacotes com horários cobrindo seis horas, enviados a uma taxa acelerada. Ele verifica integridade do SQLite, quantidade de registros, fila, memória e busca/reprodução no fim da missão. **Isso não substitui seis horas de operação real com rádio e alimentação de campo.** O script de medição de RSS usa `resource` (Linux/macOS); a aplicação não depende desse módulo.

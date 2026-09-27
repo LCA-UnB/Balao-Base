@@ -1,6 +1,6 @@
 """Exercise six hours of mission timestamps at an accelerated input rate.
 
-Run: python tools/soak_mission.py --packets 21600 --rate 100
+Run: python tools/ensaio_missao/soak_mission.py --packets 21600 --rate 100
 This is not a six-hour wall-clock certification.
 """
 import argparse
@@ -12,7 +12,7 @@ import sys
 import tempfile
 import time
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'src'))
 from mission import MissionWriter, packet_rows, read_database
 from replay import MissionReplay
 from telemetry import PacketParser, enrich_packet
