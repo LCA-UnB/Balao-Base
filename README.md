@@ -36,8 +36,7 @@ Balao-Base/
 │   ├── mission.py / mission_ui.py         Gravação e controles de missão
 │   ├── telemetry.py / station.py          Parser e recepção serial
 │   ├── replay.py / antenna.py             Reprodução e geometria da antena
-│   ├── LoraBordo/                         Transmissor BME280 + BNO086
-│   ├── LoraSolo/                          Receptor da linha A
+│   ├── config.txt                         Configuração do OpenLog (copiar para o cartão SD)
 │   ├── Lora_Bordo_Com_Telecomando/        Transmissor GY-86 + telecomando
 │   ├── Lora_Solo_com_Telecomando/         Receptor/transmissor da linha B
 │   ├── LiberacaoCarga/                    HX711 + relé
@@ -52,7 +51,6 @@ Balao-Base/
 │   └── ensaio_missao/                     Ensaio de missão prolongada
 ├── logs/                                  Logs históricos versionados
 ├── requirements-tracker.txt               Dependências da nova interface
-├── config.txt                             Configuração do OpenLog
 └── README.md
 ```
 
@@ -78,7 +76,9 @@ O repositório carrega **duas linhas de firmware independentes e não intercambi
 
 ### Linha A — Telemetria completa (BME280 + BNO086)
 
-Par: [`src/LoraBordo/LoraBordo.ino`](src/LoraBordo/LoraBordo.ino) + [`src/LoraSolo/LoraSolo.ino`](src/LoraSolo/LoraSolo.ino)
+Par: `LoraBordo.ino` + `LoraSolo.ino`
+
+> **Firmware removido deste repositório.** As pastas `src/LoraBordo/` e `src/LoraSolo/` não existem mais. Os sketches continuam no histórico do git e podem ser recuperados do commit `d08a3f7` (`git show d08a3f7:src/LoraBordo/LoraBordo.ino`). A descrição abaixo, o formato dos pacotes e o parser em `src/telemetry.py` seguem valendo para essa linha.
 
 **Bordo.** Lê GPS (lat, lon, altitude MSL, satélites, tipo de fix, hora UTC), BME280 (temperatura com correção de −2 °C, pressão, umidade, altitude barométrica derivada) e BNO086 (acelerômetro, giroscópio e magnetômetro brutos + pitch/roll/yaw da fusão interna). Transmite tudo por LoRa em texto multi-linha a **1 Hz**, no ritmo do PVT do GPS.
 
@@ -251,7 +251,7 @@ Consulte [`tools/rtl_sdr/LEIA-ME.md`](tools/rtl_sdr/LEIA-ME.md) para dependênci
 
 ## Cartão SD via OpenLog
 
-O firmware de bordo grava no cartão SD por um módulo **OpenLog** na UART2 (GPIO 3 = RX, GPIO 2 = TX). O código faz **auto-detecção de baud**: tenta 57600 primeiro e cai para 9600 (default de fábrica) se não houver resposta.
+O firmware de bordo da linha A (o `LoraBordo`, hoje só no histórico do git) grava no cartão SD por um módulo **OpenLog** na UART2 (GPIO 3 = RX, GPIO 2 = TX). O código faz **auto-detecção de baud**: tenta 57600 primeiro e cai para 9600 (default de fábrica) se não houver resposta.
 
 | Cenário | Baud | Taxa do IMU | Precisão do estouro |
 |---|---|---|---|
@@ -265,7 +265,7 @@ Se o OpenLog não responder em nenhum baud, o firmware **não trava**: segue o v
 ### Habilitando 40 Hz
 
 1. Formate o microSD em **FAT32**.
-2. Copie o [`config.txt`](config.txt) da raiz deste repositório para a **raiz do cartão**.
+2. Copie o [`src/config.txt`](src/config.txt) deste repositório para a **raiz do cartão**.
 3. Conteúdo do arquivo:
    ```
    57600,26,3,0,1,1,0
@@ -349,8 +349,6 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 
 | Sketch | Bibliotecas |
 |---|---|
-| `LoraBordo` | `LoRaWan_APP` (Heltec), `SparkFun_u-blox_GNSS_v3`, `SparkFunBME280`, `SparkFun_BNO08x_Arduino_Library` |
-| `LoraSolo` | `LoRaWan_APP` |
 | `Lora_Bordo_Com_Telecomando` | `LoRaWan_APP`, `SparkFun_u-blox_GNSS_v3`, `Adafruit_Sensor`, `Adafruit_MPU6050`, `Adafruit_HMC5883_U`, `MS5611` |
 | `Lora_Solo_com_Telecomando` | `LoRaWan_APP` |
 | `LiberacaoCarga` | `HX711` (bogde) |
