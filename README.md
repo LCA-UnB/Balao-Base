@@ -42,15 +42,14 @@ Balao-Base/
 │   ├── Lora_Solo_com_Telecomando/         Receptor/transmissor da linha B
 │   ├── LiberacaoCarga/                    HX711 + relé
 │   └── gy80testado/                       Bancada de teste IMU
-├── Rastreador Sonda/
-│   └── tracker.py                         Interface redesenhada do PR 17
-├── Tracker Win64x/build/                  Artefatos de build anteriores
 ├── docs/
 │   ├── MISSION_LOGS.md                    Operação, formatos e recuperação
 │   └── logs/                              Logs históricos versionados
 ├── tests/                                 Testes automatizados
 ├── tools/                                 Ferramentas auxiliares (ver tools/README.md)
 │   ├── calibrar_bateria/                  Sketch + guia de calibração do ADC da bateria
+│   ├── rastreador_sonda/                  Interface anterior do rastreador (legada, PR 17)
+│   ├── tracker_win64x/                    Artefatos de build do trackerV1.2 para Windows (legado)
 │   ├── rtl_sdr/                           Estação RS41 com RTL-SDR e SondeHub
 │   └── ensaio_missao/                     Ensaio de missão prolongada
 ├── requirements-tracker.txt               Dependências da nova interface
@@ -225,7 +224,12 @@ python -m pip install -r requirements-tracker.txt
 python src/tracker.py
 ```
 
-Requer Python 3.10+ e Tkinter. Leia o [guia de missões, recuperação, formatos e testes](docs/MISSION_LOGS.md) antes da operação de campo. A versão [`src/trackerV1.2.py`](src/trackerV1.2.py) permanece disponível como interface legada. Os executáveis Windows anteriores não foram recompilados.
+Requer Python 3.10+ e Tkinter. Leia o [guia de missões, recuperação, formatos e testes](docs/MISSION_LOGS.md) antes da operação de campo. Os executáveis Windows anteriores não foram recompilados.
+
+> **Material legado.** Estes itens continuam no repositório apenas como referência e não recebem novos recursos:
+> - [`tools/rastreador_sonda/tracker.py`](tools/rastreador_sonda/tracker.py): a interface redesenhada do PR 17, com mapa, cartões de telemetria, gráficos e log em `.txt`, mas sem missões em SQLite, reprodução, apontamento 3D nem telecomando;
+> - [`src/trackerV1.2.py`](src/trackerV1.2.py): a primeira interface;
+> - [`tools/tracker_win64x/`](tools/tracker_win64x/): resíduos de um build do PyInstaller para Windows da `trackerV1.2.py` (sem o `.exe`), guardados só como registro.
 
 ---
 
@@ -366,10 +370,10 @@ Pontos levantados na revisão do código atual. Estão registrados aqui para que
 
 1. **`gy80testado` não usa um GY-80.** Apesar do nome, o sketch instancia MPU6050 + HMC5883L + MS5611, que é a combinação do **GY-86/GY-87 (10DOF)** — o mesmo conjunto da linha B. O GY-80 traz ADXL345 + L3G4200D + BMP085. O nome do diretório está enganoso.
 
-2. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `Rastreador Sonda/tracker.py` também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
+2. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `tools/rastreador_sonda/tracker.py` (legada) também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
 
 3. **Os logs históricos continuam versionados em `docs/logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
 
-4. **Artefatos antigos de build continuam em `Tracker Win64x/build/`.** Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
+4. **Artefatos antigos de build (legados) continuam em `tools/tracker_win64x/build/`.** São só arquivos intermediários do PyInstaller para a `src/trackerV1.2.py`, sem o `.exe`. Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
 
 5. **O relé da liberação de carga fica acionado em repouso.** A condição é `peso <= 300 → relé HIGH`. Como a balança é tarada no boot, o peso parte de ~0 e o relé sobe imediatamente na bancada. O comportamento pretendido depende de haver carga aplicada desde o início — vale confirmar a polaridade antes de integrar ao voo.
