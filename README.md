@@ -1,10 +1,6 @@
 # Balao-Base
 
-Repositório **base** dos balões estratosféricos do **Lab Céu Azul** (LASE / UnB).
-
-Aqui ficam o firmware de bordo, o firmware da estação de solo, o rastreador de missão e os logs de voos já realizados. Cada missão nova parte deste repositório — ele é o tronco comum, não o código de um voo específico. A primeira derivação é o [`Balao-Abertura`](https://github.com/lase-unb/Balao-Abertura).
-
-Toda a telemetria transmitida usa o indicativo de radioamadorismo **`PT2UNB`** como primeira linha do pacote.
+Repositório **base** dos balões estratosféricos do projeto **Distrito Espacial** (LCA / UnB).
 
 ---
 
@@ -88,8 +84,6 @@ O repositório carrega **duas linhas de firmware independentes e não intercambi
 ### Linha A — Telemetria completa (BME280 + BNO086)
 
 Par: `LoraBordo.ino` + `LoraSolo.ino`
-
-> **Firmware removido deste repositório.** As pastas `src/LoraBordo/` e `src/LoraSolo/` não existem mais. Os sketches continuam no histórico do git e podem ser recuperados do commit `d08a3f7` (`git show d08a3f7:src/LoraBordo/LoraBordo.ino`). A descrição abaixo, o formato dos pacotes e o parser em `src/telemetry.py` seguem valendo para essa linha.
 
 **Bordo.** Lê GPS (lat, lon, altitude MSL, satélites, tipo de fix, hora UTC), BME280 (temperatura com correção de −2 °C, pressão, umidade, altitude barométrica derivada) e BNO086 (acelerômetro, giroscópio e magnetômetro brutos + pitch/roll/yaw da fusão interna). Transmite tudo por LoRa em texto multi-linha a **1 Hz**, no ritmo do PVT do GPS.
 
