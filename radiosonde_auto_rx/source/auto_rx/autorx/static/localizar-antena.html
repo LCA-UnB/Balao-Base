@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Localização da antena</title>
+<style>body{font:18px system-ui;max-width:650px;margin:40px auto;padding:20px;background:#171717;color:#eee}button{font:inherit;padding:12px}pre{white-space:pre-wrap}</style>
+<h1>Localização da antena</h1>
+<p>Consulta a localização fornecida pelo navegador. Este teste apenas mostra o resultado nesta página; não o envia ao SondeHub.</p>
+<button id="locate">Obter localização do notebook</button>
+<pre id="result" role="status">Aguardando consulta.</pre>
+<script>
+document.getElementById('locate').addEventListener('click', () => {
+  const result = document.getElementById('result');
+  if (!navigator.geolocation) { result.textContent = 'Geolocalização indisponível neste navegador.'; return; }
+  result.textContent = 'Consultando localização…';
+  navigator.geolocation.getCurrentPosition(p => {
+    result.textContent = JSON.stringify({latitude:p.coords.latitude,longitude:p.coords.longitude,altitude_m:p.coords.altitude,precisao_m:p.coords.accuracy,horario:new Date(p.timestamp).toISOString()},null,2);
+  }, error => {
+    result.textContent = `Não foi possível obter localização. Código ${error.code}: ${error.message}`;
+  }, {enableHighAccuracy:true,timeout:20000,maximumAge:0});
+});
+</script></html>

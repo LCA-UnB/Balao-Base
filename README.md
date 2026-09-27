@@ -18,6 +18,7 @@ Toda a telemetria transmitida usa o indicativo de radioamadorismo **`PT2UNB`** c
 - [Altitude barométrica (`AltB`)](#altitude-barométrica-altb)
 - [Campo `Fix` — validade dos dados GPS](#campo-fix--validade-dos-dados-gps)
 - [Estação de solo: Rastreador Sonda](#estação-de-solo-rastreador-sonda)
+- [Estação RS41 com RTL-SDR](#estação-rs41-com-rtl-sdr)
 - [Cartão SD via OpenLog](#cartão-sd-via-openlog)
 - [Logs de missão](#logs-de-missão)
 - [Bibliotecas necessárias](#bibliotecas-necessárias)
@@ -37,17 +38,21 @@ Balao-Base/
 │   ├── replay.py / antenna.py             Reprodução e geometria da antena
 │   ├── LoraBordo/                         Transmissor BME280 + BNO086
 │   ├── LoraSolo/                          Receptor da linha A
-│   ├── Lora_Bordo_Com_Telecomando/         Transmissor GY-86 + telecomando
-│   ├── Lora_Solo_com_Telecomando/          Receptor/transmissor da linha B
+│   ├── Lora_Bordo_Com_Telecomando/        Transmissor GY-86 + telecomando
+│   ├── Lora_Solo_com_Telecomando/         Receptor/transmissor da linha B
 │   ├── LiberacaoCarga/                    HX711 + relé
 │   └── gy80testado/                       Bancada de teste IMU
+├── Rastreador Sonda/
+│   └── tracker.py                         Interface redesenhada do PR 17
+├── radiosonde_auto_rx/                    Estação RS41 com RTL-SDR e SondeHub
 ├── Tracker Win64x/build/                  Artefatos de build anteriores
+├── Voo_19_09_2026/                        Dados e análises do voo
 ├── docs/MISSION_LOGS.md                   Operação, formatos e recuperação
-├── tests/                                Testes automatizados
+├── tests/                                 Testes automatizados
 ├── tools/soak_mission.py                  Ensaio de missão prolongada
-├── logs/                                 Logs históricos versionados
-├── requirements-tracker.txt              Dependências da nova interface
-├── config.txt                            Configuração do OpenLog
+├── logs/                                  Logs históricos versionados
+├── requirements-tracker.txt               Dependências da nova interface
+├── config.txt                             Configuração do OpenLog
 └── README.md
 ```
 
@@ -222,6 +227,23 @@ Requer Python 3.10+ e Tkinter. Leia o [guia de missões, recuperação, formatos
 
 ---
 
+## Estação RS41 com RTL-SDR
+
+[`radiosonde_auto_rx/`](radiosonde_auto_rx/) contém uma estação independente para receber radiossondas meteorológicas comerciais com RTL-SDR, incluindo a Vaisala RS41. Ela varre 400,05–406 MHz, decodifica a telemetria, mantém logs por sonda, oferece um painel em `http://localhost:5000` e envia os pontos ao SondeHub com o indicativo `LCA-UNB`.
+
+Essa estação não recebe os pacotes LoRa de 910,5 MHz do balão deste projeto. Para a telemetria própria, continue usando o Heltec de solo e o `Rastreador Sonda` descrito acima.
+
+Instalação e execução:
+
+```bash
+bash radiosonde_auto_rx/concluir-instalacao.sh
+bash radiosonde_auto_rx/iniciar.sh
+```
+
+Consulte [`radiosonde_auto_rx/LEIA-ME.md`](radiosonde_auto_rx/LEIA-ME.md) para dependências, configuração e observações sobre a publicação da posição da estação.
+
+---
+
 ## Cartão SD via OpenLog
 
 O firmware de bordo grava no cartão SD por um módulo **OpenLog** na UART2 (GPIO 3 = RX, GPIO 2 = TX). O código faz **auto-detecção de baud**: tenta 57600 primeiro e cai para 9600 (default de fábrica) se não houver resposta.
@@ -339,7 +361,7 @@ Pontos levantados na revisão do código atual. Estão registrados aqui para que
 
 1. **`gy80testado` não usa um GY-80.** Apesar do nome, o sketch instancia MPU6050 + HMC5883L + MS5611, que é a combinação do **GY-86/GY-87 (10DOF)** — o mesmo conjunto da linha B. O GY-80 traz ADXL345 + L3G4200D + BMP085. O nome do diretório está enganoso.
 
-2. **A nova interface aceita as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, evita a cópia formatada da linha A e preserva os campos ausentes como indisponíveis. A interface legada V1.2 fecha os pacotes em `Ack`.
+2. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `Rastreador Sonda/tracker.py` também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
 
 3. **Os logs históricos continuam versionados em `logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
 

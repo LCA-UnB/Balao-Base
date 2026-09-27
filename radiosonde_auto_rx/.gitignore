@@ -1,0 +1,8 @@
+venv/
+.venv/
+local/
+assets-base64/
+*.pkg.tar.zst
+*.pkg.tar.zst.sig
+assets-manifest.json
+source-manifest.json
