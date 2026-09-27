@@ -18,6 +18,7 @@ Toda a telemetria transmitida usa o indicativo de radioamadorismo **`PT2UNB`** c
 - [Altitude barométrica (`AltB`)](#altitude-barométrica-altb)
 - [Campo `Fix` — validade dos dados GPS](#campo-fix--validade-dos-dados-gps)
 - [Estação de solo: Rastreador Sonda](#estação-de-solo-rastreador-sonda)
+- [Estação RS41 com RTL-SDR](#estação-rs41-com-rtl-sdr)
 - [Cartão SD via OpenLog](#cartão-sd-via-openlog)
 - [Logs de missão](#logs-de-missão)
 - [Bibliotecas necessárias](#bibliotecas-necessárias)
@@ -41,6 +42,11 @@ Balao-Base/
 │   ├── tracker.spec                      Receita do PyInstaller
 │   ├── build/                            Artefatos do PyInstaller (versionados)
 │   └── dist/                             tracker.exe + logs de missão (versionados)
+├── radiosonde_auto_rx/                   Tracker RS41 com RTL-SDR e SondeHub
+│   ├── source/                           Código GPL do radiosonde_auto_rx 1.9.0
+│   ├── station.cfg                       Configuração da estação LCA-UNB
+│   ├── concluir-instalacao.sh            Instala bibliotecas e compila decoders
+│   └── iniciar.sh                        Inicia o scanner e o painel web
 ├── logs/                                 Logs de telemetria de voos realizados
 ├── config.txt                            Configuração do OpenLog (copiar para o SD)
 └── README.md
@@ -226,6 +232,23 @@ Há também um executável Windows pré-compilado em `Rastreador Sonda/dist/trac
 ```bash
 pyinstaller "Rastreador Sonda/tracker.spec"
 ```
+
+---
+
+## Estação RS41 com RTL-SDR
+
+[`radiosonde_auto_rx/`](radiosonde_auto_rx/) contém uma estação independente para receber radiossondas meteorológicas comerciais com RTL-SDR, incluindo a Vaisala RS41. Ela varre 400,05–406 MHz, decodifica a telemetria, mantém logs por sonda, oferece um painel em `http://localhost:5000` e envia os pontos ao SondeHub com o indicativo `LCA-UNB`.
+
+Essa estação não recebe os pacotes LoRa de 910,5 MHz do balão deste projeto. Para a telemetria própria, continue usando o Heltec de solo e o `Rastreador Sonda` descrito acima.
+
+Instalação e execução:
+
+```bash
+bash radiosonde_auto_rx/concluir-instalacao.sh
+bash radiosonde_auto_rx/iniciar.sh
+```
+
+Consulte [`radiosonde_auto_rx/LEIA-ME.md`](radiosonde_auto_rx/LEIA-ME.md) para dependências, configuração e observações sobre a publicação da posição da estação.
 
 ---
 
