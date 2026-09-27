@@ -8,8 +8,18 @@ Toda a telemetria transmitida usa o indicativo de radioamadorismo **`PT2UNB`** c
 
 ---
 
+## Missões derivadas
+
+| Missão | Repositório | Descrição |
+|---|---|---|
+| Balão 1 (Abertura) | [`lase-unb/Balao-Abertura`](https://github.com/lase-unb/Balao-Abertura) | Cópia do `Balao-Base` até o commit `274e2ee` |
+| Balão 2 | [`lase-unb/Balao-2`](https://github.com/lase-unb/Balao-2) | Cópia do `Balao-Base` até o commit `755379a` |
+
+---
+
 ## Índice
 
+- [Missões derivadas](#missões-derivadas)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Hardware](#hardware)
 - [Firmware: as duas linhas](#firmware-as-duas-linhas)
