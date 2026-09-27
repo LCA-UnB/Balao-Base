@@ -9,7 +9,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 
 BASE_SIZE = (1440, 900)
-MIN_SIZE = (1080, 720)
+MIN_SIZE = (1080, 820)
 DEFAULT_ZOOM = 1.5
 ZOOM_STEP = 0.1
 ZOOM_MIN = 1.0
@@ -106,6 +106,8 @@ class ZoomControls:
                 figure.set_size_inches(widget.winfo_width() / figure.dpi, widget.winfo_height() / figure.dpi, forward=False)
             canvas.draw_idle()
         self._zoom_applied = self.zoom
+        if hasattr(self, "on_zoom_applied"):
+            self.on_zoom_applied()
 
     def _zoom_figures(self):
         pairs = (("fig", "canvas"), ("antenna_fig", "antenna_canvas"))

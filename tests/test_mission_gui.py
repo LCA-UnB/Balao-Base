@@ -95,8 +95,8 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(app.zoom, 1.1)
         zoomed = snapshot()
         self.assertEqual(zoomed[:4], (scaled(17, 1.1), scaled(370, 1.1), 110, 110))
-        self.assertEqual(original[4], (1080, 720))
-        self.assertEqual(zoomed[4], (round(1080 * 1.1), round(720 * 1.1)))
+        self.assertEqual(original[4], (1080, 820))
+        self.assertEqual(zoomed[4], (round(1080 * 1.1), round(820 * 1.1)))
         self.root.event_generate('<Control-minus>')
         self.root.update()
         self.assertEqual(snapshot()[:4], original[:4])
@@ -109,20 +109,47 @@ class MissionUITests(unittest.TestCase):
         self.root.update()
         self.assertEqual(app.zoom, app.default_zoom)
 
+    def test_mission_buttons_wrap_instead_of_leaving_the_window(self):
+        app = self.app
+        self.root.overrideredirect(True)  # sem o gerenciador de janelas decidindo o tamanho
+        def rows_and_overflow():
+            self.root.update()
+            frame = app.mission_buttons
+            rows = {button.grid_info()['row'] for button in app.mission_action_buttons}
+            overflow = max(button.winfo_x() + button.winfo_width() for button in app.mission_action_buttons) - frame.winfo_width()
+            return rows, overflow
+        app.set_zoom(1.0)
+        self.root.geometry('2400x900')
+        rows, overflow = rows_and_overflow()
+        self.assertEqual(rows, {0})
+        self.assertLessEqual(overflow, 0)
+        for zoom, width in ((1.5, 900), (3.0, 1400)):
+            app.set_zoom(zoom)
+            self.root.geometry(f'{width}x1400')
+            rows, overflow = rows_and_overflow()
+            self.assertGreater(len(rows), 1)
+            self.assertLessEqual(overflow, 0)
+
     def test_tracker_dialog_is_large_and_fits_its_content(self):
         import tkinter as tk
         app = self.app
         app.set_zoom(1.5)
         self.root.update()
-        app.configure_tracker()
+        sizes, original = [], app.center_dialog
+        def spy(dialog, width, height):
+            sizes.append(original(dialog, width, height))
+            return sizes[-1]
+        with patch.object(app, 'center_dialog', side_effect=spy):
+            app.configure_tracker()
         dialog = next(child for child in self.root.winfo_children() if isinstance(child, tk.Toplevel))
-        self.root.update()
+        (width, height), = sizes
         limit = (self.root.winfo_screenwidth() * .9, self.root.winfo_screenheight() * .9)
-        self.assertEqual(dialog.winfo_width(), min(720 * 1.5, limit[0]))
-        self.assertGreaterEqual(dialog.winfo_height(), 300 * 1.5)
-        self.assertLessEqual(dialog.winfo_height(), limit[1])
-        self.assertLessEqual(dialog.winfo_reqwidth(), dialog.winfo_width())
-        self.assertLessEqual(dialog.winfo_reqheight(), dialog.winfo_height())
+        # O gerenciador de janelas decide o tamanho final; aqui vale o que o programa pede.
+        self.assertEqual(width, min(720 * 1.5, limit[0]))
+        self.assertGreaterEqual(height, min(300 * 1.5, limit[1]))
+        self.assertLessEqual(height, limit[1])
+        self.assertLessEqual(dialog.winfo_reqwidth(), width)
+        self.assertLessEqual(dialog.winfo_reqheight(), height)
         dialog.destroy()
 
     def test_center_dialog_uses_window_center_and_stays_on_screen(self):
@@ -155,7 +182,8 @@ class MissionUITests(unittest.TestCase):
         self.app.update_charts()
         self.assertEqual(len(self.app.history_time), 21600)
         self.assertLessEqual(len(self.app.fig.axes[0].lines[0].get_xdata()), 1001)
-        self.root.geometry('1080x720')
+        self.root.overrideredirect(True)  # sem o gerenciador de janelas decidindo o tamanho
+        self.root.geometry('%dx%d' % self.root.minsize())
         self.app.navigation_tabs.select(1)
         self.root.update()
         self.assertGreater(self.app.antenna_canvas.get_tk_widget().winfo_height(), 150)
