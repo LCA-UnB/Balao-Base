@@ -234,6 +234,34 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(read_metadata(path)['status'], 'closed')
         self.assertEqual(str(self.app.btn_connect.cget('state')), 'disabled')
 
+    def test_calibrate_imu_button_confirms_before_sending(self):
+        from unittest.mock import MagicMock
+        app = self.app
+        app.btn_calibrate_imu.invoke()
+        self.assertEqual(len(self.errors), 1)
+        self.assertIn('Conecte o rádio', self.errors[0][1])
+        self.errors.clear()
+
+        port = MagicMock()
+        app.serial_port, app.is_connected = port, True
+        with patch('mission_ui.messagebox.askyesno', return_value=False) as ask:
+            app.btn_calibrate_imu.invoke()
+        self.assertIn('carga parada', ask.call_args.args[1])
+        self.assertIn('ACK 2501', ask.call_args.args[1])
+        port.write.assert_not_called()
+
+        with patch('mission_ui.messagebox.askyesno', return_value=True), patch.object(app.mission, 'event') as event:
+            app.btn_calibrate_imu.invoke()
+        port.write.assert_called_once_with(b'2500\n')
+        event.assert_called_once_with('command_sent', command='2500')
+
+        port.reset_mock()
+        app.cmd_entry.insert(0, '12')
+        app.send_command()
+        port.write.assert_called_once_with(b'12\n')
+        self.assertEqual(app.cmd_entry.get(), '')
+        app.serial_port, app.is_connected = None, False
+
     @unittest.skipUnless(hasattr(os, 'openpty'), 'pseudo-terminal test requires POSIX')
     def test_real_serial_connection_reconnect_and_invalid_packet(self):
         master, slave = os.openpty()
