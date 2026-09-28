@@ -11,7 +11,7 @@ from mission import MissionWriter, packet_rows, read_metadata, utc_now
 from test_mission import packet, FRAME
 
 
-@unittest.skipUnless(sys.platform == 'win32' or os.environ.get('DISPLAY'), 'GUI tests require a display (Xvfb supported)')
+@unittest.skipUnless(os.environ.get('DISPLAY'), 'GUI tests require a display (Xvfb supported)')
 class MissionUITests(unittest.TestCase):
     def setUp(self):
         import tkinter as tk
