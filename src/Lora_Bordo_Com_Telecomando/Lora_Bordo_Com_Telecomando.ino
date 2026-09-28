@@ -55,6 +55,10 @@ void OnRxError( void );
 // --- OPENLOG ---
 #define OPENLOG_RX 3
 #define OPENLOG_TX 2
+// Sem buffer de TX, availableForWrite() nunca passa dos 128 bytes da FIFO
+// da UART, e logSD() descarta toda linha maior que isso (linha "I" ~150 B,
+// pacote de telemetria ~200 B). O buffer precisa ser definido antes do begin().
+#define OPENLOG_TX_BUFFER 1024
 HardwareSerial OpenLogSerial(2);
 
 // --- PINOS E SENSORES ---
@@ -207,10 +211,14 @@ bool entrarModoComandoOpenLog(bool comSilencio) {
 
 void iniciarOpenLog() {
   delay(2000);
+  // end() preserva o tamanho do buffer, entao ele vale tambem para o 9600.
+  OpenLogSerial.setTxBufferSize(OPENLOG_TX_BUFFER);
   OpenLogSerial.begin(57600, SERIAL_8N1, OPENLOG_RX, OPENLOG_TX);
   delay(500);
+  // 57600 baud escoa ~5,7 KB/s. Com a linha "I" de ~155 B, 40 Hz (25 ms) passaria
+  // disso e o pacote de telemetria seria descartado; 25 Hz ocupa ~70% da UART.
   if (entrarModoComandoOpenLog(true)) {
-    openLogConectado = true; openLogAltaVelocidade = true; imuInterval = 25;
+    openLogConectado = true; openLogAltaVelocidade = true; imuInterval = 40;
     return;
   }
   OpenLogSerial.end();
