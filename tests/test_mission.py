@@ -270,6 +270,15 @@ class ParserTests(unittest.TestCase):
         self.assertEqual((notices[3]['from'], notices[3]['time'], notices[3]['rssi']), ('C', '12:34:57', -80))
         self.assertEqual(parser.take_notices(), [])
 
+    def test_ordered_feed_keeps_ack_notice_before_newer_telemetry(self):
+        data = b'[ACK] Ack:6\n' + FRAME.replace(b'Ack:0', b'Ack:8')
+        for chunks in ([data], [data[:12], data[12:]]):
+            parser, items = PacketParser(), []
+            for chunk in chunks:
+                items += parser.feed_ordered(chunk, 'now')
+            self.assertEqual([kind for kind, _ in items], ['notice', 'packet'])
+            self.assertEqual((items[0][1]['value'], items[1][1]['fields']['Ack']), (6, 8))
+
     def test_message_text_is_ascii_single_line_and_limited(self):
         self.assertEqual(sanitize_message('  Pouso\tà  direção\n norte '), 'Pouso a direcao norte')
         self.assertEqual(len(sanitize_message('x' * 150)), MESSAGE_LIMIT)

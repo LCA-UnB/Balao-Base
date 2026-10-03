@@ -105,5 +105,22 @@ class StationTests(unittest.TestCase):
             self.assertEqual((received['id'], received['from'], received['text']), ('B7', 'B', 'Ola'))
             self.assertIn({'event': 'station_identity', 'id': 'A', 'total': 3}, events)
 
+    def test_ack_notice_and_newer_packet_keep_serial_order(self):
+        with tempfile.TemporaryDirectory() as directory:
+            writer = MissionWriter.create(directory, 'Ordem', sync_interval=.01)
+            data = b'[ACK] Ack:6\n' + FRAME.replace(b'Ack:0', b'Ack:8')
+            receiver = StationReceiver(FakeSerial([data]), writer, lambda:(None,None))
+            receiver.start()
+            items = []
+            deadline = time.monotonic() + 2
+            while len(items) < 2 and time.monotonic() < deadline:
+                while not receiver.messages.empty():
+                    items.append(receiver.messages.get_nowait())
+                time.sleep(.01)
+            self.assertTrue(receiver.stop())
+            self.assertEqual([kind for kind, _ in items[:2]], ['notice', 'packet'])
+            self.assertEqual(items[1][1]['fields']['Ack'], 8)
+            self.assertTrue(writer.close())
+
 if __name__ == '__main__':
     unittest.main()

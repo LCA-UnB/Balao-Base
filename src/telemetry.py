@@ -133,17 +133,29 @@ class PacketParser:
         self.frame_time = None
         return [result]
 
-    def feed(self, data, received_at):
+    def feed_ordered(self, data, received_at):
+        """Packets and notices as ("packet" | "notice", value), in serial order.
+
+        An acknowledgement notice followed by newer telemetry must not be
+        applied after it, whatever the size of the serial read.
+        """
         self.buffer.extend(data)
-        results = []
+        pending, self.notices = self.notices, []
+        items = [("notice", notice) for notice in pending]
         while b"\n" in self.buffer:
             line, _, remainder = self.buffer.partition(b"\n")
             self.buffer = bytearray(remainder)
-            results.extend(self._line(line.decode("utf-8", errors="replace").strip(), received_at))
+            items.extend(("packet", packet) for packet in self._line(line.decode("utf-8", errors="replace").strip(), received_at))
+            items.extend(("notice", notice) for notice in self.take_notices())
         if len(self.buffer) > 65536:
-            results.extend(self._finish(reason="line_too_long"))
+            items.extend(("packet", packet) for packet in self._finish(reason="line_too_long"))
             self.buffer.clear()  # exact bytes remain in the raw capture
-        return results
+        return items
+
+    def feed(self, data, received_at):
+        items = self.feed_ordered(data, received_at)
+        self.notices.extend(value for kind, value in items if kind == "notice")
+        return [value for kind, value in items if kind == "packet"]
 
     def finish(self, received_at, reason="disconnect"):
         results = []

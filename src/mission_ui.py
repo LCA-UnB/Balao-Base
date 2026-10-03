@@ -371,9 +371,10 @@ class MissionControls:
             messagebox.showerror("Mensagem", f"A mensagem tem {len(text)} caracteres; o limite é {MESSAGE_LIMIT}.")
             return
         if self._write_serial("Mensagem", f"M {text}\n"):
+            # O rascunho só sai do campo quando o rádio confirma ENFILEIRADA:
+            # uma recusa (outra mensagem ainda pendente) não pode apagá-lo.
             self.mission.event("message_requested", text=text)
-            self.message_text.set("")
-            self.lbl_message_status.config(text="Mensagem entregue ao rádio de solo…", fg="#94a3b5")
+            self.lbl_message_status.config(text="Aguardando o rádio de solo aceitar a mensagem…", fg="#94a3b5")
 
     def apply_station(self):
         letter, total = self.station_letter.get(), int(self.station_total.get())
@@ -406,13 +407,15 @@ class MissionControls:
             stamp = notice.get("time") or notice["received_at"][11:19]
             self._append_message(f"[{stamp}] {sender}{own}: {notice.get('text', '')}")
             return
+        if status == "queued" and sanitize_message(self.message_text.get(), limit=None) == notice.get("text"):
+            self.message_text.set("")
         reasons = {"ocupada": f"o rádio ainda aguarda a confirmação da mensagem {message_id}", "vazia": "mensagem vazia"}
         text, color = {
             "queued": (f"Mensagem {message_id} na fila do rádio de solo.", "#94a3b5"),
             "sent": (f"Mensagem {message_id} enviada ao balão (tentativa {attempts}).", "#ffb547"),
             "delivered": (f"Mensagem {message_id} repetida pelo balão.", "#38d683"),
             "failed": (f"Mensagem {message_id} sem confirmação após {attempts} tentativas.", "#ff6072"),
-            "refused": (f"Mensagem recusada: {reasons.get(notice.get('reason'), notice.get('reason', '—'))}.", "#ff6072"),
+            "refused": (f"Mensagem recusada: {reasons.get(notice.get('reason'), notice.get('reason', '—'))}. O texto continua no campo.", "#ff6072"),
         }[status]
         self.lbl_message_status.config(text=text, fg=color)
 

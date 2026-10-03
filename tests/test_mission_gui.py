@@ -299,7 +299,19 @@ class MissionUITests(unittest.TestCase):
             self.app.message_text.set('Direção  norte')
             self.assertEqual(self.app.lbl_message_count.cget('text'), '13/100')
             self.app.send_message()
-            self.assertEqual(self.app.message_text.get(), '')
+            self.assertEqual(self.app.message_text.get(), 'Direção  norte')
+
+            def notice(data, condition):
+                os.write(master, data)
+                deadline = time.monotonic() + 3
+                while not condition() and time.monotonic() < deadline:
+                    self.root.update()
+                    time.sleep(.01)
+                self.assertTrue(condition())
+            notice(b'[MSG] RECUSADA Motivo:ocupada Id:B7\n',
+                   lambda: 'recusada' in self.app.lbl_message_status.cget('text'))
+            self.assertEqual(self.app.message_text.get(), 'Direção  norte')
+            notice(b'[MSG] ENFILEIRADA Id:B8 Texto:Direcao norte\n', lambda: self.app.message_text.get() == '')
             self.app.station_total.set('5')
             self.app._update_station_letters()
             self.app.station_letter.set('E')
@@ -319,7 +331,11 @@ class MissionUITests(unittest.TestCase):
             self.assertEqual(self.app.message_log.get('1.0', 'end').strip(), '')
             self.assertEqual(self.app.lbl_message_status.cget('text'), 'Nenhuma mensagem enviada.')
             self.assertEqual(self.app.lbl_station.cget('text'), 'B de 3')
-            self.app.toggle_connection()  # outro rádio na mesma porta
+            self.app.port_devices = {'test': os.ttyname(slave)}  # outro rádio na mesma porta
+            self.app.port_cb['values'] = ['test']
+            self.app.port_cb.set('test')
+            self.app.toggle_connection()
+            self.assertTrue(self.app.is_connected)
             self.assertIsNone(self.app.station_identity)
             self.assertEqual(self.app.lbl_station.cget('text'), '—')
             self.app.disconnect_serial()

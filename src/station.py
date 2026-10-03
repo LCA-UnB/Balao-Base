@@ -64,8 +64,11 @@ class StationReceiver:
                 received_at = utc_now()
                 if data:
                     self._save("raw", data, received_at=received_at)
-                    self._packets(parser.feed(data, received_at), received_at)
-                    self._notices(parser.take_notices())
+                    for kind, value in parser.feed_ordered(data, received_at):
+                        if kind == "packet":
+                            self._packets([value], received_at)
+                        else:
+                            self._notices([value])
                     last_data = time.monotonic()
                 elif time.monotonic() - last_data > 3:
                     self._packets(parser.finish(received_at, reason="timeout"), received_at)
