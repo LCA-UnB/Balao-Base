@@ -2,6 +2,7 @@
 from dataclasses import asdict
 import math
 import re
+import unicodedata
 import uuid
 
 from antenna import Position, calculate_pointing, position_from_packet
@@ -12,6 +13,44 @@ INTEGER_FIELDS = {"Sat", "Fix", "Ack"}
 BASE_FIELDS = {"Lat", "Lon", "Alt", "AltB", "Sat", "Fix", "T", "P", "Time", "Pitch", "Roll", "Yaw"}
 A_FIELDS = BASE_FIELDS | {"U", "AX", "AY", "AZ", "GX", "GY", "GZ", "MX", "MY", "MZ"}
 B_FIELDS = BASE_FIELDS | {"Ack"}
+
+# Message repeater (line B ground firmware). The text travels inside a
+# line-framed LoRa packet, so it is limited to printable ASCII on one line.
+MESSAGE_LIMIT = 100
+MESSAGE_STATUS = {"ENFILEIRADA": "queued", "ENVIADA": "sent", "ENTREGUE": "delivered",
+                  "FALHOU": "failed", "RECEBIDA": "received", "RECUSADA": "refused"}
+MESSAGE_KEYS = {"Id": "id", "De": "from", "Hora": "time", "RSSI": "rssi", "SNR": "snr",
+                "Tentativa": "attempts", "Tentativas": "attempts", "Motivo": "reason"}
+STATION_TOTALS = (1, 2, 3, 5, 6)
+
+
+def sanitize_message(text, limit=MESSAGE_LIMIT):
+    """Remove accents and control characters; the firmware accepts ASCII only."""
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    text = " ".join("".join(c if c.isprintable() else " " for c in text).split())
+    return text[:limit]
+
+
+def parse_notice(line):
+    """Parse a ``[MSG]``, ``[ESTACAO]`` or ``[ACK]`` line printed by the ground firmware."""
+    ack = re.fullmatch(r"\[ACK\]\s+Ack:(-?\d+)", line)
+    if ack:
+        # Command acknowledgement carried by a relay packet instead of telemetry.
+        return {"kind": "ack", "value": int(ack.group(1))}
+    station = re.fullmatch(r"\[ESTACAO\]\s+ID:([A-Z])\s+N:(\d+)", line)
+    if station:
+        return {"kind": "station", "id": station.group(1), "total": int(station.group(2))}
+    match = re.fullmatch(r"\[MSG\]\s+([A-Z]+)(.*)", line)
+    if not match or match.group(1) not in MESSAGE_STATUS:
+        return None
+    head, has_text, text = match.group(2).partition("Texto:")
+    notice = {"kind": "message", "status": MESSAGE_STATUS[match.group(1)]}
+    for key, value in re.findall(r"(\w+):(\S+)", head):
+        if key in MESSAGE_KEYS:
+            notice[MESSAGE_KEYS[key]] = int(value) if key in {"RSSI", "SNR", "Tentativa", "Tentativas"} and re.fullmatch(r"-?\d+", value) else value
+    if has_text:
+        notice["text"] = text
+    return notice
 
 
 def typed_packet(raw, *, callsign, source_frame, source, terminated, reason):
@@ -75,6 +114,11 @@ class PacketParser:
         self.raw_seen = False
         self.suppress = False
         self.frame_time = None
+        self.notices = []
+
+    def take_notices(self):
+        notices, self.notices = self.notices, []
+        return notices
 
     def _finish(self, terminated=False, reason="boundary"):
         if not self.fields:
@@ -89,17 +133,29 @@ class PacketParser:
         self.frame_time = None
         return [result]
 
-    def feed(self, data, received_at):
+    def feed_ordered(self, data, received_at):
+        """Packets and notices as ("packet" | "notice", value), in serial order.
+
+        An acknowledgement notice followed by newer telemetry must not be
+        applied after it, whatever the size of the serial read.
+        """
         self.buffer.extend(data)
-        results = []
+        pending, self.notices = self.notices, []
+        items = [("notice", notice) for notice in pending]
         while b"\n" in self.buffer:
             line, _, remainder = self.buffer.partition(b"\n")
             self.buffer = bytearray(remainder)
-            results.extend(self._line(line.decode("utf-8", errors="replace").strip(), received_at))
+            items.extend(("packet", packet) for packet in self._line(line.decode("utf-8", errors="replace").strip(), received_at))
+            items.extend(("notice", notice) for notice in self.take_notices())
         if len(self.buffer) > 65536:
-            results.extend(self._finish(reason="line_too_long"))
+            items.extend(("packet", packet) for packet in self._finish(reason="line_too_long"))
             self.buffer.clear()  # exact bytes remain in the raw capture
-        return results
+        return items
+
+    def feed(self, data, received_at):
+        items = self.feed_ordered(data, received_at)
+        self.notices.extend(value for kind, value in items if kind == "notice")
+        return [value for kind, value in items if kind == "packet"]
 
     def finish(self, received_at, reason="disconnect"):
         results = []
@@ -111,6 +167,13 @@ class PacketParser:
 
     def _line(self, line, received_at):
         results = []
+        if line.startswith(("[MSG]", "[ESTACAO]", "[ACK]")):
+            # Status lines never belong to a telemetry frame; the message text
+            # may even contain "RSSI:" or field names.
+            notice = parse_notice(line)
+            if notice:
+                self.notices.append(dict(notice, received_at=received_at))
+            return results
         if line.startswith("Pacote Recebido!"):
             results.extend(self._finish(reason="next_packet"))
             self.link, self.raw_seen, self.suppress = {}, False, False

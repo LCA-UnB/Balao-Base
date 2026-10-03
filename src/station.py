@@ -47,6 +47,13 @@ class StationReceiver:
             self.received_packets += 1
             self._message("packet", dict(packet, received_at=received_at, elapsed=elapsed))
 
+    def _notices(self, notices):
+        for notice in notices:
+            details = {key: value for key, value in notice.items() if key not in {"kind", "status", "received_at"}}
+            name = {"message": f"message_{notice.get('status')}", "station": "station_identity", "ack": "relay_ack"}[notice["kind"]]
+            self._save("event", {"event": name, **details}, received_at=notice["received_at"])
+            self._message("notice", notice)
+
     def _run(self):
         parser = PacketParser()
         last_data = time.monotonic()
@@ -57,7 +64,11 @@ class StationReceiver:
                 received_at = utc_now()
                 if data:
                     self._save("raw", data, received_at=received_at)
-                    self._packets(parser.feed(data, received_at), received_at)
+                    for kind, value in parser.feed_ordered(data, received_at):
+                        if kind == "packet":
+                            self._packets([value], received_at)
+                        else:
+                            self._notices([value])
                     last_data = time.monotonic()
                 elif time.monotonic() - last_data > 3:
                     self._packets(parser.finish(received_at, reason="timeout"), received_at)
@@ -68,6 +79,7 @@ class StationReceiver:
         finally:
             received_at = utc_now()
             self._packets(parser.finish(received_at), received_at)
+            self._notices(parser.take_notices())
             self._save("event", {"event": "serial_disconnected"})
             try:
                 self.port.close()

@@ -325,5 +325,78 @@ class MissionUITests(unittest.TestCase):
             os.close(master)
             os.close(slave)
 
+    def test_messages_station_identity_and_command_restriction(self):
+        import select
+        master, slave = os.openpty()
+        try:
+            self.app.port_devices = {'test': os.ttyname(slave)}
+            self.app.port_cb['values'] = ['test']
+            self.app.port_cb.set('test')
+            self.app.toggle_connection()
+            self.assertTrue(self.app.is_connected)
+            os.write(master, b'[ESTACAO] ID:B N:3\n[MSG] ENFILEIRADA Id:B7 Texto:Ola\n'
+                             b'[MSG] RECEBIDA Id:C2 De:C Hora:10:00:01 RSSI:-90 SNR:3 Texto:Pouso em -15.8 -47.9\n'
+                             b'[ACK] Ack:6\n[MSG] ENTREGUE Id:B7 Tentativas:1\n')
+            deadline = time.monotonic() + 3
+            while 'repetida' not in self.app.lbl_message_status.cget('text') and time.monotonic() < deadline:
+                self.root.update()
+                time.sleep(.01)
+            self.assertEqual(self.app.lbl_message_status.cget('text'), 'Mensagem B7 repetida pelo balão.')
+            self.assertEqual(self.app.lbl_station.cget('text'), 'B de 3')
+            self.assertEqual((self.app.station_letter.get(), self.app.station_total.get()), ('B', '3'))
+            self.assertIn('[10:00:01] C: Pouso em -15.8 -47.9', self.app.message_log.get('1.0', 'end'))
+            self.app.update_gui()
+            self.assertEqual(self.app.lbl_ack.cget('text'), '6')
+
+            self.app.message_text.set('Direção  norte')
+            self.assertEqual(self.app.lbl_message_count.cget('text'), '13/100')
+            self.app.send_message()
+            self.assertEqual(self.app.message_text.get(), 'Direção  norte')
+
+            def notice(data, condition):
+                os.write(master, data)
+                deadline = time.monotonic() + 3
+                while not condition() and time.monotonic() < deadline:
+                    self.root.update()
+                    time.sleep(.01)
+                self.assertTrue(condition())
+            notice(b'[MSG] RECUSADA Motivo:ocupada Id:B7\n',
+                   lambda: 'recusada' in self.app.lbl_message_status.cget('text'))
+            self.assertEqual(self.app.message_text.get(), 'Direção  norte')
+            notice(b'[MSG] ENFILEIRADA Id:B8 Texto:Direcao norte\n', lambda: self.app.message_text.get() == '')
+            self.app.station_total.set('5')
+            self.app._update_station_letters()
+            self.app.station_letter.set('E')
+            self.app.apply_station()
+            written, deadline = b'', time.monotonic() + 3
+            while b'ID E 5' not in written and time.monotonic() < deadline:
+                if select.select([master], [], [], .05)[0]:
+                    written += os.read(master, 1024)
+            self.assertEqual(written.replace(b'\r', b''), b'ID?\nM Direcao norte\nID E 5\n')
+
+            self.app.cmd_entry.insert(0, '5')
+            self.app.send_command()
+            self.assertEqual(self.errors, [('Telecomando', 'Telecomandos só podem sair da estação A.')])
+            self.errors.clear()
+            self.app.calibrate_imu()  # também é telecomando: barrado antes da confirmação
+            self.assertEqual(self.errors, [('Telecomando', 'Telecomandos só podem sair da estação A.')])
+            self.errors.clear()
+            self.app.disconnect_serial()
+            self.app._reset_display()  # trocar de missão ou abrir reprodução
+            self.assertEqual(self.app.message_log.get('1.0', 'end').strip(), '')
+            self.assertEqual(self.app.lbl_message_status.cget('text'), 'Nenhuma mensagem enviada.')
+            self.assertEqual(self.app.lbl_station.cget('text'), 'B de 3')
+            self.app.port_devices = {'test': os.ttyname(slave)}  # outro rádio na mesma porta
+            self.app.port_cb['values'] = ['test']
+            self.app.port_cb.set('test')
+            self.app.toggle_connection()
+            self.assertTrue(self.app.is_connected)
+            self.assertIsNone(self.app.station_identity)
+            self.assertEqual(self.app.lbl_station.cget('text'), '—')
+            self.app.disconnect_serial()
+        finally:
+            os.close(master)
+            os.close(slave)
+
 if __name__ == '__main__':
     unittest.main()

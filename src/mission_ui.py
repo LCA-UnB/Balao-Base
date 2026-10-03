@@ -15,6 +15,7 @@ from antenna import Position
 from mission import MissionWriter, export_csv, export_kml, export_raw, read_metadata
 from replay import MissionReplay
 from station import StationReceiver
+from telemetry import MESSAGE_LIMIT, STATION_TOTALS, sanitize_message
 
 # O bordo trata qualquer comando acima de 2000 como calibração do IMU e
 # confirma com Ack = comando + 1.
@@ -33,6 +34,7 @@ class MissionControls:
         self.packet_monotonic = None
         self.sample_count = 0
         self.closing = False
+        self.station_identity = None
         self.background_results = Queue()
         self.export_busy = False
         self.replay_scrubbing = False
@@ -123,6 +125,54 @@ class MissionControls:
         tk.Button(row, text="Enviar comando", command=self.send_command, padx=16, pady=8, font=("Segoe UI", 11)).pack(side=tk.RIGHT, padx=(8, 0))
         self.btn_calibrate_imu = tk.Button(card, text="Calibrar IMU", command=self.calibrate_imu, padx=16, pady=8, font=("Segoe UI", 11))
         self.btn_calibrate_imu.pack(fill=tk.X, pady=(8, 0))
+
+    def _build_message_card(self):
+        card = self._card(self.sidebar_content, "Mensagens via balão")
+        card.pack(fill=tk.X, pady=(0, 9))
+        row, self.lbl_station = self._data_row(card, "Esta estação")
+        row.pack(fill=tk.X, pady=(0, 7))
+        config = tk.Frame(card, bg=card.cget("bg"))
+        config.pack(fill=tk.X, pady=(0, 7))
+        self._label(config, "Letra", 9, "#94a3b5").pack(side=tk.LEFT)
+        self.station_letter = ttk.Combobox(config, state="readonly", width=3, font=("Segoe UI", 11))
+        self.station_letter.pack(side=tk.LEFT, padx=(6, 10))
+        self._label(config, "de", 9, "#94a3b5").pack(side=tk.LEFT)
+        self.station_total = ttk.Combobox(config, state="readonly", width=3, font=("Segoe UI", 11),
+                                          values=STATION_TOTALS)
+        self.station_total.pack(side=tk.LEFT, padx=(6, 0))
+        self.station_total.bind("<<ComboboxSelected>>", lambda event: self._update_station_letters())
+        tk.Button(config, text="Aplicar", command=self.apply_station, padx=14, pady=6, font=("Segoe UI", 11)).pack(side=tk.RIGHT)
+        self._set_station_choice("A", 1)
+        self.message_log = tk.Text(card, height=7, wrap=tk.WORD, state=tk.DISABLED, bg="#1b2633", fg="#f2f5f8",
+                                   relief=tk.FLAT, font=("Consolas", 10), padx=6, pady=4)
+        self.message_log.pack(fill=tk.X, pady=(0, 7))
+        row = tk.Frame(card, bg=card.cget("bg"))
+        row.pack(fill=tk.X)
+        self.message_text = tk.StringVar()
+        self.message_text.trace_add("write", lambda *args: self._update_message_count())
+        self.message_entry = ttk.Entry(row, textvariable=self.message_text, width=12, font=("Segoe UI", 12))
+        self.message_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=5)
+        self.message_entry.bind("<Return>", lambda event: self.send_message())
+        tk.Button(row, text="Enviar mensagem", command=self.send_message, padx=16, pady=8, font=("Segoe UI", 11)).pack(side=tk.RIGHT, padx=(8, 0))
+        self.lbl_message_count = self._label(card, f"0/{MESSAGE_LIMIT}", 8, "#617186")
+        self.lbl_message_count.pack(anchor=tk.E, pady=(3, 0))
+        self.lbl_message_status = self._label(card, "Nenhuma mensagem enviada.", 9, "#94a3b5", justify=tk.LEFT, wraplength=320)
+        self.lbl_message_status.pack(anchor=tk.W)
+
+    def _set_station_choice(self, letter, total):
+        self.station_total.set(str(total))
+        self._update_station_letters()
+        self.station_letter.set(letter)
+
+    def _update_station_letters(self):
+        letters = tuple("ABCDEF"[:int(self.station_total.get())])
+        self.station_letter.config(values=letters)
+        if self.station_letter.get() not in letters:
+            self.station_letter.set("A")
+
+    def _update_message_count(self):
+        size = len(sanitize_message(self.message_text.get(), limit=None))
+        self.lbl_message_count.config(text=f"{size}/{MESSAGE_LIMIT}", fg="#ff6072" if size > MESSAGE_LIMIT else "#617186")
 
     def _release_mission(self):
         if self.is_connected or self.replay:
@@ -246,11 +296,21 @@ class MissionControls:
             self.current_record = None
             self.last_gps_data = None
             self.is_connected = True
+            # A identidade é do rádio: outro rádio (ou um firmware sem [ESTACAO])
+            # não pode herdar a restrição de telecomando do anterior.
+            self.station_identity = None
+            self.lbl_station.config(text="—")
             self.btn_connect.config(text="Desconectar", bg="#ff6072", state=tk.NORMAL)
             self.port_cb.config(state="disabled")
             self.btn_refresh.config(state=tk.DISABLED)
             self.lbl_connection.config(text="● CONECTADO", fg="#38d683")
             self.receiver.start()
+            # Se o rádio não reiniciar ao abrir a porta, a identidade não sai
+            # no boot; a consulta garante que a interface saiba qual estação é.
+            try:
+                self.serial_port.write(b"ID?\n")
+            except Exception:
+                pass  # uma falha real da porta aparece pelo receptor
         except Exception as error:
             self.is_connected = False
             if self.serial_port:
@@ -284,6 +344,11 @@ class MissionControls:
         if self.replay or not self.is_connected or not self.serial_port:
             messagebox.showerror("Telecomando", "Conecte o rádio no modo ao vivo.")
             return False
+        # A solo recusa telecomandos fora da estação A; avisar aqui evita que o
+        # operador espere um ACK que nunca virá (vale também para Calibrar IMU).
+        if self.station_identity and self.station_identity[0] != "A":
+            messagebox.showerror("Telecomando", "Telecomandos só podem sair da estação A.")
+            return False
         return True
 
     def _write_command(self, command):
@@ -316,6 +381,74 @@ class MissionControls:
             return
         self._write_command(IMU_CALIBRATION_COMMAND)
 
+    def _write_serial(self, title, line):
+        if self.replay or not self.is_connected or not self.serial_port:
+            messagebox.showerror(title, "Conecte o rádio no modo ao vivo.")
+            return False
+        try:
+            self.serial_port.write(line.encode("ascii"))
+            return True
+        except Exception as error:
+            messagebox.showerror(f"Falha: {title.lower()}", str(error))
+            return False
+
+    def send_message(self):
+        text = sanitize_message(self.message_text.get(), limit=None)
+        if not text:
+            messagebox.showerror("Mensagem", "Escreva a mensagem antes de enviar.")
+            return
+        if len(text) > MESSAGE_LIMIT:
+            messagebox.showerror("Mensagem", f"A mensagem tem {len(text)} caracteres; o limite é {MESSAGE_LIMIT}.")
+            return
+        if self._write_serial("Mensagem", f"M {text}\n"):
+            # O rascunho só sai do campo quando o rádio confirma ENFILEIRADA:
+            # uma recusa (outra mensagem ainda pendente) não pode apagá-lo.
+            self.mission.event("message_requested", text=text)
+            self.lbl_message_status.config(text="Aguardando o rádio de solo aceitar a mensagem…", fg="#94a3b5")
+
+    def apply_station(self):
+        letter, total = self.station_letter.get(), int(self.station_total.get())
+        if self._write_serial("Estação", f"ID {letter} {total}\n"):
+            self.mission.event("station_requested", id=letter, total=total)
+
+    def _append_message(self, line):
+        self.message_log.config(state=tk.NORMAL)
+        self.message_log.insert(tk.END, ("\n" if self.message_log.index("end-1c") != "1.0" else "") + line)
+        if int(self.message_log.index("end-1c").split(".")[0]) > 200:
+            self.message_log.delete("1.0", "2.0")
+        self.message_log.config(state=tk.DISABLED)
+        self.message_log.see(tk.END)
+
+    def _apply_notice(self, notice):
+        if notice["kind"] == "ack":
+            self.telemetry["Ack"] = notice["value"]
+            self.needs_gui_update = True
+            return
+        if notice["kind"] == "station":
+            self.station_identity = (notice["id"], notice["total"])
+            self.lbl_station.config(text=f"{notice['id']} de {notice['total']}")
+            if notice["total"] in STATION_TOTALS:
+                self._set_station_choice(notice["id"], notice["total"])
+            return
+        status, message_id, attempts = notice["status"], notice.get("id", "—"), notice.get("attempts", "?")
+        if status == "received":
+            sender = notice.get("from") or message_id[:1]
+            own = " (esta estação)" if self.station_identity and sender == self.station_identity[0] else ""
+            stamp = notice.get("time") or notice["received_at"][11:19]
+            self._append_message(f"[{stamp}] {sender}{own}: {notice.get('text', '')}")
+            return
+        if status == "queued" and sanitize_message(self.message_text.get(), limit=None) == notice.get("text"):
+            self.message_text.set("")
+        reasons = {"ocupada": f"o rádio ainda aguarda a confirmação da mensagem {message_id}", "vazia": "mensagem vazia"}
+        text, color = {
+            "queued": (f"Mensagem {message_id} na fila do rádio de solo.", "#94a3b5"),
+            "sent": (f"Mensagem {message_id} enviada ao balão (tentativa {attempts}).", "#ffb547"),
+            "delivered": (f"Mensagem {message_id} repetida pelo balão.", "#38d683"),
+            "failed": (f"Mensagem {message_id} sem confirmação após {attempts} tentativas.", "#ff6072"),
+            "refused": (f"Mensagem recusada: {reasons.get(notice.get('reason'), notice.get('reason', '—'))}. O texto continua no campo.", "#ff6072"),
+        }[status]
+        self.lbl_message_status.config(text=text, fg=color)
+
     def _drain_receiver(self):
         if not self.receiver:
             return
@@ -326,6 +459,8 @@ class MissionControls:
                 break
             if kind == "packet":
                 self._apply_record(value)
+            elif kind == "notice":
+                self._apply_notice(value)
             elif kind == "error":
                 self.lbl_connection.config(text="● FALHA SERIAL", fg="#ff6072")
                 self.lbl_log_status.config(text=value, fg="#ff6072")
@@ -353,6 +488,12 @@ class MissionControls:
                 item.delete()
                 setattr(self, attribute, None)
         self.lbl_map_coordinates.config(text="Aguardando posição GPS válida")
+        # Mensagens de outro voo (inclusive coordenadas de recuperação) não
+        # podem aparecer junto da missão atual.
+        self.message_log.config(state=tk.NORMAL)
+        self.message_log.delete("1.0", tk.END)
+        self.message_log.config(state=tk.DISABLED)
+        self.lbl_message_status.config(text="Nenhuma mensagem enviada.", fg="#94a3b5")
         self._draw_empty_charts()
         self.update_gui()
         self.update_antenna()

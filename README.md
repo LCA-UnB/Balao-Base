@@ -103,13 +103,13 @@ O canal é compartilhado por **TDM (divisão no tempo)**, sincronizado pelo rel�
 
 | Segundo do GPS | Bordo | Solo |
 |---|---|---|
-| **Par** (`% 2 == 0`) | transmite telemetria | escuta |
-| **Ímpar** | escuta | pode transmitir `CMD:<n>` |
+| **Ímpar** | transmite telemetria (ou uma mensagem repetida) | escuta |
+| **Par** (`% 2 == 0`) | escuta por 1000 ms | pode transmitir `CMD:<n>` ou `MSG:<id>:<texto>` |
 
 O fluxo de um comando:
 
 1. O operador digita um número no Serial Monitor da estação de solo; ele fica enfileirado (`pending_cmd`).
-2. Assim que a solo **recebe** um pacote de telemetria, ela espera **150 ms** — margem para o balão fechar o TX e abrir a escuta — e só então dispara `CMD:<n>`.
+2. Quando a solo **recebe** um pacote do bordo, ela estima o início daquele segundo ímpar pelo tempo no ar do pacote e dispara `CMD:<n>` no **centro** da janela par seguinte.
 3. O bordo recebe, guarda o valor em `ack_val` e passa a ecoá-lo no campo `Ack:` de todo pacote seguinte.
 4. A solo imprime o `ACK` recebido, fechando o laço de confirmação.
 
@@ -128,6 +128,63 @@ Duas diferenças estruturais em relação à linha A, ambas para não travar o R
 - **Sem flush forçado do SD.** O `forcarFlushOpenLog()` foi deliberadamente removido daqui — o bloqueio de ~130 ms atrasava a janela de TDM. O custo é que um corte de energia abrupto perde o buffer pendente.
 
 O IMU aqui não tem fusão em hardware: pitch/roll saem de um **filtro complementar** (α = 0.98) entre acelerômetro e giroscópio, e o yaw vem do magnetômetro com **compensação de inclinação** (tilt compensation).
+
+### Repetidor de mensagens (várias estações)
+
+O bordo da linha B repete mensagens de texto entre estações de solo — por exemplo, da estação principal para a equipe de recuperação, que no voo pode estar sem visada direta com ela. Todas as estações usam o **mesmo firmware de solo** e a mesma interface.
+
+```
+Interface A ─▶ Solo A ──(seg. par: MSG:A7:<texto>)──▶ BORDO ──(seg. ímpar: PT2UNB-R)──▶ Solo A, B, C… ─▶ Interfaces
+                                                       └─ monta e grava o LOTE no SD normalmente, mas não o transmite
+```
+
+**Rodízio das janelas.** Cada estação tem uma letra (A, B, C…) e todas são configuradas com o mesmo total `N`. A janela par do segundo `s` pertence à estação `(s / 2) mod N`; a solo sabe o segundo pelo `Time:` de todo pacote do bordo (que vem do relógio TDM do bordo, válido mesmo sem fix). Assim duas estações nunca transmitem na mesma janela. `N` precisa dividir 30 (**1, 2, 3, 5 ou 6**), senão o rodízio quebra na virada do minuto. Com `N = 3`, cada estação pode falar a cada 6 s.
+
+| Segundo | 00 | 01 | 02 | 03 | 04 | 05 | 06 | … |
+|---|---|---|---|---|---|---|---|---|
+| Bordo (`N = 3`) | escuta **A** | TX | escuta **B** | TX | escuta **C** | TX | escuta **A** | |
+
+**Pacotes.**
+
+| Sentido | Formato |
+|---|---|
+| Subida (solo → bordo) | `MSG:<id>:<texto>` — `id` = letra da estação + contador gravado na flash (ex.: `B7`) |
+| Descida (bordo → todas) | `PT2UNB-R` / `Id:<id>` / `Time:hh:mm:ss` / `Ack:<n>` / `Msg:<texto>` |
+
+O texto tem no máximo **100 caracteres** ASCII imprimíveis (a interface remove acentos). Isso mantém a subida em ~190 ms e a descida em ~240 ms no ar, com folga na janela de 1000 ms.
+
+**Regras no bordo.**
+
+- No segundo ímpar com mensagem na fila, **a telemetria não vai ao ar**, mas é montada e gravada no SD como sempre; o cabeçalho do lote ganha a marca `RELAY:<id>`.
+- No máximo uma mensagem desce a cada dois segundos ímpares: a telemetria nunca fica mais de 4 s fora do ar.
+- Fila de até 4 mensagens. Um `id` que já está na fila não ocupa outra posição; com a fila cheia a mensagem é descartada (`MSG_DESCARTADA` no SD) e a estação de origem retransmite.
+- O `Ack:` segue no pacote de relay, então a confirmação de telecomando não se perde.
+
+**Regras na solo.**
+
+- O pacote `PT2UNB-R` é a confirmação para quem enviou: sem ouvi-lo, a estação retransmite na próxima janela própria, até 5 tentativas.
+- Cada estação lembra os últimos 16 ids recebidos e ignora repetições (o bordo repete o relay quando a origem retransmite).
+- Comando tem prioridade sobre mensagem na mesma janela; **telecomandos numéricos só saem da estação A**.
+
+**Serial da solo** (115200 baud), usada pela interface e utilizável no Serial Monitor:
+
+| Entrada | Efeito |
+|---|---|
+| `M <texto>` | Enfileira uma mensagem (uma por vez) |
+| `ID <letra> <N>` | Configura a estação; fica gravado na flash |
+| `ID?` | Imprime `[ESTACAO] ID:<letra> N:<N>` |
+| `<número>` | Telecomando (só estação A) |
+
+A solo responde com linhas `[MSG] ENFILEIRADA|ENVIADA|ENTREGUE|FALHOU|RECUSADA|RECEBIDA Id:… [De:…] [Hora:…] [Texto:…]`, que a interface interpreta. Quando o `Ack:` de um telecomando chega dentro de um relay, a solo também imprime `[ACK] Ack:<n>`, e a interface o mostra em "ACK recebido" (o bordo zera o Ack depois de transmiti-lo, então a telemetria seguinte já vem com 0).
+
+**Cartão SD do bordo.** Além de `LOTE_` e `I,`, o arquivo passa a ter:
+
+```
+MSG_RX,<millis>,<id>,rssi:<dBm>,snr:<dB>,<texto>   mensagem recebida e enfileirada
+LOTE_<seq>,<millis>,RELAY:<id>                     lote gravado mas não transmitido
+MSG_TX,<millis>,<id>                               mensagem descida no lugar daquele lote
+MSG_DESCARTADA,<millis>,<id>,fila_cheia
+```
 
 ### Sketches de bancada (`tools/`)
 
@@ -235,6 +292,8 @@ O botão **Centralizar**, no cabeçalho do mapa, volta o mapa para a última pos
 O mapa funciona sem internet. Toda imagem de mapa baixada é gravada em `src/mapa_cache.db` (ignorado pelo git) e, das próximas vezes, vem desse arquivo, com ou sem rede. Antes da missão, enquadre a região do voo e da queda e clique em **Baixar área offline**: a área visível é baixada do zoom 3 ao 15 na camada Padrão (ao 13 na Topográfica), com progresso no botão, que também cancela. O limite é 20.000 imagens por vez; para áreas maiores, aproxime o mapa e baixe em partes. A camada Satélite não permite baixar regiões e fica offline só nas áreas já vistas. Para levar o mapa para outro computador, copie `src/mapa_cache.db`; para limpá-lo, apague o arquivo.
 
 O sistema de logs agora organiza a aquisição em **missões**, com criação, encerramento e retomada. Cada missão guarda captura serial exata, telemetria estruturada e eventos em SQLite. A serial também é copiada automaticamente para `telemetria.txt` na pasta da missão. A gravação é independente da recepção, com sincronização aproximadamente a cada segundo, fila limitada que preserva os dados recentes em caso de falha e indicadores de perda/recuperação.
+
+O cartão **Mensagens via balão** configura a letra desta estação e o total de estações, envia mensagens de até 100 caracteres e mostra as mensagens repetidas pelo balão com hora, estação de origem e texto. A situação da última mensagem enviada (na fila, enviada, repetida pelo balão ou sem confirmação) aparece logo abaixo. Veja [Repetidor de mensagens](#repetidor-de-mensagens-várias-estações).
 
 Também há exportação CSV, KML e captura bruta, e reprodução das novas missões com pausa, velocidade e busca temporal. A reprodução usa a configuração histórica do tracker e funciona com o rádio desconectado.
 

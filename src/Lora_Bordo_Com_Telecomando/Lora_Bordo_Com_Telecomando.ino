@@ -3,6 +3,10 @@
   - Segundo IMPAR = janela de transmissao da telemetria
   - Segundo PAR   = janela de escuta de telecomandos (1000 ms inteiros)
   - SD Card desobstruido para nao travar o RTOS do Radio.
+  - Repetidor de mensagens: uma estacao de solo envia "MSG:<id>:<texto>" na
+    janela de escuta; no segundo IMPAR seguinte o bordo desce "PT2UNB-R" com
+    o texto NO LUGAR da telemetria, para todas as estacoes ouvirem. O LOTE
+    daquele segundo e' montado e gravado no SD normalmente, so nao vai ao ar.
 */
 
 #include "LoRaWan_APP.h"
@@ -32,7 +36,17 @@
 // evento por slot mesmo se o segundo do GPS oscilar ou retroceder.
 #define SLOT_INTERVALO_MIN_MS                       1500
 
+// --- REPETIDOR DE MENSAGENS ---
+// 100 caracteres mantem a subida em ~190 ms e a descida em ~240 ms no ar,
+// com folga dentro da janela de 1000 ms.
+#define MSG_TEXTO_MAX                               100
+#define MSG_ID_TAM                                  8
+// Varias estacoes podem enviar em janelas seguidas, mas no maximo uma
+// mensagem desce a cada dois segundos IMPARES; a fila absorve a diferenca.
+#define MSG_FILA_TAM                                4
+
 char txpacket[BUFFER_SIZE];
+char relaypacket[BUFFER_SIZE];
 char rxpacket[BUFFER_SIZE];
 static RadioEvents_t RadioEvents;
 
@@ -45,6 +59,17 @@ volatile int8_t  rxSnr  = 0;
 
 // === CONTADORES DE DIAGNOSTICO ===
 uint32_t cntTx = 0, cntRxOk = 0, cntRxErr = 0, cntLogPulado = 0;
+uint32_t cntRelay = 0, cntMsgDescartada = 0;
+
+// === FILA DO REPETIDOR ===
+struct MensagemRelay {
+  char id[MSG_ID_TAM];
+  char texto[MSG_TEXTO_MAX + 1];
+};
+MensagemRelay filaMsg[MSG_FILA_TAM];
+uint8_t filaMsgQtd = 0;
+// Garante que a telemetria nunca fique dois slots IMPARES seguidos fora do ar.
+bool ultimoSlotFoiRelay = false;
 
 void OnTxDone( void );
 void OnTxTimeout( void );
@@ -534,7 +559,9 @@ void setup() {
 //  TELEMETRIA
 // ==========================================================================
 
-void montarEEnviarTelemetria(uint8_t sec_atual) {
+// Monta o pacote de telemetria em txpacket e devolve o tamanho. Nao grava no
+// SD nem transmite: quem decide o que vai ao ar e' transmitirSlot().
+int montarTelemetria(uint8_t sec_atual, int ack_no_pacote) {
   ms5611.read();
   lastBatVolts = lerTensaoBateria();
   float temp = ms5611.getTemperature() + TEMP_CORR;
@@ -544,8 +571,6 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   // snprintf devolve o tamanho que SERIA escrito. Sem o teto, pos pode passar
   // de BUFFER_SIZE e (BUFFER_SIZE - pos) vira um size_t enorme na chamada
   // seguinte, anulando a protecao do proprio snprintf.
-  int ack_no_pacote = ack_val;
-
   int pos = 0;
   #define ADD(...) do { \
       if (pos < BUFFER_SIZE - 1) { \
@@ -573,20 +598,105 @@ void montarEEnviarTelemetria(uint8_t sec_atual) {
   ADD("Bat:%.2f\n", lastBatVolts);
   ADD("Ack:%d\n", ack_no_pacote);
   #undef ADD
+  return pos;
+}
+
+// Pacote do repetidor. Msg vem por ultimo porque o texto vai ate o fim da
+// linha; Time e Ack seguem no pacote para o solo manter o rodizio das janelas
+// e a confirmacao de telecomando mesmo no segundo em que a telemetria nao desce.
+int montarRelay(const MensagemRelay &msg, uint8_t sec_atual, int ack_no_pacote) {
+  int n = snprintf(relaypacket, sizeof(relaypacket),
+                   "PT2UNB-R\nId:%s\nTime:%02d:%02d:%02d\nAck:%d\nMsg:%s\n",
+                   msg.id, t_hora, t_min, sec_atual, ack_no_pacote, msg.texto);
+  return (n >= (int)sizeof(relaypacket)) ? (int)sizeof(relaypacket) - 1 : n;
+}
+
+// Recebe "MSG:<id>:<texto>" e enfileira para descer no proximo slot IMPAR livre.
+void receberMensagem() {
+  const char *id = rxpacket + 4;
+  const char *sep = strchr(id, ':');
+  size_t idLen = sep ? (size_t)(sep - id) : 0;
+  if (sep == NULL || idLen < 2 || idLen >= MSG_ID_TAM || id[0] < 'A' || id[0] > 'Z' || sep[1] == '\0') {
+    Serial.println(F(">>> Mensagem malformada. Ignorada.\n"));
+    return;
+  }
+
+  MensagemRelay msg;
+  memcpy(msg.id, id, idLen);
+  msg.id[idLen] = '\0';
+  // O texto desce dentro de um pacote de linhas: qualquer caractere de
+  // controle quebraria o enquadramento no solo, entao vira espaco.
+  size_t n = 0;
+  for (const char *p = sep + 1; *p != '\0' && n < MSG_TEXTO_MAX; p++) {
+    char c = *p;
+    msg.texto[n++] = (c >= 32 && c <= 126) ? c : ' ';
+  }
+  msg.texto[n] = '\0';
+
+  // A estacao retransmite enquanto nao ouve o relay; se a mensagem ainda
+  // esta na fila, a repeticao nao ocupa outra posicao.
+  for (uint8_t i = 0; i < filaMsgQtd; i++) {
+    if (strcmp(filaMsg[i].id, msg.id) == 0) {
+      Serial.printf(">>> MENSAGEM %s ja esta na fila. Repeticao ignorada.\n\n", msg.id);
+      return;
+    }
+  }
+
+  char linha[48 + MSG_ID_TAM + MSG_TEXTO_MAX];
+  if (filaMsgQtd >= MSG_FILA_TAM) {
+    cntMsgDescartada++;
+    Serial.printf(">>> FILA CHEIA. Mensagem %s descartada (a estacao vai retransmitir).\n\n", msg.id);
+    snprintf(linha, sizeof(linha), "MSG_DESCARTADA,%lu,%s,fila_cheia", millis(), msg.id);
+    logSD(linha);
+    return;
+  }
+
+  filaMsg[filaMsgQtd++] = msg;
+  Serial.printf(">>> MENSAGEM %s ENFILEIRADA (%u na fila): %s\n\n", msg.id, filaMsgQtd, msg.texto);
+  snprintf(linha, sizeof(linha), "MSG_RX,%lu,%s,rssi:%d,snr:%d,%s", millis(), msg.id, rxRssi, rxSnr, msg.texto);
+  logSD(linha);
+}
+
+// Slot IMPAR: a telemetria e' sempre montada e gravada no SD. O que vai ao ar
+// e' ela ou, se houver mensagem na fila e o slot anterior nao foi relay, a
+// mensagem - nunca as duas, porque nao cabem no mesmo segundo.
+void transmitirSlot(uint8_t sec_atual) {
+  int ack_no_pacote = ack_val;
+  int pos = montarTelemetria(sec_atual, ack_no_pacote);
+  bool relay = filaMsgQtd > 0 && !ultimoSlotFoiRelay;
 
   if (openLogConectado) {
     loteContador++;
-    char cab[48];
-    snprintf(cab, sizeof(cab), "LOTE_%lu,%lu", loteContador, millis());
+    char cab[48 + MSG_ID_TAM];
+    if (relay) {
+      snprintf(cab, sizeof(cab), "LOTE_%lu,%lu,RELAY:%s", loteContador, millis(), filaMsg[0].id);
+    } else {
+      snprintf(cab, sizeof(cab), "LOTE_%lu,%lu", loteContador, millis());
+    }
     logSD(cab);
     logSD(txpacket);
   }
 
-  Serial.printf("[TX slot %02d] telemetria %d bytes | Ack:%d | Bat:%.2f V\n", sec_atual, pos, ack_no_pacote, lastBatVolts);
+  const char *pacote = txpacket;
+  if (relay) {
+    int n = montarRelay(filaMsg[0], sec_atual, ack_no_pacote);
+    char linha[32 + MSG_ID_TAM];
+    snprintf(linha, sizeof(linha), "MSG_TX,%lu,%s", millis(), filaMsg[0].id);
+    logSD(linha);
+    Serial.printf("[TX slot %02d] RELAY %s %d bytes (telemetria so no SD) | Ack:%d\n",
+                  sec_atual, filaMsg[0].id, n, ack_no_pacote);
+    for (uint8_t i = 1; i < filaMsgQtd; i++) filaMsg[i - 1] = filaMsg[i];
+    filaMsgQtd--;
+    cntRelay++;
+    pacote = relaypacket;
+  } else {
+    Serial.printf("[TX slot %02d] telemetria %d bytes | Ack:%d | Bat:%.2f V\n", sec_atual, pos, ack_no_pacote, lastBatVolts);
+  }
+  ultimoSlotFoiRelay = relay;
 
   Radio.Standby();
   reconfigurarLoRaTX();
-  Radio.Send((uint8_t *)txpacket, strlen(txpacket));
+  Radio.Send((uint8_t *)pacote, strlen(pacote));
   cntTx++;
 
   if (ack_pendente) {
@@ -614,9 +724,12 @@ void loop() {
     Serial.printf("\n>>> [TELECOMANDO] RSSI:%d dBm | SNR:%d dB | %s\n", rxRssi, rxSnr, rxpacket);
 
     int cmd_recebido = 0;
-    sscanf(rxpacket, "CMD:%d", &cmd_recebido);
-    
-    if (cmd_recebido >= 1 && cmd_recebido <= 50) { 
+    bool ehMensagem = strncmp(rxpacket, "MSG:", 4) == 0;
+    if (!ehMensagem) sscanf(rxpacket, "CMD:%d", &cmd_recebido);
+
+    if (ehMensagem) {
+      receberMensagem();
+    } else if (cmd_recebido >= 1 && cmd_recebido <= 50) {
       ack_val = cmd_recebido + 1;
       ack_pendente = true;
       Serial.printf(">>> COMANDO %d ACEITO. Proxima telemetria enviara Ack:%d\n\n", cmd_recebido, ack_val);
@@ -726,13 +839,13 @@ void loop() {
     if (current_sec % 2 == 1) {
       if (millis() - ultimoTxMs >= SLOT_INTERVALO_MIN_MS) {
         ultimoTxMs = millis();
-        montarEEnviarTelemetria(current_sec);
+        transmitirSlot(current_sec);
       }
     } else {
       if (millis() - ultimaJanelaMs >= SLOT_INTERVALO_MIN_MS) {
         ultimaJanelaMs = millis();
-        Serial.printf("[RX slot %02d] escuta aberta por 1000 ms. (tx:%lu rx:%lu err:%lu log_pulado:%lu)\n",
-                      current_sec, cntTx, cntRxOk, cntRxErr, cntLogPulado);
+        Serial.printf("[RX slot %02d] escuta aberta por 1000 ms. (tx:%lu rx:%lu err:%lu log_pulado:%lu relay:%lu fila:%u msg_descartada:%lu)\n",
+                      current_sec, cntTx, cntRxOk, cntRxErr, cntLogPulado, cntRelay, filaMsgQtd, cntMsgDescartada);
         abrirEscuta();
       }
     }

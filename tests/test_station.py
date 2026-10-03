@@ -7,7 +7,9 @@ import time
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
-from mission import MissionWriter, export_raw, packet_rows
+import json
+
+from mission import MissionWriter, export_raw, packet_rows, read_database
 from station import StationReceiver
 from test_mission import FRAME
 
@@ -80,6 +82,45 @@ class StationTests(unittest.TestCase):
             self.assertLessEqual(receiver.messages.qsize(), 512)
             self.assertTrue(writer.close())
             self.assertEqual(len(list(packet_rows(writer.path))), 600)
+
+    def test_message_notices_are_saved_as_events_and_forwarded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            writer = MissionWriter.create(directory, 'Mensagens', sync_interval=.01)
+            data = FRAME + b'[MSG] RECEBIDA Id:B7 De:B Hora:12:34:57 RSSI:-80 SNR:5 Texto:Ola\n[ESTACAO] ID:A N:3\n'
+            receiver = StationReceiver(FakeSerial([data[:40], data[40:]]), writer, lambda:(None,None))
+            receiver.start()
+            items = []
+            deadline = time.monotonic() + 2
+            while len(items) < 3 and time.monotonic() < deadline:
+                while not receiver.messages.empty():
+                    items.append(receiver.messages.get_nowait())
+                time.sleep(.01)
+            self.assertTrue(receiver.stop())
+            self.assertEqual([kind for kind, _ in items[:3]], ['packet', 'notice', 'notice'])
+            self.assertEqual(items[1][1]['text'], 'Ola')
+            self.assertTrue(writer.close())
+            with read_database(writer.path) as db:
+                events = [json.loads(row[0]) for row in db.execute("SELECT payload FROM records WHERE kind='event'")]
+            received = next(e for e in events if e['event'] == 'message_received')
+            self.assertEqual((received['id'], received['from'], received['text']), ('B7', 'B', 'Ola'))
+            self.assertIn({'event': 'station_identity', 'id': 'A', 'total': 3}, events)
+
+    def test_ack_notice_and_newer_packet_keep_serial_order(self):
+        with tempfile.TemporaryDirectory() as directory:
+            writer = MissionWriter.create(directory, 'Ordem', sync_interval=.01)
+            data = b'[ACK] Ack:6\n' + FRAME.replace(b'Ack:0', b'Ack:8')
+            receiver = StationReceiver(FakeSerial([data]), writer, lambda:(None,None))
+            receiver.start()
+            items = []
+            deadline = time.monotonic() + 2
+            while len(items) < 2 and time.monotonic() < deadline:
+                while not receiver.messages.empty():
+                    items.append(receiver.messages.get_nowait())
+                time.sleep(.01)
+            self.assertTrue(receiver.stop())
+            self.assertEqual([kind for kind, _ in items[:2]], ['notice', 'packet'])
+            self.assertEqual(items[1][1]['fields']['Ack'], 8)
+            self.assertTrue(writer.close())
 
 if __name__ == '__main__':
     unittest.main()

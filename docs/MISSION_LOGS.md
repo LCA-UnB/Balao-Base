@@ -64,7 +64,7 @@ Tipos de registros:
 |---|---|
 | `raw` | Bytes exatos lidos da serial, incluindo quebras de linha, espaços, mensagens do firmware e bytes não UTF-8 |
 | `packet` | JSON: campos tipados, horário GPS separado, indicativo, identificação local do quadro, completude, validade GPS, problemas encontrados, configuração do tracker e geometria calculada |
-| `event` | JSON: início/retomada de sessão, conexão/desconexão, falha serial, envio de telecomando, alteração de configuração, recuperação da escrita, descartes e encerramento |
+| `event` | JSON: início/retomada de sessão, conexão/desconexão, falha serial, envio de telecomando, mensagens do repetidor (`message_requested`, `message_queued`, `message_sent`, `message_delivered`, `message_failed`, `message_refused`, `message_received`), identidade da estação (`station_requested`, `station_identity`), Ack recebido num relay (`relay_ack`), alteração de configuração, recuperação da escrita, descartes e encerramento |
 
 O horário de recepção inclui data, UTC e milissegundos. O campo GPS `Time` permanece separado, pois o firmware não fornece a data. O tempo decorrido é baseado no relógio monotônico durante cada execução; na retomada, o intervalo entre execuções é estimado pelo relógio UTC do PC. Mudanças incorretas no relógio enquanto o programa estiver fechado podem afetar essa estimativa.
 

@@ -361,6 +361,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self._build_environment_card()
         self._build_imu_card()
         self._build_command_card()
+        self._build_message_card()
         self.update_antenna()
 
     def _on_navigation_tab_changed(self, event=None):
