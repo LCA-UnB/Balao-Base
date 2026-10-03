@@ -12,6 +12,7 @@ import serial.tools.list_ports
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from antenna import Position, calculate_pointing, position_from_packet, shortest_rotation
 from attitude import (
     PROBE_RADIUS, attitude_from_packet, probe_cylinder, probe_nose, rotate, rotation_matrix, tilt_from_vertical,
@@ -72,6 +73,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.tracker_position = None
         self.tracker_marker = None
         self.antenna_packet = None
+        self.sonde_fix = None
         self.antenna_orientation = None
         self._pointing_view_key = None
         self._probe_view_key = ()
@@ -215,7 +217,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
 
         identity = tk.Frame(header, bg=COLOR_BG_SURFACE, padx=20)
         identity.grid(row=0, column=0, sticky="nsw")
-        self._label(identity, "LASE  /  ESTAÇÃO DE SOLO", 8, COLOR_TEXT_MUTED, "bold").pack(anchor=tk.W, pady=(14, 2))
+        self._label(identity, "LCA  /  ESTAÇÃO DE SOLO", 8, COLOR_TEXT_MUTED, "bold").pack(anchor=tk.W, pady=(14, 2))
         self.lbl_callsign = self._label(identity, "MISSÃO  —", 17, COLOR_TEXT_MAIN, "bold")
         self.lbl_callsign.pack(anchor=tk.W)
 
@@ -523,7 +525,8 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.lbl_pythagoras.grid(row=4, column=0, sticky="w")
         self._label(
             tab, "Arraste para girar a vista • h: projeção horizontal • v: vertical local\n"
-            "Terra esférica; v inclui curvatura. Azimute: N 0° · L 90° · S 180° · O 270°.",
+            "Terra esférica; v inclui curvatura. Azimute: N 0° · L 90° · S 180° · O 270°.\n"
+            "Sem telemetria recente, a antena aponta para a última posição GPS 3D da sonda.",
             8, COLOR_TEXT_MUTED, justify=tk.LEFT,
         ).grid(row=5, column=0, sticky="w", pady=(3, 0))
 
@@ -553,26 +556,33 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         return f"{value / 1000:.2f} km" if abs(value) >= 1000 else f"{value:.1f} m"
 
     def update_antenna(self):
-        pointing = None
+        pointing, stale = None, False
         status = "Configure a posição do tracker para calcular o apontamento."
         if self.tracker_position is not None:
-            snapshot = self.antenna_packet
-            if snapshot is None:
+            if self.sonde_fix is None:
                 status = "Aguardando pacote GPS completo da sonda."
-            elif self._packet_age() is None or self._packet_age() > 10:
-                status = "Telemetria atrasada há mais de 10 s; aguardando nova posição."
+                if self.antenna_packet is not None:
+                    try:
+                        position_from_packet(self.antenna_packet[0])
+                    except ValueError as error:
+                        status = str(error)
             else:
-                try:
-                    pointing = calculate_pointing(self.tracker_position, position_from_packet(snapshot[0]))
-                except ValueError as error:
-                    status = str(error)
-        view_key = (pointing, status, self.antenna_orientation)
+                pointing = calculate_pointing(self.tracker_position, self.sonde_fix[0])
+                age = self._sonde_fix_age()
+                stale = age is None or age > 10
+        view_key = (pointing, stale, status, self.antenna_orientation)
         if view_key == self._pointing_view_key:
             return
         self._pointing_view_key = view_key
+        if pointing is None:
+            distance_status = status
+        elif stale:
+            distance_status = "Última posição GPS 3D conhecida · telemetria atrasada"
+        else:
+            distance_status = "GPS 3D · posição gravada" if self.replay else "GPS 3D · posição recente"
         self.lbl_distance_status.config(
-            text=("GPS 3D · posição gravada" if self.replay else "GPS 3D · posição recente") if pointing else status,
-            fg=COLOR_ACCENT_GREEN if pointing else COLOR_TEXT_MUTED,
+            text=distance_status,
+            fg=COLOR_TEXT_MUTED if pointing is None else (COLOR_WARNING if stale else COLOR_ACCENT_GREEN),
         )
         self.lbl_distance.config(text=self._format_distance(pointing.distance) if pointing else "— m")
         self.lbl_surface_distance.config(text=self._format_distance(pointing.surface_distance) if pointing else "—")
@@ -581,13 +591,15 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.lbl_elevation.config(text=f"{pointing.elevation:+.1f}°" if pointing and pointing.elevation is not None else "—°")
         color = COLOR_TEXT_MUTED
         if pointing is not None:
-            color = COLOR_ACCENT_GREEN
+            color = COLOR_WARNING if stale else COLOR_ACCENT_GREEN
             if pointing.elevation is None:
                 status = "Tracker e sonda coincidem; direção de apontamento indefinida."
             elif pointing.azimuth is None:
                 status = f"Sonda na vertical: elevação {pointing.elevation:+.1f}°. Azimute indefinido."
             else:
                 status = f"Aponte para azimute {pointing.azimuth:.1f}° e elevação {pointing.elevation:+.1f}°."
+            if stale:
+                status = "Telemetria atrasada há mais de 10 s; apontando para a última posição conhecida. " + status
             if pointing.elevation is not None and pointing.elevation < 0:
                 status += " Sonda abaixo do horizonte local."
                 color = COLOR_WARNING
@@ -601,59 +613,123 @@ class SondeTrackerApp(MissionControls, ZoomControls):
                 corrections.append(f"{'eleve' if tilt >= 0 else 'abaixe'} {abs(tilt):.1f}°")
                 status += " Ajuste: " + "; ".join(corrections) + "."
         self.lbl_pointing_status.config(text=status, fg=color)
-        self._draw_antenna(pointing)
+        self._draw_antenna(pointing, stale)
 
-    def _draw_antenna(self, pointing):
+    @staticmethod
+    def _direction(azimuth, elevation):
+        """Vetor unitário leste/norte/cima para azimute (0° = norte) e elevação em graus."""
+        azimuth, elevation = math.radians(azimuth), math.radians(elevation)
+        return (math.cos(elevation) * math.sin(azimuth), math.cos(elevation) * math.cos(azimuth), math.sin(elevation))
+
+    def _draw_yagi(self, axis, azimuth, elevation, color, length=.75, alpha=1.0):
+        """Antena Yagi: gôndola ao longo da direção e elementos horizontais perpendiculares."""
+        direction = self._direction(azimuth, elevation)
+        side = (math.cos(math.radians(azimuth)), -math.sin(math.radians(azimuth)), 0)
+        axis.plot(*([0, length * value] for value in direction), color=color, linewidth=3, alpha=alpha)
+        for step, half in ((.08, .17), (.3, .14), (.48, .12), (.66, .1), (.84, .085)):
+            center = [length * step * value for value in direction]
+            axis.plot(*([c - half * s, c + half * s] for c, s in zip(center, side)),
+                      color=color, linewidth=2, alpha=alpha)
+        tip = [length * 1.04 * value for value in direction]
+        axis.quiver(*tip, *(.14 * value for value in direction), color=color, linewidth=2,
+                    arrow_length_ratio=.6, alpha=alpha)
+
+    def _draw_antenna(self, pointing, stale=False):
         axis = self.antenna_axis
         elevation, azimuth = axis.elev, axis.azim
         axis.clear()
         axis.view_init(elev=elevation, azim=azimuth)
         axis.set_facecolor(COLOR_BG_CARD)
         axis.set_axis_off()
-        axis.set_box_aspect((1, 1, 1))
         self.antenna_fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-        if pointing is None:
-            axis.text2D(0.5, 0.5, "Aguardando posição válida do tracker e da sonda",
+        self.lbl_pythagoras.config(text="Pitágoras: d² = h² + v² • Elevação = atan2(v, h)")
+        if self.tracker_position is None:
+            axis.set_box_aspect((1, 1, 1))
+            axis.text2D(0.5, 0.5, "Configure o tracker para ver o apontamento da antena",
                         transform=axis.transAxes, ha="center", color=COLOR_TEXT_MUTED, fontsize=10)
-            self.lbl_pythagoras.config(text="Pitágoras: d² = h² + v² • Elevação = atan2(v, h)")
+            self.antenna_canvas.draw_idle()
+            return
+
+        # Horizonte local do tracker: disco com rosa dos ventos, mastro e zênite.
+        ring = [math.radians(angle) for angle in range(0, 361, 5)]
+        axis.add_collection3d(Poly3DCollection(
+            [[(math.sin(angle), math.cos(angle), 0) for angle in ring]],
+            facecolor=COLOR_ACCENT_BLUE, alpha=.07, edgecolor=COLOR_BORDER,
+        ))
+        for radius in (.5, 1):
+            axis.plot([radius * math.sin(a) for a in ring], [radius * math.cos(a) for a in ring], 0,
+                      color=COLOR_GRAPH_GRID, linewidth=1)
+        for angle in range(0, 360, 30):
+            x, y = math.sin(math.radians(angle)), math.cos(math.radians(angle))
+            axis.plot([.94 * x, x], [.94 * y, y], [0, 0], color=COLOR_TEXT_SUBTLE, linewidth=1)
+        for angle, label in ((0, "N"), (90, "L"), (180, "S"), (270, "O")):
+            x, y = math.sin(math.radians(angle)), math.cos(math.radians(angle))
+            axis.plot([0, x], [0, y], [0, 0], color=COLOR_GRAPH_GRID, linewidth=1)
+            axis.text(1.14 * x, 1.14 * y, 0, label, ha="center", va="center", fontsize=10, fontweight="bold",
+                      color=COLOR_DANGER if label == "N" else COLOR_TEXT_MUTED)
+        axis.plot([0, 0], [0, 0], [0, 1.05], color=COLOR_GRAPH_GRID, linewidth=1, linestyle=":")
+        axis.text(0, 0, 1.1, "Zênite", color=COLOR_TEXT_SUBTLE, fontsize=8, ha="center")
+        axis.plot([0, 0], [0, 0], [-.35, 0], color=COLOR_TEXT_MUTED, linewidth=4)
+        axis.plot([-.12, 0, .12], [0, 0, 0], [-.35, -.2, -.35], color=COLOR_TEXT_MUTED, linewidth=2)
+        axis.text(0, 0, -.47, "Tracker", color=COLOR_ACCENT_GREEN, fontsize=9, ha="center")
+
+        low = -.55
+        if self.antenna_orientation:
+            self._draw_yagi(axis, *self.antenna_orientation, COLOR_TEXT_MUTED, length=.6, alpha=.75)
+            low = min(low, .75 * math.sin(math.radians(self.antenna_orientation[1])) - .1)
+
+        if pointing is None or pointing.elevation is None:
+            message = "Aguardando posição GPS 3D da sonda" if pointing is None else "Direção indefinida"
+            axis.text2D(.02, .95, message, transform=axis.transAxes, color=COLOR_TEXT_MUTED, fontsize=11,
+                        fontweight="bold")
+            axis.text2D(.02, .89, "Cinza: antena atual (se informada)", transform=axis.transAxes,
+                        color=COLOR_TEXT_MUTED, fontsize=8)
         else:
-            # Escala isotrópica: preserva o ângulo real mesmo em voos quase horizontais.
-            scale = max(pointing.distance, 1.0)
-            east, north, up = (value / scale for value in (pointing.east, pointing.north, pointing.up))
-            for x, y, z, label in ((1.1, 0, 0, "Leste"), (0, 1.1, 0, "Norte"), (0, 0, 1.1, "Cima")):
-                axis.plot([0, x], [0, y], [0, z], color=COLOR_TEXT_SUBTLE, linewidth=1)
-                axis.text(x, y, z, label, color=COLOR_TEXT_MUTED, fontsize=8)
-            axis.plot([0, east], [0, north], [0, 0], color=COLOR_ACCENT_BLUE, linestyle="--", linewidth=2)
-            axis.plot([east, east], [north, north], [0, up], color=COLOR_WARNING, linestyle="--", linewidth=2)
-            axis.plot([0, east], [0, north], [0, up], color=COLOR_ACCENT_CYAN, linewidth=2)
-            axis.quiver(0, 0, 0, east * .65, north * .65, up * .65,
-                        color=COLOR_ACCENT_GREEN, linewidth=3, arrow_length_ratio=.2)
-            axis.scatter([0], [0], [0], color=COLOR_ACCENT_GREEN, s=55, marker="^")
-            axis.scatter([east], [north], [up], color=COLOR_ACCENT_CYAN, s=60)
-            axis.text(0, 0, -.12, "Tracker", color=COLOR_ACCENT_GREEN, fontsize=9)
-            axis.text(east, north, up + .08, "Sonda", color=COLOR_ACCENT_CYAN, fontsize=9)
-            axis.text(east / 2, north / 2, -.10, "h", color=COLOR_ACCENT_BLUE, fontsize=10)
+            target_color = COLOR_WARNING if stale else COLOR_ACCENT_GREEN
+            target_azimuth = pointing.azimuth if pointing.azimuth is not None else 0.0
+            # Escala isotrópica: o vetor d tem comprimento 1 e preserva o ângulo real.
+            east, north, up = (value / pointing.distance for value in (pointing.east, pointing.north, pointing.up))
+            low = min(low, up - .15)
+            axis.plot([0, east], [0, north], [0, 0], color=COLOR_ACCENT_BLUE, linestyle="--", linewidth=1.5)
+            axis.plot([east, east], [north, north], [0, up], color=COLOR_WARNING, linestyle="--", linewidth=1.5)
+            axis.plot([0, east], [0, north], [0, up], color=COLOR_ACCENT_CYAN, linewidth=1.2, linestyle=":")
+            axis.scatter([east], [north], [up], color=COLOR_ACCENT_CYAN, s=70, depthshade=False)
+            axis.text(east, north, up + .1, "Sonda", color=COLOR_ACCENT_CYAN, fontsize=9, ha="center")
+            axis.text(east / 2, north / 2, -.08, "h", color=COLOR_ACCENT_BLUE, fontsize=10)
             axis.text(east, north, up / 2, "v", color=COLOR_WARNING, fontsize=10)
-            axis.text(east / 2, north / 2, up / 2 + .08, "d", color=COLOR_ACCENT_CYAN, fontsize=10)
-            current_vector = (0, 0, 0)
-            if self.antenna_orientation:
-                current_az, current_el = map(math.radians, self.antenna_orientation)
-                current_vector = (.65 * math.cos(current_el) * math.sin(current_az),
-                                  .65 * math.cos(current_el) * math.cos(current_az), .65 * math.sin(current_el))
-                axis.quiver(0, 0, 0, *current_vector,
-                            color=COLOR_TEXT_MUTED, linewidth=2, arrow_length_ratio=.2)
-            axis.text2D(.02, .96, "Verde: direção alvo  |  Cinza: antena atual (se informada)",
+            self._draw_yagi(axis, target_azimuth, pointing.elevation, target_color)
+
+            if pointing.azimuth is not None:
+                # Arco de azimute no horizonte, do norte no sentido horário até a direção alvo.
+                arc = [math.radians(pointing.azimuth * step / 40) for step in range(41)]
+                axis.plot([.42 * math.sin(a) for a in arc], [.42 * math.cos(a) for a in arc], 0,
+                          color=COLOR_ACCENT_CYAN, linewidth=2.5)
+                middle = math.radians(pointing.azimuth / 2)
+                axis.text(.55 * math.sin(middle), .55 * math.cos(middle), .02, f"Az {pointing.azimuth:.1f}°",
+                          color=COLOR_ACCENT_CYAN, fontsize=9, fontweight="bold", ha="center")
+            # Arco de elevação no plano vertical do azimute alvo.
+            arc = [self._direction(target_azimuth, pointing.elevation * step / 30) for step in range(31)]
+            axis.plot(*([.3 * point[index] for point in arc] for index in range(3)),
+                      color=COLOR_ACCENT_GREEN, linewidth=2.5)
+            label = [.38 * value for value in self._direction(target_azimuth, pointing.elevation / 2)]
+            axis.text(*label, f"El {pointing.elevation:+.1f}°", color=COLOR_ACCENT_GREEN, fontsize=9,
+                      fontweight="bold")
+
+            azimuth_text = f"{pointing.azimuth:.1f}°" if pointing.azimuth is not None else "indefinido"
+            axis.text2D(.02, .95, f"Azimute {azimuth_text}   ·   Elevação {pointing.elevation:+.1f}°",
+                        transform=axis.transAxes, color=target_color, fontsize=12, fontweight="bold")
+            axis.text2D(.02, .89, ("Laranja: última posição conhecida" if stale else "Verde: direção alvo")
+                        + "  |  Cinza: antena atual (se informada)",
                         transform=axis.transAxes, color=COLOR_TEXT_MUTED, fontsize=8)
             self.lbl_pythagoras.config(text=(
                 f"d = √(h² + v²) = {self._format_distance(pointing.distance)}  |  "
                 f"h = {self._format_distance(pointing.horizontal)}  |  v = {self._format_distance(pointing.up)}"
             ))
-            bounds = [(min(0, target, current), max(1.1, target, current))
-                      for target, current in zip((east, north, up), current_vector)]
-            span = max(high - low for low, high in bounds) + .4
-            for set_limit, (low, high) in zip((axis.set_xlim, axis.set_ylim, axis.set_zlim), bounds):
-                center = (low + high) / 2
-                set_limit(center - span / 2, center + span / 2)
+        high = 1.2
+        axis.set_xlim(-1.2, 1.2)
+        axis.set_ylim(-1.2, 1.2)
+        axis.set_zlim(low, high)
+        axis.set_box_aspect((2.4, 2.4, high - low))
         self.antenna_canvas.draw_idle()
 
     def _build_probe_view(self):

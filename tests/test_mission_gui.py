@@ -68,7 +68,7 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(str(self.app.btn_connect.cget('state')), 'disabled')
         self.app.replay.seek(15)
         self.app._render_replay(seek=True)
-        self.assertEqual(self.app.lbl_distance.cget('text'), '— m')
+        self.assertIn('Última posição', self.app.lbl_distance_status.cget('text'))
         self.assertIn('atrasada', self.app.lbl_pointing_status.cget('text'))
         self.app.replay.seek(100)
         self.app._render_replay(seek=True)
@@ -117,6 +117,8 @@ class MissionUITests(unittest.TestCase):
 
     def test_mission_buttons_wrap_instead_of_leaving_the_window(self):
         app = self.app
+        self.assertFalse(app.mission_buttons.winfo_ismapped())
+        app.btn_mission_toggle.invoke()
         self.root.overrideredirect(True)  # sem o gerenciador de janelas decidindo o tamanho
         def rows_and_overflow():
             self.root.update()
@@ -342,7 +344,7 @@ class MissionUITests(unittest.TestCase):
             connect()
             send(FRAME, 2)
             send(FRAME.replace(b'Alt:3000\n', b''), 3)
-            self.assertEqual(self.app.lbl_distance.cget('text'), '— m')
+            self.assertNotEqual(self.app.lbl_distance.cget('text'), '— m')  # mantém o último fix 3D
             self.app.disconnect_serial()
             self.assertTrue(self.app.mission.flush())
             records = list(packet_rows(self.app.mission.path))

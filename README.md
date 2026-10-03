@@ -8,8 +8,8 @@ Repositório **base** dos balões estratosféricos do projeto **Distrito Espacia
 
 | Missão | Repositório | Descrição |
 |---|---|---|
-| Balão 1 (Abertura) | [`lase-unb/Balao-Abertura`](https://github.com/lase-unb/Balao-Abertura) | Cópia do `Balao-Base` até o commit `274e2ee` |
-| Balão 2 | [`lase-unb/Balao-2`](https://github.com/lase-unb/Balao-2) | Cópia do `Balao-Base` até o commit `755379a` |
+| Balão 1 (Abertura) | [`LCA-UnB/Balao-Abertura`](https://github.com/LCA-UnB/Balao-Abertura) | Cópia do `Balao-Base` até o commit `274e2ee` |
+| Balão 2 | [`LCA-UnB/Balao-2`](https://github.com/LCA-UnB/Balao-2) | Cópia do `Balao-Base` até o commit `755379a` |
 
 ---
 
