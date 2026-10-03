@@ -5,6 +5,7 @@ from mission_ui import MissionControls
 from zoom import ZoomControls, scaled
 
 import matplotlib
+import numpy as np
 import serial
 import serial.tools.list_ports
 
@@ -12,6 +13,9 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from antenna import Position, calculate_pointing, position_from_packet, shortest_rotation
+from attitude import (
+    PROBE_RADIUS, attitude_from_packet, probe_cylinder, probe_nose, rotate, rotation_matrix, tilt_from_vertical,
+)
 from map_cache import (
     REGION_MAX_TILES, REGION_MIN_ZOOM, TILE_SIZE_KB, OfflineMapView, RegionDownload,
     open_tile_cache, region_tile_count, region_tiles,
@@ -70,6 +74,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.antenna_packet = None
         self.antenna_orientation = None
         self._pointing_view_key = None
+        self._probe_view_key = ()
 
         self.history_time = []
         self.history_temp = []
@@ -317,6 +322,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             command=self.configure_tracker, pass_coords=True,
         )
         self._build_antenna_view()
+        self._build_probe_view()
 
         sidebar_shell = tk.Frame(
             workspace, bg=COLOR_BG_SURFACE, width=370,
@@ -364,10 +370,10 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.update_antenna()
 
     def _on_navigation_tab_changed(self, event=None):
-        # A aba 3D usa a altura dos gráficos para manter a geometria legível
+        # As abas 3D usam a altura dos gráficos para manter a geometria legível
         # inclusive na janela mínima. Voltar ao mapa restaura as tendências.
         if hasattr(self, "charts_card"):
-            if self.navigation_tabs.index(self.navigation_tabs.select()) == 1:
+            if self.navigation_tabs.index(self.navigation_tabs.select()) != 0:
                 self.charts_card.grid_remove()
             else:
                 self.charts_card.grid()
@@ -648,6 +654,93 @@ class SondeTrackerApp(MissionControls, ZoomControls):
                 center = (low + high) / 2
                 set_limit(center - span / 2, center + span / 2)
         self.antenna_canvas.draw_idle()
+
+    def _build_probe_view(self):
+        tab = tk.Frame(self.navigation_tabs, bg=COLOR_BG_CARD, padx=12, pady=8)
+        self.navigation_tabs.add(tab, text="Sonda 3D")
+        tab.grid_columnconfigure(0, weight=1)
+        tab.grid_rowconfigure(2, weight=1)
+        metrics = tk.Frame(tab, bg=COLOR_BG_CARD)
+        metrics.grid(row=0, column=0, sticky="ew")
+        # Cada ângulo usa a cor do eixo do IMU em torno do qual ele gira.
+        for column, (title, attribute, accent) in enumerate((
+            ("PITCH · EIXO Y", "lbl_probe_pitch", COLOR_ACCENT_GREEN),
+            ("ROLL · EIXO X", "lbl_probe_roll", COLOR_DANGER),
+            ("YAW · EIXO Z", "lbl_probe_yaw", COLOR_ACCENT_BLUE),
+        )):
+            metrics.grid_columnconfigure(column, weight=1, uniform="probe")
+            frame, value = self._metric(metrics, title, "—°", accent)
+            frame.grid(row=0, column=column, sticky="ew", padx=(0 if column == 0 else 4, 0 if column == 2 else 4))
+            setattr(self, attribute, value)
+        self.lbl_probe_status = self._label(tab, "", 10, COLOR_TEXT_MUTED, anchor="w")
+        self.lbl_probe_status.grid(row=1, column=0, sticky="ew", pady=8)
+        self.probe_fig = Figure(figsize=(7, 3), dpi=100, facecolor=COLOR_BG_CARD)
+        self.probe_axis = self.probe_fig.add_subplot(111, projection="3d")
+        self.probe_axis.view_init(elev=22, azim=-60)
+        self.probe_canvas = FigureCanvasTkAgg(self.probe_fig, master=tab)
+        self.probe_canvas.get_tk_widget().configure(highlightthickness=0)
+        self.probe_canvas.get_tk_widget().grid(row=2, column=0, sticky="nsew")
+        self._label(
+            tab, "Arraste para girar a vista • Vermelho: nariz (+X do IMU) • Azul: topo (+Z), mostra o roll.\n"
+            "Ângulos tarados no boot: os eixos pontilhados são a atitude ao ligar a sonda, não o norte.",
+            8, COLOR_TEXT_MUTED, justify=tk.LEFT,
+        ).grid(row=3, column=0, sticky="w", pady=(3, 0))
+        self.update_probe()
+
+    def update_probe(self):
+        attitude = attitude_from_packet(self.telemetry) if self.current_record else None
+        if attitude == self._probe_view_key:
+            return
+        self._probe_view_key = attitude
+        for label, angle in zip((self.lbl_probe_pitch, self.lbl_probe_roll, self.lbl_probe_yaw), attitude or (None,) * 3):
+            label.config(text=f"{angle:+.1f}°" if angle is not None else "—°")
+        matrix = rotation_matrix(*attitude) if attitude else None
+        if matrix is None:
+            self.lbl_probe_status.config(text="Aguardando Pitch, Roll e Yaw da sonda.", fg=COLOR_TEXT_MUTED)
+        else:
+            tilt = tilt_from_vertical(matrix)
+            upside_down = tilt > 90
+            self.lbl_probe_status.config(
+                text=f"Inclinação do topo (+Z) em relação à vertical: {tilt:.1f}°"
+                     + (" · sonda de cabeça para baixo" if upside_down else ""),
+                fg=COLOR_WARNING if upside_down else COLOR_ACCENT_GREEN,
+            )
+        self._draw_probe(matrix)
+
+    def _draw_probe(self, matrix):
+        axis = self.probe_axis
+        elevation, azimuth = axis.elev, axis.azim
+        axis.clear()
+        axis.view_init(elev=elevation, azim=azimuth)
+        axis.set_facecolor(COLOR_BG_CARD)
+        axis.set_axis_off()
+        axis.set_box_aspect((1, 1, 1))
+        self.probe_fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+        if matrix is None:
+            axis.text2D(0.5, 0.5, "Aguardando atitude da sonda", transform=axis.transAxes,
+                        ha="center", color=COLOR_TEXT_MUTED, fontsize=10)
+            self.probe_canvas.draw_idle()
+            return
+        # Mesmo desenho da interface antiga: eixos pontilhados, cilindro translúcido e nariz vermelho.
+        # Desenha na ordem de inserção para o nariz e o topo ficarem visíveis através do cilindro.
+        axis.computed_zorder = False
+        reference = 1.9
+        for end, label in (((reference, 0, 0), "X₀"), ((0, reference, 0), "Y₀"), ((0, 0, reference), "Z₀ (cima)")):
+            axis.plot(*([-value, value] for value in end), color=COLOR_TEXT_MUTED, linestyle="dotted", linewidth=1)
+            axis.text(*(value * 1.05 for value in end), label, color=COLOR_TEXT_MUTED, fontsize=8)
+        axis.plot_surface(*map(np.array, probe_cylinder(matrix)), color=COLOR_ACCENT_BLUE, alpha=.5,
+                          edgecolor=COLOR_BG_MAIN, linewidth=.4)
+        nose = probe_nose(matrix)
+        axis.plot(*([0, value] for value in nose), color=COLOR_DANGER, linewidth=2.5)
+        axis.scatter(*nose, color=COLOR_DANGER, s=45)
+        axis.text(nose[0], nose[1], nose[2] + .3, "nariz", color=COLOR_DANGER, fontsize=9)
+        base, tip = rotate(matrix, (0, 0, PROBE_RADIUS)), rotate(matrix, (0, 0, PROBE_RADIUS + .7))
+        axis.quiver(*base, *(t - b for t, b in zip(tip, base)), color=COLOR_ACCENT_BLUE, linewidth=2.5,
+                    arrow_length_ratio=.25)
+        axis.text(*(value * 1.1 for value in tip), "topo", color=COLOR_ACCENT_BLUE, fontsize=9)
+        for set_limit in (axis.set_xlim, axis.set_ylim, axis.set_zlim):
+            set_limit(-2.0, 2.0)
+        self.probe_canvas.draw_idle()
 
     def _on_sidebar_mousewheel(self, event):
         widget = self.root.winfo_containing(event.x_root, event.y_root)
@@ -1065,6 +1158,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             if visible[-1] != coordinates[-1]:
                 visible.append(coordinates[-1])
             self.track_line = self.map_widget.set_path(visible, color=COLOR_TRACK_LINE, width=3)
+        self.update_probe()
 
 
 if __name__ == "__main__":
