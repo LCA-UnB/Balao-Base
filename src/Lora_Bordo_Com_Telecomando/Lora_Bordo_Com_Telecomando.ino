@@ -102,6 +102,9 @@ float lastPitch = 0, lastRoll = 0, lastYaw = 0;
 float roll = 0.0, pitch = 0.0, yaw = 0.0;
 float pitchOffset = 0.0, rollOffset = 0.0, yawOffset = 0.0;
 float gyroBiasX = 0.0, gyroBiasY = 0.0, gyroBiasZ = 0.0; // bias do giroscopio, medido em repouso
+// Desvio padrao maximo do giro (graus/s) para considerar a montagem parada.
+// Em repouso o ruido do MPU-6050 fica bem abaixo disso.
+#define GYRO_REPOUSO_MAX_DPS 1.0
 unsigned long lastTime = 0;
 const float alpha = 0.98;
 uint32_t imuInterval = 200;
@@ -315,8 +318,10 @@ void atualizarIMU() {
   float accRoll = atan2(a.acceleration.y, a.acceleration.z) * 180.0 / PI;
   float accPitch = atan2(-a.acceleration.x, sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z)) * 180.0 / PI;
 
-  float gyroRollRate = g.gyro.x * 180.0 / PI;
-  float gyroPitchRate = g.gyro.y * 180.0 / PI;
+  // Sem descontar o bias, o filtro complementar estabiliza com erro fixo de
+  // ~49 * bias * dt, que muda com imuInterval e nao e' anulado pelos offsets.
+  float gyroRollRate = (g.gyro.x - gyroBiasX) * 180.0 / PI;
+  float gyroPitchRate = (g.gyro.y - gyroBiasY) * 180.0 / PI;
 
   roll = alpha * (roll + gyroRollRate * dt) + (1.0 - alpha) * accRoll;
   pitch = alpha * (pitch + gyroPitchRate * dt) + (1.0 - alpha) * accPitch;
@@ -356,6 +361,7 @@ void calibrarIMU() {
 
   const int amostrasBias = 200; // ~1s a 5ms/amostra
   double somaGX = 0, somaGY = 0, somaGZ = 0;
+  double somaGX2 = 0, somaGY2 = 0, somaGZ2 = 0;
   double somaAccRoll = 0, somaAccPitch = 0;
 
   for (int i = 0; i < amostrasBias; i++) {
@@ -365,6 +371,9 @@ void calibrarIMU() {
     somaGX += g.gyro.x;
     somaGY += g.gyro.y;
     somaGZ += g.gyro.z;
+    somaGX2 += g.gyro.x * g.gyro.x;
+    somaGY2 += g.gyro.y * g.gyro.y;
+    somaGZ2 += g.gyro.z * g.gyro.z;
 
     somaAccRoll  += atan2(a.acceleration.y, a.acceleration.z) * 180.0 / PI;
     somaAccPitch += atan2(-a.acceleration.x, sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z)) * 180.0 / PI;
@@ -372,9 +381,25 @@ void calibrarIMU() {
     delay(5);
   }
 
-  gyroBiasX = somaGX / amostrasBias;
-  gyroBiasY = somaGY / amostrasBias;
-  gyroBiasZ = somaGZ / amostrasBias;
+  double mediaGX = somaGX / amostrasBias;
+  double mediaGY = somaGY / amostrasBias;
+  double mediaGZ = somaGZ / amostrasBias;
+
+  // Com a montagem em movimento (ex.: calibracao por telecomando em voo) a
+  // media inclui rotacao real; aplicar isso como bias pioraria o filtro.
+  // Nesse caso mantem o bias anterior e so refaz o zero de orientacao.
+  double dpX = sqrt(max(0.0, somaGX2 / amostrasBias - mediaGX * mediaGX));
+  double dpY = sqrt(max(0.0, somaGY2 / amostrasBias - mediaGY * mediaGY));
+  double dpZ = sqrt(max(0.0, somaGZ2 / amostrasBias - mediaGZ * mediaGZ));
+  float dpMaxDps = max(dpX, max(dpY, dpZ)) * 180.0 / PI;
+
+  if (dpMaxDps <= GYRO_REPOUSO_MAX_DPS) {
+    gyroBiasX = mediaGX;
+    gyroBiasY = mediaGY;
+    gyroBiasZ = mediaGZ;
+  } else {
+    Serial.printf("[IMU] Montagem em movimento (desvio %.2f dps). Bias anterior mantido.\n", dpMaxDps);
+  }
 
   // Semeia o filtro JA na orientacao real (calculada so pelo acelerometro).
   // E' isso que garante zerar corretamente mesmo ligando na vertical.
