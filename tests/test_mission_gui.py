@@ -175,12 +175,13 @@ class MissionUITests(unittest.TestCase):
             return next((found for child in widget.winfo_children() if (found := find(child))), None)
         button = find(self.root)
         self.assertIsNotNone(button)
-        with patch('mission_ui.filedialog.asksaveasfilename', return_value=str(destination)):
+        with patch('mission_ui.filedialog.asksaveasfilename', return_value=str(destination)) as dialog:
             button.invoke()
         deadline = time.monotonic() + 5
         while self.app.background_results.empty() and time.monotonic() < deadline:
             time.sleep(.01)
         self.app.gui_updater_loop()
+        return dialog
 
     def test_export_kml_button_writes_file_and_reports_missing_gps(self):
         import xml.etree.ElementTree as ET
@@ -189,7 +190,11 @@ class MissionUITests(unittest.TestCase):
         self.assertTrue(mission.flush())
         destination = Path(self.temp.name) / 'trajeto.kml'
         with patch('mission_ui.messagebox.showinfo') as info:
-            self.click_export_kml(destination)
+            dialog = self.click_export_kml(destination)
+        logs = Path(__file__).resolve().parents[1] / 'logs'
+        self.assertEqual(self.app.default_mission_directory, logs)
+        self.assertEqual(dialog.call_args.kwargs['initialdir'], str(logs))
+        self.assertEqual(dialog.call_args.kwargs['initialfile'], mission.path.parent.name + '.kml')
         self.assertIn('Exportados 1 pontos', info.call_args.args[1])
         self.assertEqual(ET.parse(destination).getroot().tag, '{http://www.opengis.net/kml/2.2}kml')
         self.assertFalse(self.app.export_busy)
@@ -233,6 +238,34 @@ class MissionUITests(unittest.TestCase):
         self.assertIsNone(self.app.mission)
         self.assertEqual(read_metadata(path)['status'], 'closed')
         self.assertEqual(str(self.app.btn_connect.cget('state')), 'disabled')
+
+    def test_calibrate_imu_button_confirms_before_sending(self):
+        from unittest.mock import MagicMock
+        app = self.app
+        app.btn_calibrate_imu.invoke()
+        self.assertEqual(len(self.errors), 1)
+        self.assertIn('Conecte o rádio', self.errors[0][1])
+        self.errors.clear()
+
+        port = MagicMock()
+        app.serial_port, app.is_connected = port, True
+        with patch('mission_ui.messagebox.askyesno', return_value=False) as ask:
+            app.btn_calibrate_imu.invoke()
+        self.assertIn('carga parada', ask.call_args.args[1])
+        self.assertIn('ACK 2501', ask.call_args.args[1])
+        port.write.assert_not_called()
+
+        with patch('mission_ui.messagebox.askyesno', return_value=True), patch.object(app.mission, 'event') as event:
+            app.btn_calibrate_imu.invoke()
+        port.write.assert_called_once_with(b'2500\n')
+        event.assert_called_once_with('command_sent', command='2500')
+
+        port.reset_mock()
+        app.cmd_entry.insert(0, '12')
+        app.send_command()
+        port.write.assert_called_once_with(b'12\n')
+        self.assertEqual(app.cmd_entry.get(), '')
+        app.serial_port, app.is_connected = None, False
 
     @unittest.skipUnless(hasattr(os, 'openpty'), 'pseudo-terminal test requires POSIX')
     def test_real_serial_connection_reconnect_and_invalid_packet(self):
