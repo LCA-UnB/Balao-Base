@@ -324,7 +324,12 @@ void atualizarIMU() {
   float gyroPitchRate = (g.gyro.y - gyroBiasY) * 180.0 / PI;
 
   roll = alpha * (roll + gyroRollRate * dt) + (1.0 - alpha) * accRoll;
+  if (roll > 180.0) roll -= 360.0;
+  else if (roll < -180.0) roll += 360.0;
+
   pitch = alpha * (pitch + gyroPitchRate * dt) + (1.0 - alpha) * accPitch;
+  if (pitch > 180.0) pitch -= 360.0;
+  else if (pitch < -180.0) pitch += 360.0;
 
   float rollRad = roll * PI / 180.0;
   float pitchRad = pitch * PI / 180.0;
@@ -657,8 +662,15 @@ void loop() {
   if (millis() - lastImuTick >= imuInterval) {
     lastImuTick = millis();
     atualizarIMU();
+    
     lastPitch = pitch - pitchOffset;
+    if (lastPitch > 180.0) lastPitch -= 360.0;
+    if (lastPitch < -180.0) lastPitch += 360.0;
+
     lastRoll = roll - rollOffset;
+    if (lastRoll > 180.0) lastRoll -= 360.0;
+    if (lastRoll < -180.0) lastRoll += 360.0;
+
     lastYaw = yaw - yawOffset;
     if (lastYaw > 180.0) lastYaw -= 360.0;
     if (lastYaw < -180.0) lastYaw += 360.0;
