@@ -16,6 +16,9 @@ from mission import MissionWriter, export_csv, export_kml, export_raw, read_meta
 from replay import MissionReplay
 from station import StationReceiver
 
+# O bordo trata qualquer comando acima de 2000 como calibração do IMU e
+# confirma com Ack = comando + 1.
+IMU_CALIBRATION_COMMAND = "2500"
 LOGS_DIRECTORY = Path(__file__).resolve().parents[1] / "logs"
 
 
@@ -118,6 +121,8 @@ class MissionControls:
         self.cmd_entry = ttk.Entry(row, width=12, font=("Segoe UI", 12))
         self.cmd_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=5)
         tk.Button(row, text="Enviar comando", command=self.send_command, padx=16, pady=8, font=("Segoe UI", 11)).pack(side=tk.RIGHT, padx=(8, 0))
+        self.btn_calibrate_imu = tk.Button(card, text="Calibrar IMU", command=self.calibrate_imu, padx=16, pady=8, font=("Segoe UI", 11))
+        self.btn_calibrate_imu.pack(fill=tk.X, pady=(8, 0))
 
     def _release_mission(self):
         if self.is_connected or self.replay:
@@ -275,20 +280,41 @@ class MissionControls:
         self.update_antenna()
         return True
 
-    def send_command(self):
+    def _radio_ready(self):
         if self.replay or not self.is_connected or not self.serial_port:
             messagebox.showerror("Telecomando", "Conecte o rádio no modo ao vivo.")
+            return False
+        return True
+
+    def _write_command(self, command):
+        try:
+            self.serial_port.write((command + "\n").encode())
+            self.mission.event("command_sent", command=command)
+            return True
+        except Exception as error:
+            messagebox.showerror("Falha no telecomando", str(error))
+            return False
+
+    def send_command(self):
+        if not self._radio_ready():
             return
         command = self.cmd_entry.get().strip()
         if not command.isdigit():
             messagebox.showerror("Telecomando", "Informe um número inteiro não negativo.")
             return
-        try:
-            self.serial_port.write((command + "\n").encode())
-            self.mission.event("command_sent", command=command)
+        if self._write_command(command):
             self.cmd_entry.delete(0, tk.END)
-        except Exception as error:
-            messagebox.showerror("Falha no telecomando", str(error))
+
+    def calibrate_imu(self):
+        if not self._radio_ready():
+            return
+        if not messagebox.askyesno("Calibrar IMU",
+                "A sonda vai refazer o zero de pitch, roll e yaw na posição atual.\n\n"
+                "Use com a carga parada: em movimento o zero fica errado. Durante a "
+                "calibração (~4 s) a sonda não transmite telemetria nem escuta comandos.\n\n"
+                f"A confirmação chega como ACK {int(IMU_CALIBRATION_COMMAND) + 1}. Enviar?", parent=self.root):
+            return
+        self._write_command(IMU_CALIBRATION_COMMAND)
 
     def _drain_receiver(self):
         if not self.receiver:

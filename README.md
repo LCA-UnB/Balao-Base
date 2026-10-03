@@ -113,6 +113,15 @@ O fluxo de um comando:
 3. O bordo recebe, guarda o valor em `ack_val` e passa a ecoá-lo no campo `Ack:` de todo pacote seguinte.
 4. A solo imprime o `ACK` recebido, fechando o laço de confirmação.
 
+O bordo interpreta o número pela faixa; o `Ack` sempre volta como `comando + 1`:
+
+| Comando | Efeito no bordo |
+|---|---|
+| 1 a 50 | Nenhuma ação além do `Ack` e do registro `CMD` no SD |
+| 900 a 1100 | Troca o QNH (hPa) usado na altitude barométrica |
+| Acima de 2000 (a interface usa 2500) | Calibra o IMU: refaz o zero de pitch/roll/yaw na posição atual; bloqueia rádio, GPS e SD por ~4 s e só dá resultado correto com a carga parada |
+| Demais valores | Ignorado |
+
 Duas diferenças estruturais em relação à linha A, ambas para não travar o RTOS do rádio:
 
 - **Arquitetura de flags.** Os callbacks `OnTxDone`/`OnRxDone` só levantam `volatile bool`; todo o trabalho pesado acontece no `loop()`. Nada de processamento dentro da interrupção.
@@ -226,6 +235,8 @@ O sistema de logs agora organiza a aquisição em **missões**, com criação, e
 Também há exportação CSV, KML e captura bruta, e reprodução das novas missões com pausa, velocidade e busca temporal. A reprodução usa a configuração histórica do tracker e funciona com o rádio desconectado.
 
 O botão **Exportar KML** gera um arquivo para o Google Earth com o trajeto da sonda (altitude MSL, como o GPS), os marcadores do primeiro ponto, do ponto mais alto e do último ponto, e a posição do tracker, se estiver configurada. Só entram pacotes com GPS 3D válido; se a missão não tiver nenhum, a interface avisa e não cria o arquivo.
+
+No cartão "Energia e telecomando", o botão **Calibrar IMU** envia o comando `2500` depois de uma confirmação que lembra que a carga precisa estar parada e que a sonda fica ~4 s sem rádio. A confirmação chega no campo "ACK recebido" como `2501`.
 
 ```bash
 python -m pip install -r requirements-tracker.txt
