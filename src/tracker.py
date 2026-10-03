@@ -45,6 +45,7 @@ MAP_LAYERS = {
     "Topográfico": ("https://a.tile.opentopomap.org/{z}/{x}/{y}.png", 13),
 }
 OFFLINE_BUTTON_TEXT = "Baixar área offline"
+HOME_POSITION = (-15.7641474, -47.8691109)  # posição inicial do mapa: Lago Norte, Brasília
 
 
 def _thousands(number):
@@ -80,7 +81,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.region_download = None
 
         self.telemetry = {
-            "Texto Bruto": "--", "Lat": -15.7641474, "Lon": -47.8691109,
+            "Texto Bruto": "--", "Lat": HOME_POSITION[0], "Lon": HOME_POSITION[1],
             "Alt": 0.0, "AltB": 0.0, "Sat": 0, "Fix": 0,
             "T": 0.0, "P": 0.0, "U": 0.0, "Time": "--:--:--",
             "Pitch": 0.0, "Roll": 0.0, "Yaw": 0.0,
@@ -287,6 +288,13 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.map_layer_cb.pack(side=tk.LEFT)
         self.map_layer_cb.current(0)
         self.map_layer_cb.bind("<<ComboboxSelected>>", self.change_map_layer)
+        self.btn_recenter = tk.Button(
+            layer_group, text="Centralizar", command=self.recenter_map,
+            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2",
+            activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
+            font=(FONT_FAMILY, 10), padx=12, pady=4,
+        )
+        self.btn_recenter.pack(side=tk.LEFT, padx=(8, 0))
         self.btn_offline = tk.Button(
             layer_group, text=OFFLINE_BUTTON_TEXT, command=self.toggle_region_download,
             bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2",
@@ -789,6 +797,11 @@ class SondeTrackerApp(MissionControls, ZoomControls):
 
     def change_map_layer(self, event=None):
         self.map_widget.set_tile_server(MAP_LAYERS[self.map_layer_cb.get()][0])
+
+    def recenter_map(self):
+        """Centraliza o mapa na sonda; sem posição dela, no tracker; sem nenhum dos dois, na posição inicial."""
+        marker = self.current_marker or self.tracker_marker
+        self.map_widget.set_position(*(marker.position if marker else HOME_POSITION))
 
     def toggle_region_download(self):
         """Baixa para o cache a área visível do mapa, na camada atual; com download em curso, cancela."""

@@ -17,15 +17,18 @@ class MissionUITests(unittest.TestCase):
         import tkinter as tk
         import tracker
         class MapItem:
+            def __init__(self, *position): self.position = position
             def delete(self): pass
-            def set_position(self, *args): pass
+            def set_position(self, *args): self.position = args
             def set_text(self, text): pass
         class OfflineMap(tk.Frame):
-            def __init__(self, parent, **kwargs): super().__init__(parent)
-            def set_position(self, *args): pass
+            def __init__(self, parent, **kwargs):
+                super().__init__(parent)
+                self.position = None
+            def set_position(self, *args): self.position = args
             def set_zoom(self, *args): pass
             def add_right_click_menu_command(self, **kwargs): pass
-            def set_marker(self, *args, **kwargs): return MapItem()
+            def set_marker(self, latitude, longitude, **kwargs): return MapItem(latitude, longitude)
             def set_path(self, *args, **kwargs): return MapItem()
         self.map_patch = patch.object(tracker, 'OfflineMapView', OfflineMap)
         self.map_patch.start()
@@ -154,6 +157,19 @@ class MissionUITests(unittest.TestCase):
         self.assertLessEqual(dialog.winfo_reqwidth(), width)
         self.assertLessEqual(dialog.winfo_reqheight(), height)
         dialog.destroy()
+
+    def test_recenter_button_prefers_sonde_then_tracker_then_home(self):
+        import tracker
+        self.app.map_widget.set_position(0, 0)
+        self.app.btn_recenter.invoke()
+        self.assertEqual(self.app.map_widget.position, tracker.HOME_POSITION)
+        self.app.tracker_marker = self.app.map_widget.set_marker(-15.8, -47.9)
+        self.app.btn_recenter.invoke()
+        self.assertEqual(self.app.map_widget.position, (-15.8, -47.9))
+        self.app.current_marker = self.app.map_widget.set_marker(-15.6, -47.7)
+        self.app.current_marker.set_position(-15.5, -47.6)
+        self.app.btn_recenter.invoke()
+        self.assertEqual(self.app.map_widget.position, (-15.5, -47.6))
 
     def test_center_dialog_uses_window_center_and_stays_on_screen(self):
         from unittest.mock import MagicMock
