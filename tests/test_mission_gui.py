@@ -359,6 +359,9 @@ class MissionUITests(unittest.TestCase):
             self.app.send_command()
             self.assertEqual(self.errors, [('Telecomando', 'Telecomandos só podem sair da estação A.')])
             self.errors.clear()
+            self.app.calibrate_imu()  # também é telecomando: barrado antes da confirmação
+            self.assertEqual(self.errors, [('Telecomando', 'Telecomandos só podem sair da estação A.')])
+            self.errors.clear()
             self.app.disconnect_serial()
             self.app._reset_display()  # trocar de missão ou abrir reprodução
             self.assertEqual(self.app.message_log.get('1.0', 'end').strip(), '')

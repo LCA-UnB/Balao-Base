@@ -344,6 +344,11 @@ class MissionControls:
         if self.replay or not self.is_connected or not self.serial_port:
             messagebox.showerror("Telecomando", "Conecte o rádio no modo ao vivo.")
             return False
+        # A solo recusa telecomandos fora da estação A; avisar aqui evita que o
+        # operador espere um ACK que nunca virá (vale também para Calibrar IMU).
+        if self.station_identity and self.station_identity[0] != "A":
+            messagebox.showerror("Telecomando", "Telecomandos só podem sair da estação A.")
+            return False
         return True
 
     def _write_command(self, command):
@@ -359,9 +364,6 @@ class MissionControls:
         if not self._radio_ready():
             return
         command = self.cmd_entry.get().strip()
-        if self.station_identity and self.station_identity[0] != "A":
-            messagebox.showerror("Telecomando", "Telecomandos só podem sair da estação A.")
-            return
         if not command.isdigit():
             messagebox.showerror("Telecomando", "Informe um número inteiro não negativo.")
             return
