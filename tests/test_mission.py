@@ -59,6 +59,51 @@ class WriterTests(unittest.TestCase):
         self.assertGreater(float(rows[0]['distance_m']), 0)
         self.assertEqual(rows[0]['tracker_altitude_msl_m'], '1000')
 
+    def test_text_log_mirrors_raw_bytes_across_resume(self):
+        writer = self.writer()
+        text = writer.path.parent / 'telemetria.txt'
+        self.assertEqual(text.read_bytes(), b'')
+        data = b'\xff\x00\r\n  ' + FRAME
+        writer.submit('raw', data)
+        writer.submit('packet', packet(), elapsed=1)
+        self.assertTrue(writer.flush())
+        self.assertEqual(text.read_bytes(), data)
+        self.assertTrue(writer.close())
+        resumed = MissionWriter(writer.path, sync_interval=.01)
+        self.writers.append(resumed)
+        resumed.submit('raw', b'depois')
+        self.assertTrue(resumed.flush())
+        self.assertEqual(text.read_bytes(), data + b'depois')
+
+    def test_text_log_rebuilt_from_database_when_missing(self):
+        writer = self.writer()
+        writer.submit('raw', b'antes do txt')
+        self.assertTrue(writer.close())
+        text = writer.path.parent / 'telemetria.txt'
+        text.unlink()
+        resumed = MissionWriter(writer.path, sync_interval=.01)
+        self.writers.append(resumed)
+        self.assertEqual(text.read_bytes(), b'antes do txt')
+
+    def test_text_log_failure_never_affects_database(self):
+        writer = self.writer()
+        writer.text_path.unlink()
+        writer.text_path.mkdir()
+        writer.submit('raw', b'so no banco')
+        self.assertTrue(writer.flush())
+        snapshot = writer.snapshot()
+        self.assertIsNotNone(snapshot['text_error'])
+        self.assertEqual(snapshot['text_missing_bytes'], len(b'so no banco'))
+        self.assertIsNone(snapshot['error'])
+        output = Path(self.temp.name) / 'raw.bin'
+        export_raw(writer.path, output)
+        self.assertEqual(output.read_bytes(), b'so no banco')
+        writer.text_path.rmdir()
+        writer.submit('raw', b'volta')
+        self.assertTrue(writer.flush())
+        self.assertIsNone(writer.snapshot()['text_error'])
+        self.assertEqual(writer.text_path.read_bytes(), b'volta')
+
     def test_kml_export_track_markers_and_no_gps(self):
         writer = self.writer()
         writer.submit('packet', packet(), elapsed=1)

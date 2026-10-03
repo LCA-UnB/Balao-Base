@@ -1,6 +1,8 @@
 """Durable, bounded, asynchronous mission storage (stdlib only).
 
 SQLite is the source of truth. Raw serial bytes are BLOBs, never decoded here.
+After each commit the raw bytes are also appended to a plain-text copy beside the
+database; failures there are reported but never affect the database.
 A transaction is committed at most one second after the previous cycle in normal
 operation, with synchronous=FULL. Disk/OS stalls can extend that interval.
 """
@@ -20,6 +22,7 @@ import uuid
 SCHEMA_VERSION = 1
 BUFFER_BYTES = 64 * 1024 * 1024
 BATCH_BYTES = 1024 * 1024
+TEXT_LOG_NAME = "telemetria.txt"
 
 
 def utc_now():
@@ -106,6 +109,12 @@ class MissionWriter:
             self.dropped_raw_bytes = sum(item["raw_bytes"] for item in previous_losses)
             self.loss_start = previous_losses[0]["from_utc"] if previous_losses else None
             self.loss_end = previous_losses[-1]["to_utc"] if previous_losses else None
+            self.text_path = self.path.parent / TEXT_LOG_NAME
+            self.text_file = None
+            self.text_error = None
+            self.text_missing_bytes = 0
+            if not self.text_path.exists():
+                self._rebuild_text()
             self.elapsed_base = 0.0
             if last:
                 self.elapsed_base = last[0] + max(0.0, (datetime.now(timezone.utc) - datetime.fromisoformat(last[1])).total_seconds())
@@ -207,7 +216,8 @@ class MissionWriter:
                     "written_records": self.written_records, "last_sync": self.last_sync, "error": self.error,
                     "dropped_records": self.dropped_records, "dropped_packets": self.dropped_packets,
                     "dropped_raw_bytes": self.dropped_raw_bytes, "loss_start": self.loss_start, "loss_end": self.loss_end,
-                    "alive": self.thread.is_alive(), "ending": self.end_requested}
+                    "alive": self.thread.is_alive(), "ending": self.end_requested,
+                    "text_error": self.text_error, "text_missing_bytes": self.text_missing_bytes}
 
     def flush(self, timeout=3):
         deadline = time.monotonic() + timeout
@@ -243,6 +253,43 @@ class MissionWriter:
             self.force_stop = True
             self.condition.notify_all()
         self.thread.join(2)
+
+    def _rebuild_text(self):
+        """Recreates the text copy from the database (new missions or ones recorded before it existed)."""
+        temporary = self.text_path.with_name(self.text_path.name + ".tmp")
+        try:
+            export_raw(self.path, temporary)
+            os.replace(temporary, self.text_path)
+        except (OSError, sqlite3.Error) as error:
+            self.text_error = f"{type(error).__name__}: {error}"
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+    def _append_text(self, batch):
+        data = b"".join(record.payload for record in batch if record.kind == "raw")
+        if not data:
+            return
+        try:
+            if self.text_file is None:
+                self.text_file = open(self.text_path, "ab")
+            self.text_file.write(data)
+            self.text_file.flush()
+            self.text_error = None
+        except OSError as error:
+            # The bytes stay in the database; only the text copy misses them.
+            self._close_text()
+            self.text_error = f"{type(error).__name__}: {error}"
+            self.text_missing_bytes += len(data)
+
+    def _close_text(self):
+        if self.text_file is not None:
+            try:
+                self.text_file.close()
+            except OSError:
+                pass
+            self.text_file = None
 
     def _commit(self, db, batch, loss):
         with db:
@@ -330,6 +377,7 @@ class MissionWriter:
                         self._trim()
                         next_commit = time.monotonic() + self.retry_interval
                 else:
+                    self._append_text(batch)
                     with self.condition:
                         self.written_packets += sum(r.kind == "packet" for r in batch)
                         self.written_records += len(batch)
@@ -351,6 +399,7 @@ class MissionWriter:
         finally:
             if db is not None:
                 db.close()
+            self._close_text()
             self.lock.close()
 
 
