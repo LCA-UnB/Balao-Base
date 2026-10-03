@@ -447,6 +447,12 @@ class MissionControls:
                 item.delete()
                 setattr(self, attribute, None)
         self.lbl_map_coordinates.config(text="Aguardando posição GPS válida")
+        # Mensagens de outro voo (inclusive coordenadas de recuperação) não
+        # podem aparecer junto da missão atual.
+        self.message_log.config(state=tk.NORMAL)
+        self.message_log.delete("1.0", tk.END)
+        self.message_log.config(state=tk.DISABLED)
+        self.lbl_message_status.config(text="Nenhuma mensagem enviada.", fg="#94a3b5")
         self._draw_empty_charts()
         self.update_gui()
         self.update_antenna()

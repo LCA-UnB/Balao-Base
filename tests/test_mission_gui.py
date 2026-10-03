@@ -313,6 +313,10 @@ class MissionUITests(unittest.TestCase):
             self.assertEqual(self.errors, [('Telecomando', 'Telecomandos só podem sair da estação A.')])
             self.errors.clear()
             self.app.disconnect_serial()
+            self.app._reset_display()  # trocar de missão ou abrir reprodução
+            self.assertEqual(self.app.message_log.get('1.0', 'end').strip(), '')
+            self.assertEqual(self.app.lbl_message_status.cget('text'), 'Nenhuma mensagem enviada.')
+            self.assertEqual(self.app.lbl_station.cget('text'), 'B de 3')
         finally:
             os.close(master)
             os.close(slave)

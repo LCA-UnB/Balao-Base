@@ -229,6 +229,14 @@ bool configurarEstacao(char id, int n) {
   estacoesTotal = (uint8_t)n;
   prefs.putUChar("id", (uint8_t)estacaoId);
   prefs.putUChar("n", estacoesTotal);
+  // Um envio ja agendado foi calculado para a janela da identidade antiga e
+  // colidiria com a estacao que agora e' dona dela; a proxima janela propria
+  // reagenda a mensagem pendente.
+  envio_agendado = false;
+  if (has_cmd && estacaoId != 'A') {
+    has_cmd = false;
+    Serial.println(F("[ESTACAO] Telecomando pendente descartado: so a estacao A envia telecomandos."));
+  }
   return true;
 }
 
@@ -481,6 +489,9 @@ void tratarLinhaSerial(char *linha) {
     Serial.println(F("[ESTACAO] Telecomandos numericos so pela estacao A."));
     return;
   }
+  // Um CMD ja agendado carrega o numero anterior em txenvio; sem cancelar,
+  // ele sairia contado como tentativa do comando novo.
+  if (envio_agendado && !envio_eh_msg) envio_agendado = false;
   pending_cmd = atoi(linha);
   has_cmd = true;
   tentativas = 0;
