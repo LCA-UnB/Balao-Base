@@ -3,3 +3,4 @@ __pycache__/
 .venv/
 missions/
 /logs/
+src/mapa_cache.db*

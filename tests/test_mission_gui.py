@@ -27,8 +27,10 @@ class MissionUITests(unittest.TestCase):
             def add_right_click_menu_command(self, **kwargs): pass
             def set_marker(self, *args, **kwargs): return MapItem()
             def set_path(self, *args, **kwargs): return MapItem()
-        self.map_patch = patch.object(tracker.tkintermapview, 'TkinterMapView', OfflineMap)
+        self.map_patch = patch.object(tracker, 'OfflineMapView', OfflineMap)
         self.map_patch.start()
+        self.cache_patch = patch.object(tracker, 'open_tile_cache', return_value=None)
+        self.cache_patch.start()
         self.errors = []
         self.error_patch = patch('mission_ui.messagebox.showerror', side_effect=lambda *args,**kwargs:self.errors.append(args))
         self.error_patch.start()
@@ -43,6 +45,7 @@ class MissionUITests(unittest.TestCase):
         self.root = None
         self.error_patch.stop()
         self.map_patch.stop()
+        self.cache_patch.stop()
         self.temp.cleanup()
         self.assertEqual(self.errors, [])
 
