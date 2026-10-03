@@ -7,12 +7,15 @@ from zoom import ZoomControls, scaled
 import matplotlib
 import serial
 import serial.tools.list_ports
-import tkintermapview
 
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from antenna import Position, calculate_pointing, position_from_packet, shortest_rotation
+from map_cache import (
+    REGION_MAX_TILES, REGION_MIN_ZOOM, TILE_SIZE_KB, OfflineMapView, RegionDownload,
+    open_tile_cache, region_tile_count, region_tiles,
+)
 
 
 # Design tokens
@@ -33,6 +36,20 @@ COLOR_GRAPH_GRID = "#253244"
 COLOR_TRACK_LINE = "#ff7849"
 FONT_FAMILY = "Segoe UI"
 FONT_MONO = "Consolas"
+
+# Camada do mapa: (servidor de tiles, zoom máximo do download de região; None = não permite baixar).
+# O servidor do Google não autoriza download em massa, então o Satélite fica offline só no que já foi visto.
+MAP_LAYERS = {
+    "Padrão": ("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", 15),
+    "Satélite": ("https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", None),
+    "Topográfico": ("https://a.tile.opentopomap.org/{z}/{x}/{y}.png", 13),
+}
+OFFLINE_BUTTON_TEXT = "Baixar área offline"
+HOME_POSITION = (-15.7641474, -47.8691109)  # posição inicial do mapa: Lago Norte, Brasília
+
+
+def _thousands(number):
+    return f"{number:,}".replace(",", ".")
 
 class SondeTrackerApp(MissionControls, ZoomControls):
     def __init__(self, root):
@@ -60,9 +77,11 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.history_press = []
         self.history_hum = []
         self.path_coordinates = []
+        self.tile_cache = open_tile_cache()
+        self.region_download = None
 
         self.telemetry = {
-            "Texto Bruto": "--", "Lat": -15.7641474, "Lon": -47.8691109,
+            "Texto Bruto": "--", "Lat": HOME_POSITION[0], "Lon": HOME_POSITION[1],
             "Alt": 0.0, "AltB": 0.0, "Sat": 0, "Fix": 0,
             "T": 0.0, "P": 0.0, "U": 0.0, "Time": "--:--:--",
             "Pitch": 0.0, "Roll": 0.0, "Yaw": 0.0,
@@ -264,18 +283,32 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self._label(layer_group, "MAPA", 8, COLOR_TEXT_MUTED, "bold").pack(side=tk.LEFT, padx=(0, 8))
         self.map_layer_cb = ttk.Combobox(
             layer_group, state="readonly", width=14, font=(FONT_FAMILY, 11),
-            style="Telemetry.TCombobox", values=["Padrão", "Satélite", "Topográfico"],
+            style="Telemetry.TCombobox", values=list(MAP_LAYERS),
         )
         self.map_layer_cb.pack(side=tk.LEFT)
         self.map_layer_cb.current(0)
         self.map_layer_cb.bind("<<ComboboxSelected>>", self.change_map_layer)
+        self.btn_recenter = tk.Button(
+            layer_group, text="Centralizar", command=self.recenter_map,
+            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2",
+            activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
+            font=(FONT_FAMILY, 10), padx=12, pady=4,
+        )
+        self.btn_recenter.pack(side=tk.LEFT, padx=(8, 0))
+        self.btn_offline = tk.Button(
+            layer_group, text=OFFLINE_BUTTON_TEXT, command=self.toggle_region_download,
+            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2",
+            activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
+            font=(FONT_FAMILY, 10), padx=12, pady=4,
+        )
+        self.btn_offline.pack(side=tk.LEFT, padx=(8, 0))
 
         self.navigation_tabs = ttk.Notebook(map_card, style="Telemetry.TNotebook")
         self.navigation_tabs.grid(row=1, column=0, sticky="nsew")
         self.navigation_tabs.bind("<<NotebookTabChanged>>", self._on_navigation_tab_changed)
         map_tab = tk.Frame(self.navigation_tabs, bg=COLOR_BG_CARD)
         self.navigation_tabs.add(map_tab, text="Mapa da missão")
-        self.map_widget = tkintermapview.TkinterMapView(map_tab, corner_radius=0)
+        self.map_widget = OfflineMapView(map_tab, corner_radius=0, cache=self.tile_cache)
         self.map_widget.pack(fill=tk.BOTH, expand=True)
         self.map_widget.set_position(self.telemetry["Lat"], self.telemetry["Lon"])
         self.map_widget.set_zoom(14)
@@ -763,13 +796,77 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             spine.set_visible(False)
 
     def change_map_layer(self, event=None):
+        self.map_widget.set_tile_server(MAP_LAYERS[self.map_layer_cb.get()][0])
+
+    def recenter_map(self):
+        """Centraliza o mapa na sonda; sem posição dela, no tracker; sem nenhum dos dois, na posição inicial."""
+        marker = self.current_marker or self.tracker_marker
+        self.map_widget.set_position(*(marker.position if marker else HOME_POSITION))
+
+    def toggle_region_download(self):
+        """Baixa para o cache a área visível do mapa, na camada atual; com download em curso, cancela."""
+        if self.region_download:
+            self.region_download.cancel()
+            return
         layer = self.map_layer_cb.get()
-        if layer == "Padrão":
-            self.map_widget.set_tile_server("https://a.tile.openstreetmap.org/{z}/{x}/{y}.png")
-        elif layer == "Satélite":
-            self.map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=s&x={x}&y={y}&z={z}")
-        elif layer == "Topográfico":
-            self.map_widget.set_tile_server("https://a.tile.opentopomap.org/{z}/{x}/{y}.png")
+        server, max_zoom = MAP_LAYERS[layer]
+        if self.tile_cache is None:
+            messagebox.showerror("Mapa offline", "Não foi possível abrir o arquivo de cache do mapa.")
+            return
+        if max_zoom is None:
+            messagebox.showinfo(
+                "Mapa offline",
+                f"A camada {layer} não permite baixar regiões; ela fica disponível sem internet "
+                "só nas áreas já vistas. Use a camada Padrão ou Topográfico.",
+            )
+            return
+        canvas = self.map_widget.canvas
+        top_left = self.map_widget.convert_canvas_coords_to_decimal_coords(0, 0)
+        bottom_right = self.map_widget.convert_canvas_coords_to_decimal_coords(canvas.winfo_width(), canvas.winfo_height())
+        total = region_tile_count(top_left, bottom_right, REGION_MIN_ZOOM, max_zoom)
+        if total > REGION_MAX_TILES:
+            messagebox.showwarning(
+                "Área grande demais",
+                f"A área visível precisa de {_thousands(total)} imagens até o zoom {max_zoom}; o limite é "
+                f"{_thousands(REGION_MAX_TILES)}. Aproxime o mapa e tente de novo.",
+            )
+            return
+        megabytes = max(1, round(total * TILE_SIZE_KB / 1024))
+        if not messagebox.askyesno(
+            "Baixar área offline",
+            f"Baixar a área visível do mapa na camada {layer}, do zoom {REGION_MIN_ZOOM} ao {max_zoom}?\n\n"
+            f"São {_thousands(total)} imagens, cerca de {megabytes} MB. As já salvas são puladas.",
+        ):
+            return
+        tiles = list(region_tiles(top_left, bottom_right, REGION_MIN_ZOOM, max_zoom))
+        self.region_download = RegionDownload(self.tile_cache, server, tiles).start()
+        self._poll_region_download()
+
+    def _poll_region_download(self):
+        download = self.region_download
+        if download.running:
+            percent = download.done * 100 // max(download.total, 1)
+            self.btn_offline.configure(text=f"Cancelar · {percent}%")
+            self.root.after(500, self._poll_region_download)
+            return
+        self.region_download = None
+        self.btn_offline.configure(text=OFFLINE_BUTTON_TEXT)
+        saved = download.done - download.failed
+        if download.offline:
+            messagebox.showwarning(
+                "Mapa offline",
+                f"O download parou: {download.failed} falhas seguidas (sem internet ou o servidor recusou).\n"
+                f"{saved} de {download.total} imagens estão salvas; tente de novo para completar.",
+            )
+        elif download.cancelled:
+            messagebox.showinfo("Mapa offline", f"Download cancelado. {saved} de {download.total} imagens estão salvas.")
+        elif download.failed:
+            messagebox.showwarning(
+                "Mapa offline",
+                f"{saved} de {download.total} imagens salvas; {download.failed} falharam. Tente de novo para completar.",
+            )
+        else:
+            messagebox.showinfo("Mapa offline", "Área salva: o mapa dessa região funciona sem internet.")
 
     @staticmethod
     def _is_usb_serial_port(port):
