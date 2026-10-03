@@ -19,6 +19,7 @@ from station import StationReceiver
 # O bordo trata qualquer comando acima de 2000 como calibração do IMU e
 # confirma com Ack = comando + 1.
 IMU_CALIBRATION_COMMAND = "2500"
+LOGS_DIRECTORY = Path(__file__).resolve().parents[1] / "logs"
 
 
 class MissionControls:
@@ -35,7 +36,7 @@ class MissionControls:
         self.background_results = Queue()
         self.export_busy = False
         self.replay_scrubbing = False
-        self.default_mission_directory = Path.home() / "Balao-Missoes"
+        self.default_mission_directory = LOGS_DIRECTORY
         self.history_time = deque(maxlen=21600)
         self.history_temp = deque(maxlen=21600)
         self.history_alt = deque(maxlen=21600)
@@ -533,7 +534,13 @@ class MissionControls:
             "kml": (".kml", "KML (Google Earth)", export_kml, "pontos"),
             "raw": (".bin", "Serial bruta", export_raw, "bytes"),
         }[kind]
+        try:
+            self.default_mission_directory.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
         destination = filedialog.asksaveasfilename(parent=self.root, title="Exportar dados gravados", defaultextension=extension,
+                                                  initialdir=str(self.default_mission_directory),
+                                                  initialfile=Path(path).parent.name + extension,
                                                   filetypes=[(label, "*" + extension)])
         if not destination:
             return

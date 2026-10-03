@@ -20,7 +20,7 @@ O executável Windows versionado anteriormente não é atualizado por esta alter
 
 ## Operação de uma missão
 
-1. Clique em **Nova missão**, informe o nome e selecione a pasta de destino. A sugestão inicial é `Balao-Missoes` na pasta do usuário. Cada missão recebe uma subpasta com data UTC e identificador único.
+1. Clique em **Nova missão**, informe o nome e selecione a pasta de destino. A sugestão inicial é a pasta `logs/` na raiz do projeto, criada automaticamente. Cada missão recebe uma subpasta com data UTC e identificador único.
 2. Em **Configurar tracker**, informe latitude, longitude e altitude MSL da antena em solo. Também é possível escolher a posição com o botão direito no mapa e preencher a altitude. A configuração e suas alterações ficam registradas.
 3. Selecione a porta USB e conecte. O aplicativo aceita os formatos das linhas A e B, incluindo bateria, aceleração média e ACK da linha B atual. Campos não enviados permanecem vazios; não são completados com valores de pacotes anteriores.
 4. A barra da missão informa os pacotes salvos, o tamanho da fila e eventuais perdas. O cabeçalho mostra a última sincronização com o disco. **Detalhes** exibe o caminho, o erro e o período abrangido por descartes.
@@ -74,6 +74,8 @@ Pacotes incompletos são registrados ao detectar o próximo quadro, desconectar 
 
 - **Exportar CSV:** um registro por pacote estruturado, incluindo os dois horários, sensores, flags, posição do tracker e distância/azimute/elevação. UTF-8 com BOM, separador vírgula, ponto decimal e valores ausentes em branco. Os nomes indicam unidades nos campos derivados; `Lat`/`Lon` são graus, `Alt`/`AltB` são metros MSL, `T` é °C, `P` é hPa, `U` é %, `Bat` é V, RSSI é dBm e SNR é dB. Na importação em planilhas, selecione esse separador e convenção decimal. Texto que poderia ser interpretado como fórmula é exportado como texto literal.
 - **Exportar bruto:** concatena os BLOBs seriais salvos, sem decodificar ou alterar bytes, em um arquivo `.bin`. É uma captura textual quando a serial contém apenas texto, mas preserva também os bytes corrompidos. Contadores de perda ficam nos eventos do banco, sem inserir conteúdo artificial nessa exportação.
+
+As janelas de exportação (CSV, KML e bruto) sugerem a mesma pasta `logs/` na raiz do projeto, com o nome da subpasta da missão como nome do arquivo.
 
 A exportação usa uma leitura consistente dos dados já gravados; registros ainda na fila não fazem parte dela. Pode ser feita durante a recepção. O aplicativo aguarda uma exportação terminar antes de fechar. Para transportar uma missão, prefira fechar normalmente o aplicativo e copiar a pasta completa; enquanto o banco está aberto, o arquivo `-wal` pode conter transações confirmadas que ainda não estão no arquivo principal.
 

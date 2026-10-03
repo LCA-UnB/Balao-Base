@@ -175,12 +175,13 @@ class MissionUITests(unittest.TestCase):
             return next((found for child in widget.winfo_children() if (found := find(child))), None)
         button = find(self.root)
         self.assertIsNotNone(button)
-        with patch('mission_ui.filedialog.asksaveasfilename', return_value=str(destination)):
+        with patch('mission_ui.filedialog.asksaveasfilename', return_value=str(destination)) as dialog:
             button.invoke()
         deadline = time.monotonic() + 5
         while self.app.background_results.empty() and time.monotonic() < deadline:
             time.sleep(.01)
         self.app.gui_updater_loop()
+        return dialog
 
     def test_export_kml_button_writes_file_and_reports_missing_gps(self):
         import xml.etree.ElementTree as ET
@@ -189,7 +190,11 @@ class MissionUITests(unittest.TestCase):
         self.assertTrue(mission.flush())
         destination = Path(self.temp.name) / 'trajeto.kml'
         with patch('mission_ui.messagebox.showinfo') as info:
-            self.click_export_kml(destination)
+            dialog = self.click_export_kml(destination)
+        logs = Path(__file__).resolve().parents[1] / 'logs'
+        self.assertEqual(self.app.default_mission_directory, logs)
+        self.assertEqual(dialog.call_args.kwargs['initialdir'], str(logs))
+        self.assertEqual(dialog.call_args.kwargs['initialfile'], mission.path.parent.name + '.kml')
         self.assertIn('Exportados 1 pontos', info.call_args.args[1])
         self.assertEqual(ET.parse(destination).getroot().tag, '{http://www.opengis.net/kml/2.2}kml')
         self.assertFalse(self.app.export_busy)
