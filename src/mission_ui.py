@@ -519,7 +519,9 @@ class MissionControls:
                 f"Fila: {s['buffer_bytes']} bytes + {s['inflight_bytes']} em escrita\nPacotes salvos: {s['written_packets']}\n"
                 f"Registros descartados: {s['dropped_records']}\nPacotes descartados: {s['dropped_packets']}\n"
                 f"Bytes brutos descartados: {s['dropped_raw_bytes']}\nPeríodo abrangido pelas perdas: {s['loss_start'] or '—'} até {s['loss_end'] or '—'}\n"
-                f"Erro: {s['error'] or 'nenhum'}\nDescartes são internos ao PC; não medem perdas no rádio.")
+                f"Erro: {s['error'] or 'nenhum'}\nCópia em texto: {self.mission.text_path}\n"
+                f"Erro na cópia em texto: {s['text_error'] or 'nenhum'}"
+                + (f" ({s['text_missing_bytes']} bytes só no banco)" if s['text_missing_bytes'] else "") + "\nDescartes são internos ao PC; não medem perdas no rádio.")
         else:
             messagebox.showinfo("Missão", "Nenhuma missão aberta.")
 

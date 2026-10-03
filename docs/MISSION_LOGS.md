@@ -34,6 +34,8 @@ Uma missão só pode ter um processo gravador por vez. O bloqueio é liberado pe
 
 `mission.sqlite3` é a fonte de verdade: um banco SQLite em modo WAL, com `synchronous=FULL`. O gravador trabalha em uma thread exclusiva e confirma transações aproximadamente a cada **1 segundo**, em funcionamento normal. Uma escrita bloqueada pelo sistema operacional pode ultrapassar esse intervalo. Não há garantia de perda zero em quedas de energia ou falhas de hardware.
 
+Ao lado do banco, a pasta da missão tem `telemetria.txt`: uma cópia em texto da serial, gravada automaticamente durante a recepção. Ele recebe os mesmos bytes da captura bruta, sem decodificação nem alteração, logo após cada transação confirmada no banco. Assim, pode ser aberto em qualquer editor sem exportar nada. Ao retomar a missão, a cópia continua no mesmo arquivo. Se `telemetria.txt` não existir ao abrir a missão, por exemplo em missões gravadas antes dessa cópia, ele é recriado a partir do banco. A cópia é só uma conveniência: uma falha ao escrevê-la não afeta o banco, e **Detalhes** mostra o erro e quantos bytes ficaram apenas no banco. Se o processo morrer logo após uma transação, o último lote pode faltar no `.txt`; nesse caso, apague `telemetria.txt` e retome a missão para recriá-lo, ou use **Exportar bruto**.
+
 A recepção serial não escreve diretamente no disco. Uma fila guarda os registros prontos para escrita, com orçamento de **64 MiB** para payloads e uma estimativa de overhead por item. Um lote adicional de até aproximadamente **1 MiB** pode estar em escrita, além dos buffers internos do Python/SQLite e da interface. Esses valores não constituem um limite para toda a RAM do processo.
 
 Se o disco falhar:
@@ -73,7 +75,7 @@ Pacotes incompletos são registrados ao detectar o próximo quadro, desconectar 
 ## Exportação
 
 - **Exportar CSV:** um registro por pacote estruturado, incluindo os dois horários, sensores, flags, posição do tracker e distância/azimute/elevação. UTF-8 com BOM, separador vírgula, ponto decimal e valores ausentes em branco. Os nomes indicam unidades nos campos derivados; `Lat`/`Lon` são graus, `Alt`/`AltB` são metros MSL, `T` é °C, `P` é hPa, `U` é %, `Bat` é V, RSSI é dBm e SNR é dB. Na importação em planilhas, selecione esse separador e convenção decimal. Texto que poderia ser interpretado como fórmula é exportado como texto literal.
-- **Exportar bruto:** concatena os BLOBs seriais salvos, sem decodificar ou alterar bytes, em um arquivo `.bin`. É uma captura textual quando a serial contém apenas texto, mas preserva também os bytes corrompidos. Contadores de perda ficam nos eventos do banco, sem inserir conteúdo artificial nessa exportação.
+- **Exportar bruto:** concatena os BLOBs seriais salvos, sem decodificar ou alterar bytes, em um arquivo `.bin`, com o mesmo conteúdo do `telemetria.txt` automático. É uma captura textual quando a serial contém apenas texto, mas preserva também os bytes corrompidos. Contadores de perda ficam nos eventos do banco, sem inserir conteúdo artificial nessa exportação.
 
 As janelas de exportação (CSV, KML e bruto) sugerem a mesma pasta `logs/` na raiz do projeto, com o nome da subpasta da missão como nome do arquivo.
 
