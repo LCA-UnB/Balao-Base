@@ -50,7 +50,7 @@ class StationReceiver:
     def _notices(self, notices):
         for notice in notices:
             details = {key: value for key, value in notice.items() if key not in {"kind", "status", "received_at"}}
-            name = f"message_{notice['status']}" if notice["kind"] == "message" else "station_identity"
+            name = {"message": f"message_{notice.get('status')}", "station": "station_identity", "ack": "relay_ack"}[notice["kind"]]
             self._save("event", {"event": name, **details}, received_at=notice["received_at"])
             self._message("notice", notice)
 

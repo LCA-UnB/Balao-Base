@@ -166,7 +166,7 @@ O texto tem no máximo **100 caracteres** ASCII imprimíveis (a interface remove
 | `ID?` | Imprime `[ESTACAO] ID:<letra> N:<N>` |
 | `<número>` | Telecomando (só estação A) |
 
-A solo responde com linhas `[MSG] ENFILEIRADA|ENVIADA|ENTREGUE|FALHOU|RECUSADA|RECEBIDA Id:… [De:…] [Hora:…] [Texto:…]`, que a interface interpreta.
+A solo responde com linhas `[MSG] ENFILEIRADA|ENVIADA|ENTREGUE|FALHOU|RECUSADA|RECEBIDA Id:… [De:…] [Hora:…] [Texto:…]`, que a interface interpreta. Quando o `Ack:` de um telecomando chega dentro de um relay, a solo também imprime `[ACK] Ack:<n>`, e a interface o mostra em "ACK recebido" (o bordo zera o Ack depois de transmiti-lo, então a telemetria seguinte já vem com 0).
 
 **Cartão SD do bordo.** Além de `LOTE_` e `I,`, o arquivo passa a ter:
 

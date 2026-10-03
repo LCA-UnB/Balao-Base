@@ -254,7 +254,7 @@ class ParserTests(unittest.TestCase):
         self.assertNotIn('RSSI', packets[1]['fields'])
 
     def test_message_and_station_lines_become_notices_without_touching_packets(self):
-        lines = (b'[ESTACAO] ID:B N:3\n[MSG] ENVIADA Id:B7 Tentativa:2\n[MSG] DESCONHECIDA Id:B7\n'
+        lines = (b'[ESTACAO] ID:B N:3\n[MSG] ENVIADA Id:B7 Tentativa:2\n[MSG] DESCONHECIDA Id:B7\n[ACK] Ack:6\n'
                  b'[MSG] RECEBIDA Id:C4 De:C Hora:12:34:57 RSSI:-80 SNR:5 Texto:Pouso RSSI:-1 SNR:9 Lat:0\n')
         parser = PacketParser()
         packets = parser.feed(FRAME + lines + FRAME, 'now')
@@ -264,9 +264,10 @@ class ParserTests(unittest.TestCase):
         notices = parser.take_notices()
         self.assertEqual(notices[0], {'kind': 'station', 'id': 'B', 'total': 3, 'received_at': 'now'})
         self.assertEqual(notices[1], {'kind': 'message', 'status': 'sent', 'id': 'B7', 'attempts': 2, 'received_at': 'now'})
-        self.assertEqual(len(notices), 3)
-        self.assertEqual(notices[2]['text'], 'Pouso RSSI:-1 SNR:9 Lat:0')
-        self.assertEqual((notices[2]['from'], notices[2]['time'], notices[2]['rssi']), ('C', '12:34:57', -80))
+        self.assertEqual(notices[2], {'kind': 'ack', 'value': 6, 'received_at': 'now'})
+        self.assertEqual(len(notices), 4)
+        self.assertEqual(notices[3]['text'], 'Pouso RSSI:-1 SNR:9 Lat:0')
+        self.assertEqual((notices[3]['from'], notices[3]['time'], notices[3]['rssi']), ('C', '12:34:57', -80))
         self.assertEqual(parser.take_notices(), [])
 
     def test_message_text_is_ascii_single_line_and_limited(self):

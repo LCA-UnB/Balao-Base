@@ -289,6 +289,10 @@ class MissionControls:
             self.current_record = None
             self.last_gps_data = None
             self.is_connected = True
+            # A identidade é do rádio: outro rádio (ou um firmware sem [ESTACAO])
+            # não pode herdar a restrição de telecomando do anterior.
+            self.station_identity = None
+            self.lbl_station.config(text="—")
             self.btn_connect.config(text="Desconectar", bg="#ff6072", state=tk.NORMAL)
             self.port_cb.config(state="disabled")
             self.btn_refresh.config(state=tk.DISABLED)
@@ -385,6 +389,10 @@ class MissionControls:
         self.message_log.see(tk.END)
 
     def _apply_notice(self, notice):
+        if notice["kind"] == "ack":
+            self.telemetry["Ack"] = notice["value"]
+            self.needs_gui_update = True
+            return
         if notice["kind"] == "station":
             self.station_identity = (notice["id"], notice["total"])
             self.lbl_station.config(text=f"{notice['id']} de {notice['total']}")

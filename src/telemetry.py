@@ -32,7 +32,11 @@ def sanitize_message(text, limit=MESSAGE_LIMIT):
 
 
 def parse_notice(line):
-    """Parse a ``[MSG]`` or ``[ESTACAO]`` line printed by the ground firmware."""
+    """Parse a ``[MSG]``, ``[ESTACAO]`` or ``[ACK]`` line printed by the ground firmware."""
+    ack = re.fullmatch(r"\[ACK\]\s+Ack:(-?\d+)", line)
+    if ack:
+        # Command acknowledgement carried by a relay packet instead of telemetry.
+        return {"kind": "ack", "value": int(ack.group(1))}
     station = re.fullmatch(r"\[ESTACAO\]\s+ID:([A-Z])\s+N:(\d+)", line)
     if station:
         return {"kind": "station", "id": station.group(1), "total": int(station.group(2))}
@@ -151,7 +155,7 @@ class PacketParser:
 
     def _line(self, line, received_at):
         results = []
-        if line.startswith(("[MSG]", "[ESTACAO]")):
+        if line.startswith(("[MSG]", "[ESTACAO]", "[ACK]")):
             # Status lines never belong to a telemetry frame; the message text
             # may even contain "RSSI:" or field names.
             notice = parse_notice(line)

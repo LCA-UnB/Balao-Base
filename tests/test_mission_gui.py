@@ -284,7 +284,7 @@ class MissionUITests(unittest.TestCase):
             self.assertTrue(self.app.is_connected)
             os.write(master, b'[ESTACAO] ID:B N:3\n[MSG] ENFILEIRADA Id:B7 Texto:Ola\n'
                              b'[MSG] RECEBIDA Id:C2 De:C Hora:10:00:01 RSSI:-90 SNR:3 Texto:Pouso em -15.8 -47.9\n'
-                             b'[MSG] ENTREGUE Id:B7 Tentativas:1\n')
+                             b'[ACK] Ack:6\n[MSG] ENTREGUE Id:B7 Tentativas:1\n')
             deadline = time.monotonic() + 3
             while 'repetida' not in self.app.lbl_message_status.cget('text') and time.monotonic() < deadline:
                 self.root.update()
@@ -293,6 +293,8 @@ class MissionUITests(unittest.TestCase):
             self.assertEqual(self.app.lbl_station.cget('text'), 'B de 3')
             self.assertEqual((self.app.station_letter.get(), self.app.station_total.get()), ('B', '3'))
             self.assertIn('[10:00:01] C: Pouso em -15.8 -47.9', self.app.message_log.get('1.0', 'end'))
+            self.app.update_gui()
+            self.assertEqual(self.app.lbl_ack.cget('text'), '6')
 
             self.app.message_text.set('Direção  norte')
             self.assertEqual(self.app.lbl_message_count.cget('text'), '13/100')
@@ -317,6 +319,10 @@ class MissionUITests(unittest.TestCase):
             self.assertEqual(self.app.message_log.get('1.0', 'end').strip(), '')
             self.assertEqual(self.app.lbl_message_status.cget('text'), 'Nenhuma mensagem enviada.')
             self.assertEqual(self.app.lbl_station.cget('text'), 'B de 3')
+            self.app.toggle_connection()  # outro rádio na mesma porta
+            self.assertIsNone(self.app.station_identity)
+            self.assertEqual(self.app.lbl_station.cget('text'), '—')
+            self.app.disconnect_serial()
         finally:
             os.close(master)
             os.close(slave)

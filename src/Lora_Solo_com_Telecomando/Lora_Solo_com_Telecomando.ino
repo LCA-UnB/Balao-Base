@@ -19,7 +19,7 @@
     esse mesmo pacote como confirmacao.
   - "ID <letra> <N>" configura a estacao (gravado na flash); "ID?" consulta.
   - Telecomandos numericos so saem da estacao A.
-  - Linhas "[MSG] ..." e "[ESTACAO] ..." sao lidas pela interface.
+  - Linhas "[MSG] ...", "[ESTACAO] ..." e "[ACK] ..." sao lidas pela interface.
 */
 
 #include "LoRaWan_APP.h"
@@ -364,6 +364,10 @@ bool processarRelay() {
   }
   r_hora = hora; r_minuto = minuto; r_segundo = segundo;
   r_ack = ack;
+  // O bordo zera o Ack depois de transmiti-lo; se ele desceu no relay, a
+  // telemetria seguinte ja vem com 0. A linha [ACK] leva a confirmacao a
+  // interface mesmo quando a mensagem e' uma repeticao ignorada.
+  if (ack != 0) Serial.printf("[ACK] Ack:%ld\n", (long)ack);
 
   bool repetida = idJaVisto(id);
   if (!repetida) {
