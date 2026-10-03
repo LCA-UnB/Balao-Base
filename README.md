@@ -44,15 +44,15 @@ Balao-Base/
 │   ├── replay.py / antenna.py             Reprodução e geometria da antena
 │   ├── config.txt                         Configuração do OpenLog (copiar para o cartão SD)
 │   ├── Lora_Bordo_Com_Telecomando/        Transmissor GY-86 + telecomando
-│   ├── Lora_Solo_com_Telecomando/         Receptor/transmissor da linha B
-│   ├── LiberacaoCarga/                    HX711 + relé
-│   └── gy80testado/                       Bancada de teste IMU
+│   └── Lora_Solo_com_Telecomando/         Receptor/transmissor da linha B
 ├── docs/
 │   ├── MISSION_LOGS.md                    Operação, formatos e recuperação
 │   └── logs/                              Logs históricos versionados
 ├── tests/                                 Testes automatizados
 ├── tools/                                 Ferramentas auxiliares (ver tools/README.md)
 │   ├── calibrar_bateria/                  Sketch + guia de calibração do ADC da bateria
+│   ├── bancada_imu_gy86/                  Sketch de bancada do IMU GY-86 (Serial Plotter)
+│   ├── liberacao_carga/                   Protótipo HX711 + relé (não integrado ao voo)
 │   ├── rastreador_sonda/                  Interface anterior do rastreador (legada, PR 17)
 │   ├── tracker_win64x/                    Artefatos de build do trackerV1.2 para Windows (legado)
 │   ├── rtl_sdr/                           Estação RS41 com RTL-SDR e SondeHub
@@ -71,7 +71,7 @@ Balao-Base/
 | IMU (linha A) | **BNO086** (fusão interna, quaternion) | I²C `Wire1` — SDA 48, SCL 47 @ 100 kHz, addr 0x4B |
 | IMU/clima (linha B) | **GY-86 / 10DOF**: MPU6050 (0x68) + HMC5883L + MS5611 (0x77) | I²C — SDA 48, SCL 47 |
 | Cartão SD | SparkFun **OpenLog** | UART2 — RX 3, TX 2 |
-| Balança | **HX711** + célula de carga | DOUT 2, SCK 15; relé no pino 25 |
+| Balança (protótipo, fora do voo) | **HX711** + célula de carga | DOUT 2, SCK 15; relé no pino 25 |
 
 > O `Wire1` do BNO086 roda a **100 kHz** (e não 400 kHz) de propósito: evita quedas de I²C quando os cabos balançam durante o voo.
 
@@ -120,11 +120,13 @@ Duas diferenças estruturais em relação à linha A, ambas para não travar o R
 
 O IMU aqui não tem fusão em hardware: pitch/roll saem de um **filtro complementar** (α = 0.98) entre acelerômetro e giroscópio, e o yaw vem do magnetômetro com **compensação de inclinação** (tilt compensation).
 
-### Utilitários
+### Sketches de bancada (`tools/`)
 
-**[`src/LiberacaoCarga/LiberacaoCarga.ino`](src/LiberacaoCarga/LiberacaoCarga.ino)** — Lê uma célula de carga pelo ADC **HX711** (fator de calibração `set_scale(251.25)`, tara no boot) e aciona o relé do pino 25 quando o peso lido fica **≤ 300**. Serve para liberar carga útil / paraquedas quando a tração na linha cai.
+Os dois sketches abaixo ficam fora de `src/` porque não fazem parte de nenhuma linha de voo. Nenhum deles roda na Heltec V3 sem ajuste de pinos.
 
-**[`src/gy80testado/gy80testado.ino`](src/gy80testado/gy80testado.ino)** — Bancada de teste do IMU 10DOF, independente do LoRa. Roda o mesmo filtro complementar da linha B e imprime CSV pronto para o Serial Plotter (`Temp,Pressao,Pitch,Roll,Yaw`). Nos primeiros **4 segundos** ele deixa o filtro estabilizar e captura a atitude como offset de tara, zerando pitch/roll/yaw — só depois começa a imprimir.
+**[`tools/liberacao_carga/liberacao_carga.ino`](tools/liberacao_carga/liberacao_carga.ino)** — Protótipo derivado do exemplo da biblioteca HX711. Lê uma célula de carga pelo ADC **HX711** (fator de calibração `set_scale(251.25)`, tara no boot) e aciona o relé do pino 25 quando o peso lido fica **≤ 300**. Serve para liberar carga útil / paraquedas quando a tração na linha cai. Não está integrado a nenhum firmware de voo, e os pinos não servem na Heltec V3: o GPIO 2 é o TX do OpenLog e o GPIO 25 não existe no ESP32-S3.
+
+**[`tools/bancada_imu_gy86/bancada_imu_gy86.ino`](tools/bancada_imu_gy86/bancada_imu_gy86.ino)** — Bancada de teste do IMU GY-86 (10DOF), antes chamada `gy80testado`, independente do LoRa. Roda o mesmo filtro complementar da linha B e imprime CSV pronto para o Serial Plotter (`Temp,Pressao,Pitch,Roll,Yaw`). Nos primeiros **4 segundos** ele deixa o filtro estabilizar e captura a atitude como offset de tara, zerando pitch/roll/yaw — só depois começa a imprimir. Usa I²C em SDA 19 / SCL 18; na Heltec V3 o GY-86 fica em SDA 48 / SCL 47. O bordo da linha B já incorpora esse filtro com calibração mais completa.
 
 ---
 
@@ -361,8 +363,8 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 |---|---|
 | `Lora_Bordo_Com_Telecomando` | `LoRaWan_APP`, `SparkFun_u-blox_GNSS_v3`, `Adafruit_Sensor`, `Adafruit_MPU6050`, `Adafruit_HMC5883_U`, `MS5611` |
 | `Lora_Solo_com_Telecomando` | `LoRaWan_APP` |
-| `LiberacaoCarga` | `HX711` (bogde) |
-| `gy80testado` | `Adafruit_Sensor`, `Adafruit_MPU6050`, `Adafruit_HMC5883_U`, `MS5611` |
+| `tools/liberacao_carga` | `HX711` (bogde) |
+| `tools/bancada_imu_gy86` | `Adafruit_Sensor`, `Adafruit_MPU6050`, `Adafruit_HMC5883_U`, `MS5611` |
 
 **Python:** `pyserial`, `tkintermapview`, `matplotlib` (o `tkinter` já vem com o Python).
 
@@ -372,12 +374,10 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 
 Pontos levantados na revisão do código atual. Estão registrados aqui para quem for derivar uma missão deste repositório.
 
-1. **`gy80testado` não usa um GY-80.** Apesar do nome, o sketch instancia MPU6050 + HMC5883L + MS5611, que é a combinação do **GY-86/GY-87 (10DOF)** — o mesmo conjunto da linha B. O GY-80 traz ADXL345 + L3G4200D + BMP085. O nome do diretório está enganoso.
+1. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `tools/rastreador_sonda/tracker.py` (legada) também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
 
-2. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `tools/rastreador_sonda/tracker.py` (legada) também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
+2. **Os logs históricos continuam versionados em `docs/logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
 
-3. **Os logs históricos continuam versionados em `docs/logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
+3. **Artefatos antigos de build (legados) continuam em `tools/tracker_win64x/build/`.** São só arquivos intermediários do PyInstaller para a `src/trackerV1.2.py`, sem o `.exe`. Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
 
-4. **Artefatos antigos de build (legados) continuam em `tools/tracker_win64x/build/`.** São só arquivos intermediários do PyInstaller para a `src/trackerV1.2.py`, sem o `.exe`. Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
-
-5. **O relé da liberação de carga fica acionado em repouso.** A condição é `peso <= 300 → relé HIGH`. Como a balança é tarada no boot, o peso parte de ~0 e o relé sobe imediatamente na bancada. O comportamento pretendido depende de haver carga aplicada desde o início — vale confirmar a polaridade antes de integrar ao voo.
+4. **O relé da liberação de carga fica acionado em repouso.** A condição é `peso <= 300 → relé HIGH`. Como a balança é tarada no boot, o peso parte de ~0 e o relé sobe imediatamente na bancada. O comportamento pretendido depende de haver carga aplicada desde o início — vale confirmar a polaridade antes de integrar ao voo.
