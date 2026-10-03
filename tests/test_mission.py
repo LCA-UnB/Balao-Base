@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from mission import MissionWriter, export_csv, export_kml, export_raw, packet_rows, read_database, read_metadata
-from telemetry import PacketParser, enrich_packet
+from telemetry import MESSAGE_LIMIT, PacketParser, enrich_packet, sanitize_message
 from replay import MissionReplay
 
 FRAME = b'------- PT2UNB -------\nRSSI:-80 dBm | SNR:4.5 dB\nLat:-15\nLon:-47\nAlt:3000\nAltB:2900\nSat:12\nFix:3\nT:20\nP:850\nTime:23:59:59\nPitch:1\nRoll:2\nYaw:3\nAXavg:0\nAYavg:1\nAZavg:2\nBat:4.1\nAck:0\n----------------------\n'
@@ -252,6 +252,27 @@ class ParserTests(unittest.TestCase):
                                      b'Lat:0\nLon:0\nAlt:2\nFix:3\nAck:0\n', 'now')
         self.assertEqual(packets[0]['fields']['RSSI'], -80)
         self.assertNotIn('RSSI', packets[1]['fields'])
+
+    def test_message_and_station_lines_become_notices_without_touching_packets(self):
+        lines = (b'[ESTACAO] ID:B N:3\n[MSG] ENVIADA Id:B7 Tentativa:2\n[MSG] DESCONHECIDA Id:B7\n'
+                 b'[MSG] RECEBIDA Id:C4 De:C Hora:12:34:57 RSSI:-80 SNR:5 Texto:Pouso RSSI:-1 SNR:9 Lat:0\n')
+        parser = PacketParser()
+        packets = parser.feed(FRAME + lines + FRAME, 'now')
+        self.assertEqual(len(packets), 2)
+        self.assertTrue(all(p['complete'] for p in packets))
+        self.assertEqual(packets[1]['fields']['Lat'], -15)
+        notices = parser.take_notices()
+        self.assertEqual(notices[0], {'kind': 'station', 'id': 'B', 'total': 3, 'received_at': 'now'})
+        self.assertEqual(notices[1], {'kind': 'message', 'status': 'sent', 'id': 'B7', 'attempts': 2, 'received_at': 'now'})
+        self.assertEqual(len(notices), 3)
+        self.assertEqual(notices[2]['text'], 'Pouso RSSI:-1 SNR:9 Lat:0')
+        self.assertEqual((notices[2]['from'], notices[2]['time'], notices[2]['rssi']), ('C', '12:34:57', -80))
+        self.assertEqual(parser.take_notices(), [])
+
+    def test_message_text_is_ascii_single_line_and_limited(self):
+        self.assertEqual(sanitize_message('  Pouso\tà  direção\n norte '), 'Pouso a direcao norte')
+        self.assertEqual(len(sanitize_message('x' * 150)), MESSAGE_LIMIT)
+        self.assertEqual(len(sanitize_message('x' * 150, limit=None)), 150)
 
 
 # Reuse fixtures without duplicating the storage tests.
