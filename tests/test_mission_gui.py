@@ -163,6 +163,17 @@ class MissionUITests(unittest.TestCase):
             self.assertGreaterEqual(top(button), top(callsign) + callsign.winfo_height())
             self.assertLessEqual(top(button) + button.winfo_height(), header.winfo_height())
 
+    def test_tracker_card_lives_in_antenna_tab_beside_3d_view(self):
+        app = self.app
+        card = app.btn_tracker.master
+        antenna_tab = app.navigation_tabs.nametowidget(app.navigation_tabs.tabs()[1])
+        self.assertIs(card.master, antenna_tab)
+        self.assertNotIn(card, app.sidebar_content.winfo_children())
+        self.assertEqual(card.grid_info()['column'], app.antenna_canvas.get_tk_widget().grid_info()['column'] + 1)
+        # Sem apontamento, o motivo aparece só uma vez na aba, acima da vista 3D.
+        self.assertEqual(app.lbl_distance_status.cget('text'), '')
+        self.assertTrue(app.lbl_pointing_status.cget('text'))
+
     def test_navigation_buttons_sit_beside_map_title_and_select_tabs(self):
         import tracker
         app = self.app

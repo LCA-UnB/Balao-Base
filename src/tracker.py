@@ -382,7 +382,6 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.root.bind_all("<Button-4>", self._on_sidebar_mousewheel, add="+")
         self.root.bind_all("<Button-5>", self._on_sidebar_mousewheel, add="+")
 
-        self._build_tracker_card()
         self._build_flight_card()
         self._build_link_card()
         self._build_environment_card()
@@ -426,9 +425,8 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             else:
                 self.charts_card.grid()
 
-    def _build_tracker_card(self):
-        card = self._card(self.sidebar_content, "Tracker → sonda")
-        card.pack(fill=tk.X, pady=(0, 9))
+    def _build_tracker_card(self, parent):
+        card = self._card(parent, "Tracker → sonda")
         frame, self.lbl_distance = self._metric(
             card, "DISTÂNCIA EM LINHA RETA", "— m", COLOR_ACCENT_CYAN,
         )
@@ -456,6 +454,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             font=(FONT_FAMILY, 12), padx=18, pady=12, cursor="hand2",
         )
         self.btn_tracker.pack(fill=tk.X)
+        return card
 
     def configure_tracker(self, coordinates=None):
         if self.replay:
@@ -528,7 +527,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(3, weight=1)
         metrics = tk.Frame(tab, bg=COLOR_BG_CARD)
-        metrics.grid(row=0, column=0, sticky="ew")
+        metrics.grid(row=0, column=0, columnspan=2, sticky="ew")
         for column in range(2):
             metrics.grid_columnconfigure(column, weight=1, uniform="antenna")
         frame, self.lbl_azimuth = self._metric(metrics, "AZIMUTE · NORTE VERDADEIRO", "—°", COLOR_ACCENT_CYAN)
@@ -537,7 +536,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         frame.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
         orientation = tk.Frame(tab, bg=COLOR_BG_CARD)
-        orientation.grid(row=1, column=0, sticky="ew", pady=8)
+        orientation.grid(row=1, column=0, columnspan=2, sticky="ew", pady=8)
         self.lbl_orientation_prompt = self._label(orientation, "Antena atual (opcional):", 11, COLOR_TEXT_MUTED)
         self.lbl_orientation_prompt.pack(side=tk.LEFT)
         self.orientation_entries = []
@@ -557,8 +556,11 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             tab, "", 10, COLOR_TEXT_MUTED, justify=tk.LEFT, anchor="w", wraplength=580,
         )
         self.lbl_pointing_status.grid(row=2, column=0, sticky="ew")
+        # Distância e posição do tracker ficam ao lado da vista 3D, que é onde o apontamento é lido.
+        tracker_card = self._build_tracker_card(tab)
+        tracker_card.grid(row=2, column=1, rowspan=2, sticky="n", padx=(12, 0))
         tab.bind("<Configure>", lambda event: self.lbl_pointing_status.configure(
-            wraplength=max(200, event.width - 28)
+            wraplength=max(200, event.width - tracker_card.winfo_width() - 40)
         ))
         self.antenna_fig = Figure(figsize=(7, 3), dpi=100, facecolor=COLOR_BG_CARD)
         self.antenna_axis = self.antenna_fig.add_subplot(111, projection="3d")
@@ -567,13 +569,13 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.antenna_canvas.get_tk_widget().configure(highlightthickness=0)
         self.antenna_canvas.get_tk_widget().grid(row=3, column=0, sticky="nsew")
         self.lbl_pythagoras = self._label(tab, "d² = h² + v²", 9, COLOR_ACCENT_CYAN)
-        self.lbl_pythagoras.grid(row=4, column=0, sticky="w")
+        self.lbl_pythagoras.grid(row=4, column=0, columnspan=2, sticky="w")
         self._label(
             tab, "Arraste para girar a vista • h: projeção horizontal • v: vertical local\n"
             "Terra esférica; v inclui curvatura. Azimute: N 0° · L 90° · S 180° · O 270°.\n"
             "Sem telemetria recente, a antena aponta para a última posição GPS 3D da sonda.",
             8, COLOR_TEXT_MUTED, justify=tk.LEFT,
-        ).grid(row=5, column=0, sticky="w", pady=(3, 0))
+        ).grid(row=5, column=0, columnspan=2, sticky="w", pady=(3, 0))
 
     def apply_antenna_orientation(self):
         if self.replay:
@@ -620,7 +622,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             return
         self._pointing_view_key = view_key
         if pointing is None:
-            distance_status = status
+            distance_status = ""  # o motivo já aparece acima da vista 3D, na mesma aba
         elif stale:
             distance_status = "Última posição GPS 3D conhecida · telemetria atrasada"
         else:
@@ -691,7 +693,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         if self.tracker_position is None:
             axis.set_box_aspect((1, 1, 1))
             axis.text2D(0.5, 0.5, "Configure o tracker para ver o apontamento da antena",
-                        transform=axis.transAxes, ha="center", color=COLOR_TEXT_MUTED, fontsize=10)
+                        transform=axis.transAxes, ha="center", color=COLOR_TEXT_MUTED, fontsize=10, wrap=True)
             self.antenna_canvas.draw_idle()
             return
 
@@ -783,7 +785,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(2, weight=1)
         metrics = tk.Frame(tab, bg=COLOR_BG_CARD)
-        metrics.grid(row=0, column=0, sticky="ew")
+        metrics.grid(row=0, column=0, columnspan=2, sticky="ew")
         # Cada ângulo usa a cor do eixo do IMU em torno do qual ele gira.
         for column, (title, attribute, accent) in enumerate((
             ("PITCH · EIXO Y", "lbl_probe_pitch", COLOR_ACCENT_GREEN),
