@@ -138,6 +138,23 @@ class MissionUITests(unittest.TestCase):
             self.assertGreater(len(rows), 1)
             self.assertLessEqual(overflow, 0)
 
+    def test_collapsed_mission_bar_is_one_line_and_gives_height_to_map(self):
+        app = self.app
+        self.root.overrideredirect(True)
+        self.root.geometry('1600x1000')
+        def bar_and_map_heights():
+            self.root.update()
+            return app.btn_mission_toggle.master.master.winfo_height(), app.map_widget.winfo_height()
+        collapsed_bar, collapsed_map = bar_and_map_heights()
+        self.assertEqual(app.lbl_mission_health.grid_info()['row'], 0)
+        app.btn_mission_toggle.invoke()
+        expanded_bar, expanded_map = bar_and_map_heights()
+        self.assertEqual(app.lbl_mission_health.grid_info()['row'], 1)
+        self.assertLess(collapsed_bar, expanded_bar)
+        self.assertEqual(collapsed_map - expanded_map, expanded_bar - collapsed_bar)
+        app.btn_mission_toggle.invoke()
+        self.assertEqual(bar_and_map_heights(), (collapsed_bar, collapsed_map))
+
     def test_tracker_dialog_is_large_and_fits_its_content(self):
         import tkinter as tk
         app = self.app
