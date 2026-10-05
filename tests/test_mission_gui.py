@@ -163,6 +163,32 @@ class MissionUITests(unittest.TestCase):
             self.assertGreaterEqual(top(button), top(callsign) + callsign.winfo_height())
             self.assertLessEqual(top(button) + button.winfo_height(), header.winfo_height())
 
+    def test_navigation_buttons_sit_beside_map_title_and_select_tabs(self):
+        import tracker
+        app = self.app
+        self.root.overrideredirect(True)
+        self.root.geometry('2160x1350')
+        self.root.update()
+        # Sem faixa de abas: o mapa começa no topo do Notebook.
+        self.assertEqual(app.map_widget.winfo_rooty(), app.navigation_tabs.winfo_rooty())
+        self.assertEqual([button.cget('text') for button in app.navigation_buttons],
+                         ['Mapa da missão', 'Antena 3D', 'Sonda 3D'])
+        self.assertEqual(app.navigation_buttons_group.grid_info()['row'], app.map_title_group.grid_info()['row'])
+        app.navigation_buttons[2].invoke()
+        self.root.update()
+        self.assertEqual(app.navigation_tabs.index('current'), 2)
+        self.assertEqual(app.navigation_buttons[2].cget('fg'), tracker.COLOR_ACCENT_CYAN)
+        self.assertNotEqual(app.navigation_buttons[0].cget('fg'), tracker.COLOR_ACCENT_CYAN)
+        app.navigation_buttons[0].invoke()
+        # Na janela estreita os controles do mapa descem para a segunda linha em vez de serem cortados.
+        for zoom, size, wrapped in ((1.5, '2160x1350', False), (1.0, '1080x820', True)):
+            app.set_zoom(zoom)
+            self.root.geometry(size)
+            self.root.update()
+            self.assertEqual(app.map_layer_group.grid_info()['row'], 1 if wrapped else 0)
+            for group in app.map_header.winfo_children():
+                self.assertGreaterEqual(group.winfo_width(), group.winfo_reqwidth())
+
     def test_tracker_dialog_is_large_and_fits_its_content(self):
         import tkinter as tk
         app = self.app

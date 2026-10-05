@@ -134,7 +134,9 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             bordercolor=COLOR_BG_SURFACE,
             arrowcolor=COLOR_TEXT_MUTED,
         )
-        self.style.configure("Telemetry.TNotebook", background=COLOR_BG_CARD, borderwidth=0)
+        self.style.configure("Telemetry.TNotebook", background=COLOR_BG_CARD, borderwidth=0, tabmargins=0)
+        # A faixa de abas fica oculta: os botões ao lado do título do mapa escolhem a aba, e o mapa ganha a altura.
+        self.style.layout("Telemetry.TNotebook.Tab", [])
         self.style.configure(
             "Telemetry.TNotebook.Tab", background=COLOR_BG_ELEVATED,
             foreground=COLOR_TEXT_MUTED, padding=(scaled(16, self.zoom), scaled(8, self.zoom)),
@@ -285,6 +287,8 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self._label(title_group, "TRAJETÓRIA EM TEMPO REAL", 9, COLOR_TEXT_MAIN, "bold").pack(anchor=tk.W)
         self.lbl_map_coordinates = self._label(title_group, "Posição inicial · Lago Norte, Brasília", 8, COLOR_TEXT_MUTED)
         self.lbl_map_coordinates.pack(anchor=tk.W, pady=(2, 0))
+        self.navigation_buttons_group = tk.Frame(map_header, bg=COLOR_BG_CARD)
+        self.navigation_buttons_group.grid(row=0, column=1, sticky="w", padx=(18, 12), pady=8)
 
         layer_group = tk.Frame(map_header, bg=COLOR_BG_CARD)
         layer_group.grid(row=0, column=2, sticky="e", pady=8)
@@ -310,6 +314,10 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             font=(FONT_FAMILY, 10), padx=12, pady=4,
         )
         self.btn_offline.pack(side=tk.LEFT, padx=(8, 0))
+        self.map_header, self.map_title_group, self.map_layer_group = map_header, title_group, layer_group
+        self._map_header_wrapped = None
+        for widget in (map_header, title_group, layer_group):
+            widget.bind("<Configure>", lambda event: self._flow_map_header(), add="+")
 
         self.navigation_tabs = ttk.Notebook(map_card, style="Telemetry.TNotebook")
         self.navigation_tabs.grid(row=1, column=0, sticky="nsew")
@@ -326,6 +334,16 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         )
         self._build_antenna_view()
         self._build_probe_view()
+        self.navigation_buttons = []
+        for index, tab in enumerate(self.navigation_tabs.tabs()):
+            button = tk.Button(
+                self.navigation_buttons_group, text=self.navigation_tabs.tab(tab, "text"),
+                command=lambda index=index: self.navigation_tabs.select(index),
+                relief=tk.FLAT, cursor="hand2", font=(FONT_FAMILY, 10, "bold"), padx=12, pady=4,
+            )
+            button.pack(side=tk.LEFT, padx=(0 if index == 0 else 6, 0))
+            self.navigation_buttons.append(button)
+        self._highlight_navigation_button()
 
         sidebar_shell = tk.Frame(
             workspace, bg=COLOR_BG_SURFACE, width=370,
@@ -373,7 +391,33 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self._build_message_card()
         self.update_antenna()
 
+    def _flow_map_header(self):
+        """Leva os controles do mapa para uma segunda linha quando título, abas e controles não cabem lado a lado."""
+        header, layer_group = self.map_header, self.map_layer_group
+        groups = (self.map_title_group, self.navigation_buttons_group, layer_group)
+        needed = sum(group.winfo_reqwidth() for group in groups) + 30 + 2 * int(header.cget("padx"))
+        wrapped = needed > header.winfo_width()
+        if wrapped == self._map_header_wrapped:
+            return
+        self._map_header_wrapped = wrapped
+        if wrapped:
+            layer_group.grid(row=1, column=0, columnspan=3, sticky="w", pady=(0, 8))
+        else:
+            layer_group.grid(row=0, column=2, columnspan=1, sticky="e", pady=8)
+        # Em uma linha o cabeçalho mantém a altura fixa; em duas, cresce com o conteúdo.
+        header.grid_propagate(wrapped)
+        if not wrapped:
+            header.configure(height=header.cget("height"))
+
+    def _highlight_navigation_button(self):
+        selected = self.navigation_tabs.index(self.navigation_tabs.select())
+        for index, button in enumerate(getattr(self, "navigation_buttons", ())):
+            background, foreground = ((COLOR_BORDER, COLOR_ACCENT_CYAN) if index == selected
+                                      else (COLOR_BG_ELEVATED, COLOR_TEXT_MUTED))
+            button.config(bg=background, fg=foreground, activebackground=COLOR_BORDER, activeforeground=foreground)
+
     def _on_navigation_tab_changed(self, event=None):
+        self._highlight_navigation_button()
         # As abas 3D usam a altura dos gráficos para manter a geometria legível
         # inclusive na janela mínima. Voltar ao mapa restaura as tendências.
         if hasattr(self, "charts_card"):
