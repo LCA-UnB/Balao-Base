@@ -144,7 +144,7 @@ class MissionUITests(unittest.TestCase):
         self.root.geometry('1600x1000')
         def bar_and_map_heights():
             self.root.update()
-            return app.btn_mission_toggle.master.master.winfo_height(), app.map_widget.winfo_height()
+            return app.mission_bar.winfo_height(), app.map_widget.winfo_height()
         collapsed_bar, collapsed_map = bar_and_map_heights()
         self.assertEqual(app.lbl_mission_health.grid_info()['row'], 0)
         app.btn_mission_toggle.invoke()
@@ -154,6 +154,14 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(collapsed_map - expanded_map, expanded_bar - collapsed_bar)
         app.btn_mission_toggle.invoke()
         self.assertEqual(bar_and_map_heights(), (collapsed_bar, collapsed_map))
+        # O botão ocupa o espaço livre do cabeçalho, sob o nome da missão, sem ser cortado em nenhum zoom.
+        header, button, callsign = app.header_identity.master, app.btn_mission_toggle, app.lbl_callsign
+        for zoom in (1.0, 1.5, 3.0):
+            app.set_zoom(zoom)
+            self.root.update()
+            top = lambda widget: widget.winfo_rooty() - header.winfo_rooty()
+            self.assertGreaterEqual(top(button), top(callsign) + callsign.winfo_height())
+            self.assertLessEqual(top(button) + button.winfo_height(), header.winfo_height())
 
     def test_tracker_dialog_is_large_and_fits_its_content(self):
         import tkinter as tk

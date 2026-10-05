@@ -217,7 +217,8 @@ class SondeTrackerApp(MissionControls, ZoomControls):
 
         identity = tk.Frame(header, bg=COLOR_BG_SURFACE, padx=20)
         identity.grid(row=0, column=0, sticky="nsw")
-        self._label(identity, "LCA  /  ESTAÇÃO DE SOLO", 8, COLOR_TEXT_MUTED, "bold").pack(anchor=tk.W, pady=(14, 2))
+        self.header_identity = identity
+        self._label(identity, "LCA  /  ESTAÇÃO DE SOLO", 8, COLOR_TEXT_MUTED, "bold").pack(anchor=tk.W, pady=(10, 2))
         self.lbl_callsign = self._label(identity, "MISSÃO  —", 17, COLOR_TEXT_MAIN, "bold")
         self.lbl_callsign.pack(anchor=tk.W)
 

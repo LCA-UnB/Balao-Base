@@ -50,16 +50,18 @@ class MissionControls:
         bar = tk.Frame(self.root, bg="#101720", padx=14, pady=6)
         bar.grid(row=1, column=0, sticky="ew")
         bar.grid_columnconfigure(0, weight=1)
+        self.mission_bar = bar
         actions = tk.Frame(bar, bg="#101720")
         actions.grid(row=0, column=0, sticky="ew")
-        actions.grid_columnconfigure(1, weight=1)
-        # As ações ficam ocultas por padrão: recolhida, a barra vira uma linha fina e o mapa ganha a altura.
-        self.btn_mission_toggle = tk.Button(actions, command=self.toggle_mission_buttons, bg="#1b2633", fg="#38d683",
-                                            activebackground="#263547", activeforeground="#38d683", relief=tk.FLAT,
-                                            font=("Segoe UI", 10, "bold"), padx=12, pady=3, cursor="hand2")
-        self.btn_mission_toggle.grid(row=0, column=0, sticky="nw", padx=(0, 8))
+        actions.grid_columnconfigure(0, weight=1)
+        # As ações ficam ocultas por padrão. O botão mora no espaço livre do cabeçalho, sob o nome da missão,
+        # e recolhida a barra vira uma linha fina, deixando a altura para o mapa.
+        self.btn_mission_toggle = tk.Button(self.header_identity, command=self.toggle_mission_buttons, bg="#1b2633",
+                                            fg="#38d683", activebackground="#263547", activeforeground="#38d683",
+                                            relief=tk.FLAT, font=("Segoe UI", 10, "bold"), padx=12, pady=3, cursor="hand2")
+        self.btn_mission_toggle.pack(anchor=tk.W, pady=(3, 0))
         self.mission_buttons = tk.Frame(actions, bg="#101720")
-        self.mission_buttons.grid(row=0, column=1, sticky="ew")
+        self.mission_buttons.grid(row=0, column=0, sticky="ew")
         self.mission_action_buttons = [
             tk.Button(self.mission_buttons, text=title, command=command, bg="#1b2633", fg="#f2f5f8", relief=tk.FLAT,
                       font=("Segoe UI", 12), padx=22, pady=12, cursor="hand2")
@@ -70,7 +72,7 @@ class MissionControls:
         self._mission_layout = None
         self.mission_buttons.bind("<Configure>", lambda event: self._flow_mission_buttons())
         self.lbl_mode = self._label(actions, "AO VIVO", 9, "#38d683", "bold")
-        self.lbl_mode.grid(row=0, column=2, sticky="ne", padx=(12, 0))
+        self.lbl_mode.grid(row=0, column=1, sticky="ne", padx=(12, 0))
         self.lbl_mission_health = self._label(actions, "Crie ou retome uma missão para conectar o rádio.", 9, "#94a3b5")
         self.set_mission_buttons_visible(False)
         self.replay_bar = tk.Frame(bar, bg="#101720")
@@ -96,13 +98,13 @@ class MissionControls:
         self.mission_buttons_visible = visible
         if visible:
             self.mission_buttons.grid()
-            self.lbl_mission_health.grid(row=1, column=0, columnspan=3, sticky="w", pady=(5, 0))
+            self.lbl_mission_health.grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 0))
             self._mission_layout = None
             self.root.after_idle(self._flow_mission_buttons)
         else:
             self.mission_buttons.grid_remove()
-            # Recolhida, a situação da missão divide a linha com o botão em vez de ocupar outra.
-            self.lbl_mission_health.grid(row=0, column=1, columnspan=1, sticky="w", pady=0)
+            # Recolhida, a situação da missão ocupa a linha dos botões em vez de abrir outra.
+            self.lbl_mission_health.grid(row=0, column=0, columnspan=1, sticky="w", pady=0)
         self.btn_mission_toggle.config(text="▾  Ocultar ações" if visible else "▸  Ações da missão")
 
     def toggle_mission_buttons(self):
