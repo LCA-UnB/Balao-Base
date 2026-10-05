@@ -251,6 +251,34 @@ class MissionUITests(unittest.TestCase):
         self.root.update()
         self.assertGreater(self.app.antenna_canvas.get_tk_widget().winfo_height(), 150)
 
+    def test_probe_tab_rotates_model_with_attitude(self):
+        from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+        app = self.app
+        self.assertEqual(app.lbl_probe_pitch.cget('text'), '—°')
+        self.assertIn('Aguardando', app.lbl_probe_status.cget('text'))
+        record = dict(packet(), received_at=utc_now(), elapsed=0)
+        record['fields'] = dict(record['fields'], Pitch=-10.5, Roll=170, Yaw=45)
+        app._apply_record(record)
+        app.update_gui()
+        self.assertEqual([label.cget('text') for label in (app.lbl_probe_pitch, app.lbl_probe_roll, app.lbl_probe_yaw)],
+                         ['-10.5°', '+170.0°', '+45.0°'])
+        self.assertIn('cabeça para baixo', app.lbl_probe_status.cget('text'))
+        boxes = [item for item in app.probe_axis.collections if isinstance(item, Poly3DCollection)]
+        self.assertEqual(len(boxes), 1)
+        app._apply_record(dict(record, fields={'Fix': 0}, gps_valid=False, elapsed=1))
+        app.update_gui()
+        self.assertEqual(app.lbl_probe_yaw.cget('text'), '—°')
+        self.assertFalse([item for item in app.probe_axis.collections if isinstance(item, Poly3DCollection)])
+        self.root.overrideredirect(True)
+        self.root.geometry('%dx%d' % self.root.minsize())
+        app.navigation_tabs.select(2)
+        self.root.update()
+        self.assertFalse(app.charts_card.winfo_ismapped())
+        self.assertGreater(app.probe_canvas.get_tk_widget().winfo_height(), 150)
+        app.navigation_tabs.select(0)
+        self.root.update()
+        self.assertTrue(app.charts_card.winfo_ismapped())
+
     def test_end_marks_mission_closed_and_disables_connect(self):
         path = self.app.mission.path
         self.app.end_mission()

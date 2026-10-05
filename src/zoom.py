@@ -110,7 +110,7 @@ class ZoomControls:
             self.on_zoom_applied()
 
     def _zoom_figures(self):
-        pairs = (("fig", "canvas"), ("antenna_fig", "antenna_canvas"))
+        pairs = (("fig", "canvas"), ("antenna_fig", "antenna_canvas"), ("probe_fig", "probe_canvas"))
         return [(getattr(self, fig), getattr(self, canvas)) for fig, canvas in pairs if hasattr(self, canvas)]
 
     def _zoom_widget(self, widget):
