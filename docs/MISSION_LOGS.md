@@ -21,7 +21,7 @@ O executável Windows versionado anteriormente não é atualizado por esta alter
 ## Operação de uma missão
 
 1. Clique em **Nova missão**, informe o nome e selecione a pasta de destino. A sugestão inicial é a pasta `logs/` na raiz do projeto, criada automaticamente. Cada missão recebe uma subpasta com data UTC e identificador único.
-2. Em **Configurar tracker**, informe latitude, longitude e altitude MSL da antena em solo. Também é possível escolher a posição com o botão direito no mapa e preencher a altitude. A configuração e suas alterações ficam registradas.
+2. Em **Configurar tracker** (aba **Antena 3D**, no cartão "Tracker → sonda"), informe latitude, longitude e altitude MSL da antena em solo. Também é possível escolher a posição com o botão direito no mapa e preencher a altitude. A configuração e suas alterações ficam registradas.
 3. Selecione a porta USB e conecte. O aplicativo aceita os formatos das linhas A e B, incluindo bateria, aceleração média e ACK da linha B atual. Campos não enviados permanecem vazios; não são completados com valores de pacotes anteriores.
 4. A barra da missão informa os pacotes salvos, o tamanho da fila e eventuais perdas. O cabeçalho mostra a última sincronização com o disco. **Detalhes** exibe o caminho, o erro e o período abrangido por descartes.
 5. Desconectar o rádio **não encerra a missão**. Reconectar continua no mesmo arquivo. Fechar o aplicativo salva o que estiver pendente e mantém a missão aberta para retomada. Se houver falha persistente, o aplicativo permite continuar tentando ou fechar após confirmar a perda dos dados que ainda estão na RAM.

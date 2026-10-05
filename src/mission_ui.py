@@ -11,7 +11,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 
 import serial
 
-from antenna import Position
+from antenna import Position, position_from_packet
 from mission import MissionWriter, export_csv, export_kml, export_raw, read_metadata
 from replay import MissionReplay
 from station import StationReceiver
@@ -50,9 +50,16 @@ class MissionControls:
         bar = tk.Frame(self.root, bg="#101720", padx=14, pady=6)
         bar.grid(row=1, column=0, sticky="ew")
         bar.grid_columnconfigure(0, weight=1)
+        self.mission_bar = bar
         actions = tk.Frame(bar, bg="#101720")
         actions.grid(row=0, column=0, sticky="ew")
         actions.grid_columnconfigure(0, weight=1)
+        # As ações ficam ocultas por padrão. O botão mora no espaço livre do cabeçalho, sob o nome da missão,
+        # e recolhida a barra vira uma linha fina, deixando a altura para o mapa.
+        self.btn_mission_toggle = tk.Button(self.header_identity, command=self.toggle_mission_buttons, bg="#1b2633",
+                                            fg="#38d683", activebackground="#263547", activeforeground="#38d683",
+                                            relief=tk.FLAT, font=("Segoe UI", 10, "bold"), padx=12, pady=3, cursor="hand2")
+        self.btn_mission_toggle.pack(anchor=tk.W, pady=(3, 0))
         self.mission_buttons = tk.Frame(actions, bg="#101720")
         self.mission_buttons.grid(row=0, column=0, sticky="ew")
         self.mission_action_buttons = [
@@ -66,8 +73,8 @@ class MissionControls:
         self.mission_buttons.bind("<Configure>", lambda event: self._flow_mission_buttons())
         self.lbl_mode = self._label(actions, "AO VIVO", 9, "#38d683", "bold")
         self.lbl_mode.grid(row=0, column=1, sticky="ne", padx=(12, 0))
-        self.lbl_mission_health = self._label(bar, "Crie ou retome uma missão para conectar o rádio.", 9, "#94a3b5")
-        self.lbl_mission_health.grid(row=1, column=0, sticky="w", pady=(5, 0))
+        self.lbl_mission_health = self._label(actions, "Crie ou retome uma missão para conectar o rádio.", 9, "#94a3b5")
+        self.set_mission_buttons_visible(False)
         self.replay_bar = tk.Frame(bar, bg="#101720")
         self.replay_bar.grid(row=2, column=0, sticky="ew", pady=(6, 0))
         self.replay_bar.grid_columnconfigure(2, weight=1)
@@ -86,6 +93,22 @@ class MissionControls:
         self.lbl_replay_time.grid(row=0, column=3, padx=8)
         tk.Button(self.replay_bar, text="Voltar ao vivo", command=self.exit_replay, padx=14, pady=8, font=("Segoe UI", 11)).grid(row=0, column=4)
         self.replay_bar.grid_remove()
+
+    def set_mission_buttons_visible(self, visible):
+        self.mission_buttons_visible = visible
+        if visible:
+            self.mission_buttons.grid()
+            self.lbl_mission_health.grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 0))
+            self._mission_layout = None
+            self.root.after_idle(self._flow_mission_buttons)
+        else:
+            self.mission_buttons.grid_remove()
+            # Recolhida, a situação da missão ocupa a linha dos botões em vez de abrir outra.
+            self.lbl_mission_health.grid(row=0, column=0, columnspan=1, sticky="w", pady=0)
+        self.btn_mission_toggle.config(text="▾  Ocultar ações" if visible else "▸  Ações da missão")
+
+    def toggle_mission_buttons(self):
+        self.set_mission_buttons_visible(not self.mission_buttons_visible)
 
     def _flow_mission_buttons(self):
         """Quebra os botões da barra em linhas quando a janela é estreita ou o zoom é grande."""
@@ -479,7 +502,7 @@ class MissionControls:
         for history in (self.history_time, self.history_temp, self.history_alt, self.history_press, self.history_hum, self.path_coordinates):
             history.clear()
         self.sample_count = 0
-        self.current_record = self.last_gps_data = self.antenna_packet = None
+        self.current_record = self.last_gps_data = self.antenna_packet = self.sonde_fix = None
         self.packet_monotonic = None
         self.telemetry = {}
         for attribute in ("current_marker", "track_line"):
@@ -503,6 +526,12 @@ class MissionControls:
         self.packet_monotonic = time.monotonic()
         self.telemetry = dict(record["fields"], **{"Texto Bruto": record.get("callsign") or "—"})
         self.antenna_packet = (record["fields"], None)
+        try:
+            # A antena continua apontando para a última posição com fix 3D quando o GPS falha.
+            fix_time = record["elapsed"] - self.replay.origin if self.replay else self.packet_monotonic
+            self.sonde_fix = (position_from_packet(record["fields"]), fix_time)
+        except ValueError:
+            pass
         if self.replay:
             recorded_settings = (record.get("tracker"), record.get("orientation"))
             current = (asdict(self.tracker_position) if self.tracker_position else None,
@@ -549,6 +578,11 @@ class MissionControls:
         if self.replay:
             return self.replay.packet_age()
         return time.monotonic() - self.packet_monotonic if self.packet_monotonic is not None else None
+
+    def _sonde_fix_age(self):
+        if self.sonde_fix is None:
+            return None
+        return (self.replay.position if self.replay else time.monotonic()) - self.sonde_fix[1]
 
     def open_replay(self):
         if self.is_connected:

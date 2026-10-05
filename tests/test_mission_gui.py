@@ -68,7 +68,7 @@ class MissionUITests(unittest.TestCase):
         self.assertEqual(str(self.app.btn_connect.cget('state')), 'disabled')
         self.app.replay.seek(15)
         self.app._render_replay(seek=True)
-        self.assertEqual(self.app.lbl_distance.cget('text'), '— m')
+        self.assertIn('Última posição', self.app.lbl_distance_status.cget('text'))
         self.assertIn('atrasada', self.app.lbl_pointing_status.cget('text'))
         self.app.replay.seek(100)
         self.app._render_replay(seek=True)
@@ -117,6 +117,8 @@ class MissionUITests(unittest.TestCase):
 
     def test_mission_buttons_wrap_instead_of_leaving_the_window(self):
         app = self.app
+        self.assertFalse(app.mission_buttons.winfo_ismapped())
+        app.btn_mission_toggle.invoke()
         self.root.overrideredirect(True)  # sem o gerenciador de janelas decidindo o tamanho
         def rows_and_overflow():
             self.root.update()
@@ -135,6 +137,68 @@ class MissionUITests(unittest.TestCase):
             rows, overflow = rows_and_overflow()
             self.assertGreater(len(rows), 1)
             self.assertLessEqual(overflow, 0)
+
+    def test_collapsed_mission_bar_is_one_line_and_gives_height_to_map(self):
+        app = self.app
+        self.root.overrideredirect(True)
+        self.root.geometry('1600x1000')
+        def bar_and_map_heights():
+            self.root.update()
+            return app.mission_bar.winfo_height(), app.map_widget.winfo_height()
+        collapsed_bar, collapsed_map = bar_and_map_heights()
+        self.assertEqual(app.lbl_mission_health.grid_info()['row'], 0)
+        app.btn_mission_toggle.invoke()
+        expanded_bar, expanded_map = bar_and_map_heights()
+        self.assertEqual(app.lbl_mission_health.grid_info()['row'], 1)
+        self.assertLess(collapsed_bar, expanded_bar)
+        self.assertEqual(collapsed_map - expanded_map, expanded_bar - collapsed_bar)
+        app.btn_mission_toggle.invoke()
+        self.assertEqual(bar_and_map_heights(), (collapsed_bar, collapsed_map))
+        # O botão ocupa o espaço livre do cabeçalho, sob o nome da missão, sem ser cortado em nenhum zoom.
+        header, button, callsign = app.header_identity.master, app.btn_mission_toggle, app.lbl_callsign
+        for zoom in (1.0, 1.5, 3.0):
+            app.set_zoom(zoom)
+            self.root.update()
+            top = lambda widget: widget.winfo_rooty() - header.winfo_rooty()
+            self.assertGreaterEqual(top(button), top(callsign) + callsign.winfo_height())
+            self.assertLessEqual(top(button) + button.winfo_height(), header.winfo_height())
+
+    def test_tracker_card_lives_in_antenna_tab_beside_3d_view(self):
+        app = self.app
+        card = app.btn_tracker.master
+        antenna_tab = app.navigation_tabs.nametowidget(app.navigation_tabs.tabs()[1])
+        self.assertIs(card.master, antenna_tab)
+        self.assertNotIn(card, app.sidebar_content.winfo_children())
+        self.assertEqual(card.grid_info()['column'], app.antenna_canvas.get_tk_widget().grid_info()['column'] + 1)
+        # Sem apontamento, o motivo aparece só uma vez na aba, acima da vista 3D.
+        self.assertEqual(app.lbl_distance_status.cget('text'), '')
+        self.assertTrue(app.lbl_pointing_status.cget('text'))
+
+    def test_navigation_buttons_sit_beside_map_title_and_select_tabs(self):
+        import tracker
+        app = self.app
+        self.root.overrideredirect(True)
+        self.root.geometry('2160x1350')
+        self.root.update()
+        # Sem faixa de abas: o mapa começa no topo do Notebook.
+        self.assertEqual(app.map_widget.winfo_rooty(), app.navigation_tabs.winfo_rooty())
+        self.assertEqual([button.cget('text') for button in app.navigation_buttons],
+                         ['Mapa da missão', 'Antena 3D', 'Sonda 3D'])
+        self.assertEqual(app.navigation_buttons_group.grid_info()['row'], app.map_title_group.grid_info()['row'])
+        app.navigation_buttons[2].invoke()
+        self.root.update()
+        self.assertEqual(app.navigation_tabs.index('current'), 2)
+        self.assertEqual(app.navigation_buttons[2].cget('fg'), tracker.COLOR_ACCENT_CYAN)
+        self.assertNotEqual(app.navigation_buttons[0].cget('fg'), tracker.COLOR_ACCENT_CYAN)
+        app.navigation_buttons[0].invoke()
+        # Na janela estreita os controles do mapa descem para a segunda linha em vez de serem cortados.
+        for zoom, size, wrapped in ((1.5, '2160x1350', False), (1.0, '1080x820', True)):
+            app.set_zoom(zoom)
+            self.root.geometry(size)
+            self.root.update()
+            self.assertEqual(app.map_layer_group.grid_info()['row'], 1 if wrapped else 0)
+            for group in app.map_header.winfo_children():
+                self.assertGreaterEqual(group.winfo_width(), group.winfo_reqwidth())
 
     def test_tracker_dialog_is_large_and_fits_its_content(self):
         import tkinter as tk
@@ -342,7 +406,7 @@ class MissionUITests(unittest.TestCase):
             connect()
             send(FRAME, 2)
             send(FRAME.replace(b'Alt:3000\n', b''), 3)
-            self.assertEqual(self.app.lbl_distance.cget('text'), '— m')
+            self.assertNotEqual(self.app.lbl_distance.cget('text'), '— m')  # mantém o último fix 3D
             self.app.disconnect_serial()
             self.assertTrue(self.app.mission.flush())
             records = list(packet_rows(self.app.mission.path))
