@@ -64,7 +64,8 @@ class MissionUITests(unittest.TestCase):
         self.root.update()
         self.assertIsNotNone(self.app.replay)
         self.assertEqual(self.app.tracker_position.altitude, 1000)
-        self.assertEqual(self.app.lbl_mode.cget('text'), 'REPRODUÇÃO')
+        self.assertIn('REPRODUÇÃO', self.app.lbl_connection.cget('text'))
+        self.assertTrue(self.app.mission_bar.winfo_ismapped())
         self.assertEqual(str(self.app.btn_connect.cget('state')), 'disabled')
         self.app.replay.seek(15)
         self.app._render_replay(seek=True)
@@ -74,6 +75,8 @@ class MissionUITests(unittest.TestCase):
         self.app._render_replay(seek=True)
         self.assertNotEqual(self.app.lbl_distance.cget('text'), '— m')
         self.app.exit_replay()
+        self.root.update()
+        self.assertFalse(self.app.mission_bar.winfo_ismapped())
         self.assertEqual(self.app.tracker_position.altitude, 3)
         self.assertEqual(self.app.capture_settings[1], [4,5])
         self.assertEqual(mission.snapshot()['written_records'], before)
@@ -115,53 +118,53 @@ class MissionUITests(unittest.TestCase):
         self.root.update()
         self.assertEqual(app.zoom, app.default_zoom)
 
-    def test_mission_buttons_wrap_instead_of_leaving_the_window(self):
-        app = self.app
-        self.assertFalse(app.mission_buttons.winfo_ismapped())
-        app.btn_mission_toggle.invoke()
-        self.root.overrideredirect(True)  # sem o gerenciador de janelas decidindo o tamanho
-        def rows_and_overflow():
-            self.root.update()
-            frame = app.mission_buttons
-            rows = {button.grid_info()['row'] for button in app.mission_action_buttons}
-            overflow = max(button.winfo_x() + button.winfo_width() for button in app.mission_action_buttons) - frame.winfo_width()
-            return rows, overflow
-        app.set_zoom(1.0)
-        self.root.geometry('2400x900')
-        rows, overflow = rows_and_overflow()
-        self.assertEqual(rows, {0})
-        self.assertLessEqual(overflow, 0)
-        for zoom, width in ((1.5, 900), (3.0, 1400)):
-            app.set_zoom(zoom)
-            self.root.geometry(f'{width}x1400')
-            rows, overflow = rows_and_overflow()
-            self.assertGreater(len(rows), 1)
-            self.assertLessEqual(overflow, 0)
-
-    def test_collapsed_mission_bar_is_one_line_and_gives_height_to_map(self):
+    def test_mission_actions_open_to_the_side_without_moving_map(self):
         app = self.app
         self.root.overrideredirect(True)
+        app.set_zoom(1.0)
         self.root.geometry('1600x1000')
-        def bar_and_map_heights():
+        self.root.update()
+        before = app.map_widget.winfo_rooty(), app.map_widget.winfo_height()
+        self.assertFalse(app.mission_buttons.winfo_ismapped())
+        app.btn_mission_toggle.invoke()
+        self.root.update()
+        self.assertTrue(app.mission_buttons.winfo_ismapped())
+        self.assertGreaterEqual(app.mission_buttons.winfo_rootx(),
+                                app.btn_mission_toggle.winfo_rootx() + app.btn_mission_toggle.winfo_width())
+        self.assertFalse(app.mission_bar.winfo_ismapped())
+        self.assertEqual((app.map_widget.winfo_rooty(), app.map_widget.winfo_height()), before)
+        self.assertEqual([app.mission_buttons.entrycget(i, 'label') for i in range(8)],
+                         ['Nova missão', 'Retomar missão', 'Encerrar missão', 'Reproduzir',
+                          'Exportar CSV', 'Exportar KML', 'Exportar bruto', 'Detalhes'])
+        self.root.event_generate('<Escape>')
+        self.root.update()
+        self.assertFalse(app.mission_buttons.winfo_ismapped())
+        self.assertFalse(app.mission_buttons_visible)
+        self.root.focus_force()
+        app.btn_mission_toggle.invoke()
+        self.root.update()
+        with patch('mission_ui.messagebox.showinfo') as details:
+            app.mission_buttons.activate(7)
+            app.mission_buttons.event_generate('<Return>')
             self.root.update()
-            return app.mission_bar.winfo_height(), app.map_widget.winfo_height()
-        collapsed_bar, collapsed_map = bar_and_map_heights()
-        self.assertEqual(app.lbl_mission_health.grid_info()['row'], 0)
-        app.btn_mission_toggle.invoke()
-        expanded_bar, expanded_map = bar_and_map_heights()
-        self.assertEqual(app.lbl_mission_health.grid_info()['row'], 1)
-        self.assertLess(collapsed_bar, expanded_bar)
-        self.assertEqual(collapsed_map - expanded_map, expanded_bar - collapsed_bar)
-        app.btn_mission_toggle.invoke()
-        self.assertEqual(bar_and_map_heights(), (collapsed_bar, collapsed_map))
-        # O botão ocupa o espaço livre do cabeçalho, sob o nome da missão, sem ser cortado em nenhum zoom.
-        header, button, callsign = app.header_identity.master, app.btn_mission_toggle, app.lbl_callsign
+        self.assertEqual(details.call_count, 1)
+        self.assertFalse(app.mission_buttons_visible)
+
+    def test_actions_live_beside_status_in_compact_header(self):
+        app = self.app
+        self.root.overrideredirect(True)
+        header, button = app.header_identity.master, app.btn_mission_toggle
+        self.assertIs(button.master, app.header_actions)
+        self.assertIs(app.btn_charts.master, app.header_actions)
         for zoom in (1.0, 1.5, 3.0):
             app.set_zoom(zoom)
             self.root.update()
-            top = lambda widget: widget.winfo_rooty() - header.winfo_rooty()
-            self.assertGreaterEqual(top(button), top(callsign) + callsign.winfo_height())
-            self.assertLessEqual(top(button) + button.winfo_height(), header.winfo_height())
+            top = button.winfo_rooty() - header.winfo_rooty()
+            self.assertGreaterEqual(top, 0)
+            self.assertLessEqual(top + button.winfo_height(), header.winfo_height())
+            self.assertFalse(app.mission_bar.winfo_ismapped())
+            self.assertGreaterEqual(button.winfo_rootx(),
+                                    app.lbl_connection.master.winfo_rootx() + app.lbl_connection.master.winfo_width())
 
     def test_tracker_card_lives_in_antenna_tab_beside_3d_view(self):
         app = self.app
@@ -251,15 +254,10 @@ class MissionUITests(unittest.TestCase):
                 dialog.geometry.assert_called_once_with(f'1080x690+{screen[0] - 1080}+0')
 
     def click_export_kml(self, destination):
-        import tkinter as tk
-        def find(widget):
-            if isinstance(widget, tk.Button) and widget.cget('text') == 'Exportar KML':
-                return widget
-            return next((found for child in widget.winfo_children() if (found := find(child))), None)
-        button = find(self.root)
-        self.assertIsNotNone(button)
+        menu = self.app.mission_buttons
+        index = next(i for i in range(menu.index('end') + 1) if menu.entrycget(i, 'label') == 'Exportar KML')
         with patch('mission_ui.filedialog.asksaveasfilename', return_value=str(destination)) as dialog:
-            button.invoke()
+            menu.invoke(index)
         deadline = time.monotonic() + 5
         while self.app.background_results.empty() and time.monotonic() < deadline:
             time.sleep(.01)
@@ -341,7 +339,68 @@ class MissionUITests(unittest.TestCase):
         self.assertGreater(app.probe_canvas.get_tk_widget().winfo_height(), 150)
         app.navigation_tabs.select(0)
         self.root.update()
+        self.assertFalse(app.charts_card.winfo_ismapped())
+        app.btn_charts.invoke()
+        self.root.update()
         self.assertTrue(app.charts_card.winfo_ismapped())
+        app.navigation_tabs.select(2)
+        self.root.update()
+        self.assertFalse(app.charts_card.winfo_ismapped())
+        app.navigation_tabs.select(0)
+        self.root.update()
+        self.assertTrue(app.charts_card.winfo_ismapped())
+
+    def test_rescue_data_fits_without_scrolling_and_map_gets_most_of_window(self):
+        app = self.app
+        self.root.overrideredirect(True)
+        app.set_zoom(1.0)
+        self.root.minsize(1080, 600)  # simula o limite aplicado numa tela de notebook
+        for width, height in ((1280, 688), (1366, 768), (1920, 1080)):
+            self.root.geometry(f'{width}x{height}')
+            self.root.update()
+            self.assertEqual((self.root.winfo_width(), self.root.winfo_height()), (width, height))
+            self.assertEqual(app.sidebar_tabs.index('current'), 0)
+            canvas = app.sidebar_canvases[app.sidebar_tabs.select()]
+            self.assertLessEqual(app.sidebar_content.winfo_height(), canvas.winfo_height())
+            self.assertGreater(app.map_widget.winfo_width(), width * .6)
+            self.assertGreater(app.map_widget.winfo_height(), height * .6)
+            self.assertFalse(app.charts_card.winfo_ismapped())
+        self.assertEqual([app.sidebar_tabs.tab(tab, 'text') for tab in app.sidebar_tabs.tabs()],
+                         ['Resgate', 'Sensores', 'Mensagens', 'Comandos'])
+        app._set_configuration({'latitude':-15.1, 'longitude':-47.1, 'altitude':1000}, None)
+        app._apply_record(dict(packet(), received_at=utc_now(), elapsed=0))
+        app.update_gui()
+        app.update_antenna()
+        self.assertNotEqual(app.lbl_rescue_distance.cget('text'), '—')
+        self.assertIn('recente', app.lbl_rescue_status.cget('text'))
+
+    def test_charts_fill_bottom_section_while_map_and_sidebar_remain_visible(self):
+        app = self.app
+        self.root.overrideredirect(True)
+        app.set_zoom(1.0)
+        self.root.minsize(1080, 600)
+        for width, height in ((1280, 688), (1920, 1080)):
+            self.root.geometry(f'{width}x{height}')
+            self.root.update()
+            map_height = app.map_widget.winfo_height()
+            app.btn_charts.invoke()
+            self.root.update()
+            self.assertTrue(app.workspace.winfo_ismapped())
+            self.assertTrue(app.sidebar_shell.winfo_ismapped())
+            self.assertTrue(app.map_widget.winfo_ismapped())
+            self.assertTrue(app.charts_card.winfo_ismapped())
+            self.assertGreaterEqual(app.charts_card.winfo_rooty(),
+                                    app.workspace.winfo_rooty() + app.workspace.winfo_height())
+            self.assertLess(app.charts_card.winfo_height(), app.workspace.winfo_height())
+            chart = app.canvas.get_tk_widget()
+            self.assertGreater(chart.winfo_width(), width * .95)
+            self.assertGreater(chart.winfo_height(), height * .15)
+            self.assertLess(chart.winfo_height(), height * .4)
+            self.assertEqual(app.btn_charts.cget('text'), 'Ocultar gráficos')
+            app.btn_charts.invoke()
+            self.root.update()
+            self.assertFalse(app.charts_card.winfo_ismapped())
+            self.assertEqual(app.map_widget.winfo_height(), map_height)
 
     def test_end_marks_mission_closed_and_disables_connect(self):
         path = self.app.mission.path
@@ -437,6 +496,12 @@ class MissionUITests(unittest.TestCase):
             self.assertEqual(self.app.lbl_station.cget('text'), 'B de 3')
             self.assertEqual((self.app.station_letter.get(), self.app.station_total.get()), ('B', '3'))
             self.assertIn('[10:00:01] C: Pouso em -15.8 -47.9', self.app.message_log.get('1.0', 'end'))
+            self.assertEqual(self.app.sidebar_tabs.tab(2, 'text'), 'Mensagens (1)')
+            self.app.sidebar_tabs.select(2)
+            self.root.update()
+            self.assertEqual(self.app.sidebar_tabs.tab(2, 'text'), 'Mensagens')
+            self.app.sidebar_tabs.select(0)
+            self.root.update()
             self.app.update_gui()
             self.assertEqual(self.app.lbl_ack.cget('text'), '6')
 

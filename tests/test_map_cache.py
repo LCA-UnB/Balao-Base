@@ -131,20 +131,13 @@ class RegionDownloadTests(CacheTestCase):
         self.assertLess(download.done, len(tiles))
 
 
-@unittest.skipUnless(os.environ.get("DISPLAY"), "PhotoImage requires a display (Xvfb supported)")
 class OfflineMapViewTests(CacheTestCase):
     def setUp(self):
         super().setUp()
-        import tkinter as tk
-        self.root = tk.Tk()
         self.empty = object()
         self.view = SimpleNamespace(
             cache=self.cache, tile_server=SERVER, running=True, empty_tile_image=self.empty, tile_image_cache={},
         )
-
-    def tearDown(self):
-        self.root.destroy()
-        super().tearDown()
 
     def request(self, *tile):
         return OfflineMapView.request_image(self.view, *tile)
@@ -154,7 +147,8 @@ class OfflineMapViewTests(CacheTestCase):
         with patch.object(map_cache, "fetch_tile", side_effect=AssertionError("não deveria acessar a rede")):
             image = self.request(12, 1, 2)
         self.assertIsNot(image, self.empty)
-        self.assertIs(self.view.tile_image_cache["1212"], image)
+        self.assertIsInstance(image, Image.Image)
+        self.assertEqual(self.view.tile_image_cache, {})  # nenhum objeto Tk na thread de carga
 
     def test_downloaded_tile_is_written_to_the_cache(self):
         data = png_bytes()
@@ -165,7 +159,7 @@ class OfflineMapViewTests(CacheTestCase):
 
     def test_offline_miss_shows_empty_tile_and_retries_later(self):
         with patch.object(map_cache, "fetch_tile", side_effect=requests.Timeout):
-            self.assertIs(self.request(12, 5, 6), self.empty)
+            self.assertIsNone(self.request(12, 5, 6))
         self.assertNotIn("1256", self.view.tile_image_cache)
         self.assertFalse(self.cache.has(SERVER, 12, 5, 6))
 
