@@ -35,6 +35,7 @@ class MissionControls:
         self.sample_count = 0
         self.closing = False
         self.station_identity = None
+        self.unread_messages = 0
         self.background_results = Queue()
         self.export_busy = False
         self.replay_scrubbing = False
@@ -51,29 +52,25 @@ class MissionControls:
         bar.grid(row=1, column=0, sticky="ew")
         bar.grid_columnconfigure(0, weight=1)
         self.mission_bar = bar
-        actions = tk.Frame(bar, bg="#101720")
-        actions.grid(row=0, column=0, sticky="ew")
-        actions.grid_columnconfigure(0, weight=1)
-        # As ações ficam ocultas por padrão. O botão mora no espaço livre do cabeçalho, sob o nome da missão,
-        # e recolhida a barra vira uma linha fina, deixando a altura para o mapa.
-        self.btn_mission_toggle = tk.Button(self.header_identity, command=self.toggle_mission_buttons, bg="#1b2633",
+        # As ações abrem ao lado do botão e não ocupam uma linha do workspace.
+        self.btn_mission_toggle = tk.Button(self.header_actions, command=self.toggle_mission_buttons, bg="#1b2633",
                                             fg="#38d683", activebackground="#263547", activeforeground="#38d683",
                                             relief=tk.FLAT, font=("Segoe UI", 10, "bold"), padx=12, pady=3, cursor="hand2")
-        self.btn_mission_toggle.pack(anchor=tk.W, pady=(3, 0))
-        self.mission_buttons = tk.Frame(actions, bg="#101720")
-        self.mission_buttons.grid(row=0, column=0, sticky="ew")
-        self.mission_action_buttons = [
-            tk.Button(self.mission_buttons, text=title, command=command, bg="#1b2633", fg="#f2f5f8", relief=tk.FLAT,
-                      font=("Segoe UI", 12), padx=22, pady=12, cursor="hand2")
-            for title, command in (("Nova missão", self.new_mission), ("Retomar missão", self.resume_mission),
-                                   ("Encerrar missão", self.end_mission), ("Reproduzir", self.open_replay),
-                                   ("Exportar CSV", self.save_csv), ("Exportar KML", self.save_kml),
-                                   ("Exportar bruto", self.save_raw), ("Detalhes", self.log_details))]
-        self._mission_layout = None
-        self.mission_buttons.bind("<Configure>", lambda event: self._flow_mission_buttons())
-        self.lbl_mode = self._label(actions, "AO VIVO", 9, "#38d683", "bold")
-        self.lbl_mode.grid(row=0, column=1, sticky="ne", padx=(12, 0))
-        self.lbl_mission_health = self._label(actions, "Crie ou retome uma missão para conectar o rádio.", 9, "#94a3b5")
+        self.btn_mission_toggle.pack(side=tk.LEFT, before=self.btn_charts)
+        self.mission_buttons = tk.Menu(self.btn_mission_toggle, tearoff=False, bg="#1b2633", fg="#f2f5f8",
+                                       activebackground="#263547", activeforeground="#38d683",
+                                       font=("Segoe UI", 10), relief=tk.FLAT)
+        for index, (title, command) in enumerate((("Nova missão", self.new_mission), ("Retomar missão", self.resume_mission),
+                                                 ("Encerrar missão", self.end_mission), ("Reproduzir", self.open_replay),
+                                                 ("Exportar CSV", self.save_csv), ("Exportar KML", self.save_kml),
+                                                 ("Exportar bruto", self.save_raw), ("Detalhes", self.log_details))):
+            def invoke(command=command):
+                self.set_mission_buttons_visible(False)
+                command()
+            self.mission_buttons.add_command(label=title, command=invoke, columnbreak=index > 0 and index % 2 == 0)
+        self.mission_buttons.bind("<Unmap>", self._on_mission_menu_closed)
+        self.root.bind("<Button-1>", self._dismiss_mission_menu, add="+")
+        self.root.bind("<Escape>", lambda event: self.set_mission_buttons_visible(False), add="+")
         self.set_mission_buttons_visible(False)
         self.replay_bar = tk.Frame(bar, bg="#101720")
         self.replay_bar.grid(row=2, column=0, sticky="ew", pady=(6, 0))
@@ -96,48 +93,49 @@ class MissionControls:
 
     def set_mission_buttons_visible(self, visible):
         self.mission_buttons_visible = visible
+        self.btn_mission_toggle.config(text="◂  Ocultar ações" if visible else "▸  Ações da missão")
         if visible:
-            self.mission_buttons.grid()
-            self.lbl_mission_health.grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 0))
-            self._mission_layout = None
-            self.root.after_idle(self._flow_mission_buttons)
+            button = self.btn_mission_toggle
+            self.root.update_idletasks()
+            # O menu se abre horizontalmente no espaço ao lado do botão.
+            self.mission_buttons.tk_popup(button.winfo_rootx() + button.winfo_width() + 6, button.winfo_rooty())
+            self.mission_buttons.focus_set()
+            self.mission_buttons.activate(0)
         else:
-            self.mission_buttons.grid_remove()
-            # Recolhida, a situação da missão ocupa a linha dos botões em vez de abrir outra.
-            self.lbl_mission_health.grid(row=0, column=0, columnspan=1, sticky="w", pady=0)
-        self.btn_mission_toggle.config(text="▾  Ocultar ações" if visible else "▸  Ações da missão")
+            self.mission_buttons.unpost()
+            self.mission_buttons.grab_release()
+        self._sync_mission_bar_visibility()
+
+    def _on_mission_menu_closed(self, event=None):
+        self.mission_buttons_visible = False
+        self.mission_buttons.grab_release()
+        self.btn_mission_toggle.config(text="▸  Ações da missão")
+
+    def _dismiss_mission_menu(self, event):
+        if event.widget is not self.btn_mission_toggle and self.mission_buttons_visible:
+            self.set_mission_buttons_visible(False)
+
+    def _sync_mission_bar_visibility(self):
+        if self.replay:
+            self.mission_bar.grid()
+        else:
+            self.mission_bar.grid_remove()
 
     def toggle_mission_buttons(self):
         self.set_mission_buttons_visible(not self.mission_buttons_visible)
 
-    def _flow_mission_buttons(self):
-        """Quebra os botões da barra em linhas quando a janela é estreita ou o zoom é grande."""
-        width = self.mission_buttons.winfo_width()
-        width = width if width > 1 else 10 ** 6
-        gap, layout, used, row, column = 8, [], 0, 0, 0
-        for button in self.mission_action_buttons:
-            need = button.winfo_reqwidth() + gap
-            if column and used + need > width:
-                row, column, used = row + 1, 0, 0
-            layout.append((row, column))
-            used, column = used + need, column + 1
-        if layout != self._mission_layout:
-            self._mission_layout = layout
-            for button, (row, column) in zip(self.mission_action_buttons, layout):
-                button.grid(row=row, column=column, padx=(0, gap), pady=(0, gap // 2))
-
     def on_zoom_applied(self):
-        self._mission_layout = None
-        self.root.after_idle(self._flow_mission_buttons)
+        if self.mission_buttons_visible:
+            self.set_mission_buttons_visible(False)
 
     def _choose_mission(self, title):
         return filedialog.askopenfilename(parent=self.root, title=title,
             initialdir=str(self.default_mission_directory), filetypes=[("Missão SQLite", "*.sqlite3")])
 
-    def _build_command_card(self):
-        card = self._card(self.sidebar_content, "Energia e telecomando")
+    def _build_command_card(self, parent):
+        card = self._card(parent, "Telecomando")
         card.pack(fill=tk.X, pady=(0, 9))
-        for title, attribute in (("Bateria", "lbl_bat"), ("ACK recebido", "lbl_ack")):
+        for title, attribute in (("ACK recebido", "lbl_ack"),):
             row, value = self._data_row(card, title)
             row.pack(fill=tk.X, pady=(0, 7))
             setattr(self, attribute, value)
@@ -149,8 +147,8 @@ class MissionControls:
         self.btn_calibrate_imu = tk.Button(card, text="Calibrar IMU", command=self.calibrate_imu, padx=16, pady=8, font=("Segoe UI", 11))
         self.btn_calibrate_imu.pack(fill=tk.X, pady=(8, 0))
 
-    def _build_message_card(self):
-        card = self._card(self.sidebar_content, "Mensagens via balão")
+    def _build_message_card(self, parent):
+        card = self._card(parent, "Mensagens via balão")
         card.pack(fill=tk.X, pady=(0, 9))
         row, self.lbl_station = self._data_row(card, "Esta estação")
         row.pack(fill=tk.X, pady=(0, 7))
@@ -181,6 +179,7 @@ class MissionControls:
         self.lbl_message_count.pack(anchor=tk.E, pady=(3, 0))
         self.lbl_message_status = self._label(card, "Nenhuma mensagem enviada.", 9, "#94a3b5", justify=tk.LEFT, wraplength=320)
         self.lbl_message_status.pack(anchor=tk.W)
+        card.bind("<Configure>", lambda event: self.lbl_message_status.config(wraplength=max(100, event.width - 30)))
 
     def _set_station_choice(self, letter, total):
         self.station_total.set(str(total))
@@ -260,9 +259,7 @@ class MissionControls:
         if not self.mission.close(end_mission=True):
             messagebox.showerror("Gravação pendente", "A missão ainda não foi encerrada com segurança. A recuperação continua.")
             return
-        path = self.mission.path
         self.mission = None
-        self.lbl_mission_health.config(text=f"Missão encerrada · {path.parent.name}", fg="#38d683")
         self.lbl_log_status.config(text="Missão salva e encerrada", fg="#94a3b5")
         self._on_port_selected()
 
@@ -441,6 +438,10 @@ class MissionControls:
             self.message_log.delete("1.0", "2.0")
         self.message_log.config(state=tk.DISABLED)
         self.message_log.see(tk.END)
+        if self.sidebar_tabs.index("current") != 2:
+            self.unread_messages += 1
+            count = str(self.unread_messages) if self.unread_messages <= 99 else "99+"
+            self.sidebar_tabs.tab(2, text=f"Mensagens ({count})")
 
     def _apply_notice(self, notice):
         if notice["kind"] == "ack":
@@ -516,6 +517,8 @@ class MissionControls:
         self.message_log.config(state=tk.NORMAL)
         self.message_log.delete("1.0", tk.END)
         self.message_log.config(state=tk.DISABLED)
+        self.unread_messages = 0
+        self.sidebar_tabs.tab(2, text="Mensagens")
         self.lbl_message_status.config(text="Nenhuma mensagem enviada.", fg="#94a3b5")
         self._draw_empty_charts()
         self.update_gui()
@@ -607,9 +610,9 @@ class MissionControls:
         self.btn_orientation.config(state=tk.DISABLED)
         self.lbl_orientation_prompt.config(text="Antena registrada:")
         self._reset_display()
-        self.lbl_mode.config(text="REPRODUÇÃO", fg="#ffb547")
         self.lbl_connection.config(text="● REPRODUÇÃO · RÁDIO DESATIVADO", fg="#ffb547")
         self.replay_bar.grid()
+        self._sync_mission_bar_visibility()
         self.replay_seek.configure(to=max(replay.duration, .001))
         self.replay_speed.set("1")
         self._render_replay(seek=True)
@@ -662,7 +665,7 @@ class MissionControls:
         self.btn_orientation.config(state=tk.NORMAL)
         self.lbl_orientation_prompt.config(text="Antena atual (opcional):")
         self.replay_bar.grid_remove()
-        self.lbl_mode.config(text="AO VIVO", fg="#38d683")
+        self._sync_mission_bar_visibility()
         self.lbl_connection.config(text="● DESCONECTADO", fg="#94a3b5")
         self._set_configuration(*self.replay_saved_settings)
         self._reset_display()
@@ -671,19 +674,16 @@ class MissionControls:
 
     def _update_mission_health(self):
         if self.replay:
-            self.lbl_mission_health.config(text=f"REPRODUÇÃO · {self.replay.metadata['name']} · dados históricos", fg="#ffb547")
             self.lbl_log_status.config(text="Reprodução não grava na missão", fg="#ffb547")
         elif self.mission:
             status = self.mission.snapshot()
             error = status["error"] or (self.receiver.log_error if self.receiver else None)
-            text = f"{self.mission.metadata['name']} · {status['written_packets']} pacotes salvos · fila {status['buffer_bytes'] / 1048576:.1f} MB"
+            text = f"Última sincronização: {status['last_sync'][11:19] + ' UTC' if status['last_sync'] else 'aguardando'}"
             if error:
-                text += " · FALHA DE GRAVAÇÃO — recepção continua"
-            if status["dropped_records"]:
-                text += f" · PERDA: {status['dropped_packets']} pacotes / {status['dropped_raw_bytes']} bytes brutos"
-            self.lbl_mission_health.config(text=text, fg="#ff6072" if error or status["dropped_records"] else "#38d683")
-            self.lbl_log_status.config(text=f"Última sincronização: {status['last_sync'][11:19] + ' UTC' if status['last_sync'] else 'aguardando'}",
-                                       fg="#ff6072" if error else "#94a3b5")
+                text = "Falha de gravação · consulte Detalhes"
+            elif status["dropped_records"]:
+                text = "Perda de registros · consulte Detalhes"
+            self.lbl_log_status.config(text=text, fg="#ff6072" if error or status["dropped_records"] else "#94a3b5")
 
     def log_details(self):
         if self.replay:
@@ -771,6 +771,8 @@ class MissionControls:
             self.root.after(500, self.gui_updater_loop)
 
     def close_application(self):
+        if self.closing:
+            return
         if self.export_busy:
             messagebox.showinfo("Exportação em andamento", "Aguarde o término da exportação antes de fechar.")
             return
@@ -781,8 +783,15 @@ class MissionControls:
                 return
             self.mission.abandon()
         self.closing = True
+        self.lbl_log_status.config(text="Encerrando aplicativo…")
+        if self.region_download:
+            self.region_download.cancel()
+        if hasattr(self.map_widget, "stop_loading"):
+            self.map_widget.stop_loading()
         owners = {}
         def collect_callbacks(widget):
+            if isinstance(widget, (tk.Button, tk.Entry, tk.Text, ttk.Entry, ttk.Combobox, ttk.Scale)):
+                widget.configure(state=tk.DISABLED)
             for command in widget._tclCommands or ():
                 owners[command] = widget
             for child in widget.winfo_children():
@@ -792,4 +801,16 @@ class MissionControls:
             command = str(self.root.tk.call("after", "info", job)[0])
             if command in owners:
                 owners[command].after_cancel(job)
+        self.root.title("Encerrando — Monitor de Missão")
+        self._finish_application_close()
+
+    def _finish_application_close(self):
+        # Mantém o loop Tk ativo até as requisições em andamento terminarem,
+        # sem bloquear a interface em join() nem destruir imagens sob os workers.
+        if getattr(self.map_widget, "loading", False) or (self.region_download and self.region_download.running):
+            self.root.after(50, self._finish_application_close)
+            return
+        if self.tile_cache:
+            self.tile_cache.close()
+        self.root.quit()
         self.root.destroy()
