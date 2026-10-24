@@ -103,6 +103,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self._configure_styles()
         self.setup_ui()
         self.apply_zoom()
+        self.root.protocol("WM_DELETE_WINDOW", self.close_application)
         self.root.after(500, self.gui_updater_loop)
         self.root.after(2000, self._poll_usb_ports)
 
@@ -127,6 +128,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             fieldbackground=[("readonly", COLOR_BG_ELEVATED), ("disabled", COLOR_BG_CARD)],
             foreground=[("disabled", COLOR_TEXT_SUBTLE)],
         )
+        self.style.configure("Toolbar.Telemetry.TCombobox", padding=scaled(4, self.zoom))
         self.style.configure(
             "Telemetry.Vertical.TScrollbar",
             background=COLOR_BG_ELEVATED,
@@ -146,6 +148,14 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             "Telemetry.TNotebook.Tab", background=[("selected", COLOR_BG_CARD)],
             foreground=[("selected", COLOR_ACCENT_CYAN)],
         )
+        self.style.configure("Sidebar.TNotebook", background=COLOR_BG_SURFACE, borderwidth=0)
+        self.style.configure(
+            "Sidebar.TNotebook.Tab", background=COLOR_BG_ELEVATED, foreground=COLOR_TEXT_MUTED,
+            padding=(scaled(8, self.zoom), scaled(7, self.zoom)),
+            font=(FONT_FAMILY, scaled(9, self.zoom), "bold"),
+        )
+        self.style.map("Sidebar.TNotebook.Tab", background=[("selected", COLOR_BG_CARD)],
+                       foreground=[("selected", COLOR_ACCENT_CYAN)])
 
     def _label(self, parent, text, size=10, color=COLOR_TEXT_MAIN, weight="normal", **kwargs):
         label = tk.Label(
@@ -212,29 +222,39 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self._build_charts()
 
     def _build_header(self):
-        header = tk.Frame(self.root, bg=COLOR_BG_SURFACE, height=92)
+        header = tk.Frame(self.root, bg=COLOR_BG_SURFACE, height=64)
         header.grid(row=0, column=0, sticky="ew")
         header.grid_propagate(False)
-        header.grid_columnconfigure(1, weight=1)
+        header.grid_columnconfigure(2, weight=1)
 
         identity = tk.Frame(header, bg=COLOR_BG_SURFACE, padx=20)
         identity.grid(row=0, column=0, sticky="nsw")
         self.header_identity = identity
-        self._label(identity, "LCA  /  ESTAÇÃO DE SOLO", 8, COLOR_TEXT_MUTED, "bold").pack(anchor=tk.W, pady=(10, 2))
+        self._label(identity, "LCA  /  ESTAÇÃO DE SOLO", 8, COLOR_TEXT_MUTED, "bold").pack(anchor=tk.W, pady=(8, 2))
         self.lbl_callsign = self._label(identity, "MISSÃO  —", 17, COLOR_TEXT_MAIN, "bold")
         self.lbl_callsign.pack(anchor=tk.W)
 
         status_area = tk.Frame(header, bg=COLOR_BG_SURFACE)
         status_area.grid(row=0, column=1, sticky="nsw", padx=(24, 10))
         self.lbl_connection = self._label(status_area, "●  DESCONECTADO", 9, COLOR_TEXT_MUTED, "bold")
-        self.lbl_connection.pack(anchor=tk.W, pady=(17, 3))
+        self.lbl_connection.pack(anchor=tk.W, pady=(12, 3))
         self.lbl_log_status = self._label(status_area, "Log inativo", 8, COLOR_TEXT_SUBTLE)
         self.lbl_log_status.pack(anchor=tk.W)
+        self.header_actions = tk.Frame(header, bg=COLOR_BG_SURFACE)
+        self.header_actions.grid(row=0, column=2, sticky="w", padx=(10, 12))
+        self.charts_visible = False
+        self.btn_charts = tk.Button(
+            self.header_actions, text="Mostrar gráficos", command=self.toggle_charts,
+            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT, cursor="hand2",
+            activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
+            font=(FONT_FAMILY, 9), padx=10, pady=2,
+        )
+        self.btn_charts.pack(side=tk.LEFT, padx=(8, 0))
 
         controls = tk.Frame(header, bg=COLOR_BG_SURFACE, padx=20)
-        controls.grid(row=0, column=2, sticky="nse")
+        controls.grid(row=0, column=3, sticky="nse")
         port_group = tk.Frame(controls, bg=COLOR_BG_SURFACE)
-        port_group.pack(side=tk.LEFT, pady=14)
+        port_group.pack(side=tk.LEFT, pady=8)
         self.lbl_port_status = self._label(
             port_group, "PORTA USB", 8, COLOR_TEXT_MUTED, "bold"
         )
@@ -243,7 +263,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         port_row.pack()
         self.port_cb = ttk.Combobox(
             port_row, state="readonly", width=20, font=(FONT_FAMILY, 11),
-            style="Telemetry.TCombobox",
+            style="Toolbar.Telemetry.TCombobox",
         )
         self.port_cb.pack(side=tk.LEFT)
         self.port_cb.bind("<<ComboboxSelected>>", self._on_port_selected)
@@ -259,13 +279,14 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             bg=COLOR_ACCENT_GREEN, fg="#07140d",
             activebackground="#61e59c", activeforeground="#07140d",
             disabledforeground=COLOR_TEXT_SUBTLE, relief=tk.FLAT,
-            font=(FONT_FAMILY, 12, "bold"), padx=28, pady=12, cursor="hand2",
+            font=(FONT_FAMILY, 11, "bold"), padx=20, pady=6, cursor="hand2",
         )
-        self.btn_connect.pack(side=tk.LEFT, padx=(12, 0), pady=(27, 14))
+        self.btn_connect.pack(side=tk.LEFT, padx=(12, 0), pady=(18, 8))
         self.refresh_ports()
 
     def _build_workspace(self):
         workspace = tk.Frame(self.root, bg=COLOR_BG_MAIN, padx=14, pady=12)
+        self.workspace = workspace
         workspace.grid(row=2, column=0, sticky="nsew")
         workspace.grid_rowconfigure(0, weight=1)
         workspace.grid_columnconfigure(0, weight=1)
@@ -357,38 +378,59 @@ class SondeTrackerApp(MissionControls, ZoomControls):
 
         side_header = tk.Frame(sidebar_shell, bg=COLOR_BG_SURFACE, padx=14, pady=11)
         side_header.grid(row=0, column=0, sticky="ew", columnspan=2)
-        self._label(side_header, "TELEMETRIA DA MISSÃO", 10, COLOR_TEXT_MAIN, "bold").pack(side=tk.LEFT)
+        self._label(side_header, "PAINEL DA MISSÃO", 10, COLOR_TEXT_MAIN, "bold").pack(side=tk.LEFT)
         self.lbl_sample_count = self._label(side_header, "0 amostras", 8, COLOR_TEXT_MUTED)
         self.lbl_sample_count.pack(side=tk.RIGHT)
 
-        sidebar_canvas = tk.Canvas(sidebar_shell, bg=COLOR_BG_SURFACE, bd=0, highlightthickness=0)
+        self.sidebar_tabs = ttk.Notebook(sidebar_shell, style="Sidebar.TNotebook")
+        self.sidebar_tabs.grid(row=1, column=0, sticky="nsew")
+        self.sidebar_canvases = {}
+        rescue = self._sidebar_page("Resgate")
+        sensors = self._sidebar_page("Sensores")
+        messages = self._sidebar_page("Mensagens")
+        commands = self._sidebar_page("Comandos")
+        self.sidebar_content = rescue
+        self._build_rescue_card(rescue)
+        self._build_flight_card(sensors)
+        self._build_environment_card(sensors)
+        self._build_imu_card(sensors)
+        self._build_message_card(messages)
+        self._build_command_card(commands)
+        self.sidebar_tabs.bind("<<NotebookTabChanged>>", self._on_sidebar_tab_changed)
+        self.root.bind_all("<MouseWheel>", self._on_sidebar_mousewheel, add="+")
+        self.root.bind_all("<Button-4>", self._on_sidebar_mousewheel, add="+")
+        self.root.bind_all("<Button-5>", self._on_sidebar_mousewheel, add="+")
+        self.update_antenna()
+
+    def _sidebar_page(self, title):
+        """Uma tarefa por aba; rolagem apenas como apoio em telas pequenas ou zoom alto."""
+        page = tk.Frame(self.sidebar_tabs, bg=COLOR_BG_SURFACE)
+        page.grid_rowconfigure(0, weight=1)
+        page.grid_columnconfigure(0, weight=1)
+        self.sidebar_tabs.add(page, text=title)
+        sidebar_canvas = tk.Canvas(page, bg=COLOR_BG_SURFACE, bd=0, highlightthickness=0)
         scrollbar = ttk.Scrollbar(
-            sidebar_shell, orient=tk.VERTICAL, command=sidebar_canvas.yview,
+            page, orient=tk.VERTICAL, command=sidebar_canvas.yview,
             style="Telemetry.Vertical.TScrollbar",
         )
-        self.sidebar_content = tk.Frame(sidebar_canvas, bg=COLOR_BG_SURFACE, padx=10, pady=2)
-        sidebar_window = sidebar_canvas.create_window((0, 0), window=self.sidebar_content, anchor="nw")
+        content = tk.Frame(sidebar_canvas, bg=COLOR_BG_SURFACE, padx=6, pady=6)
+        sidebar_window = sidebar_canvas.create_window((0, 0), window=content, anchor="nw")
         sidebar_canvas.configure(yscrollcommand=scrollbar.set)
-        sidebar_canvas.grid(row=1, column=0, sticky="nsew")
-        scrollbar.grid(row=1, column=1, sticky="ns")
-        self.sidebar_content.bind(
+        sidebar_canvas.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        content.bind(
             "<Configure>", lambda event: sidebar_canvas.configure(scrollregion=sidebar_canvas.bbox("all"))
         )
         sidebar_canvas.bind(
             "<Configure>", lambda event: sidebar_canvas.itemconfigure(sidebar_window, width=event.width)
         )
-        self.sidebar_canvas = sidebar_canvas
-        self.root.bind_all("<MouseWheel>", self._on_sidebar_mousewheel, add="+")
-        self.root.bind_all("<Button-4>", self._on_sidebar_mousewheel, add="+")
-        self.root.bind_all("<Button-5>", self._on_sidebar_mousewheel, add="+")
+        self.sidebar_canvases[str(page)] = sidebar_canvas
+        return content
 
-        self._build_flight_card()
-        self._build_link_card()
-        self._build_environment_card()
-        self._build_imu_card()
-        self._build_command_card()
-        self._build_message_card()
-        self.update_antenna()
+    def _on_sidebar_tab_changed(self, event=None):
+        if self.sidebar_tabs.index("current") == 2:
+            self.unread_messages = 0
+            self.sidebar_tabs.tab(2, text="Mensagens")
 
     def _flow_map_header(self):
         """Leva os controles do mapa para uma segunda linha quando título, abas e controles não cabem lado a lado."""
@@ -417,13 +459,22 @@ class SondeTrackerApp(MissionControls, ZoomControls):
 
     def _on_navigation_tab_changed(self, event=None):
         self._highlight_navigation_button()
-        # As abas 3D usam a altura dos gráficos para manter a geometria legível
-        # inclusive na janela mínima. Voltar ao mapa restaura as tendências.
+        self._update_charts_visibility()
+
+    def _update_charts_visibility(self):
         if hasattr(self, "charts_card"):
-            if self.navigation_tabs.index(self.navigation_tabs.select()) != 0:
-                self.charts_card.grid_remove()
-            else:
+            visible = self.charts_visible and self.navigation_tabs.index(self.navigation_tabs.select()) == 0
+            self.root.grid_rowconfigure(2, weight=2 if visible else 1, uniform="mission_views" if visible else "")
+            self.root.grid_rowconfigure(3, weight=1 if visible else 0, uniform="mission_views" if visible else "")
+            if visible:
                 self.charts_card.grid()
+            else:
+                self.charts_card.grid_remove()
+
+    def toggle_charts(self):
+        self.charts_visible = not self.charts_visible
+        self.btn_charts.config(text="Ocultar gráficos" if self.charts_visible else "Mostrar gráficos")
+        self._update_charts_visibility()
 
     def _build_tracker_card(self, parent):
         card = self._card(parent, "Tracker → sonda")
@@ -633,6 +684,11 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         )
         self.lbl_distance.config(text=self._format_distance(pointing.distance) if pointing else "— m")
         self.lbl_surface_distance.config(text=self._format_distance(pointing.surface_distance) if pointing else "—")
+        self.lbl_rescue_distance.config(text=self._format_distance(pointing.surface_distance) if pointing else "—")
+        self.lbl_rescue_status.config(
+            text=distance_status if pointing else status,
+            fg=COLOR_WARNING if stale else COLOR_TEXT_MUTED,
+        )
         self.lbl_altitude_difference.config(text=f"{pointing.altitude_difference:+.1f} m" if pointing else "—")
         self.lbl_azimuth.config(text=f"{pointing.azimuth:.1f}°" if pointing and pointing.azimuth is not None else "—°")
         self.lbl_elevation.config(text=f"{pointing.elevation:+.1f}°" if pointing and pointing.elevation is not None else "—°")
@@ -876,69 +932,86 @@ class SondeTrackerApp(MissionControls, ZoomControls):
                     direction = 1
                 else:
                     direction = -1 if event.delta > 0 else 1
-                self.sidebar_canvas.yview_scroll(direction, "units")
+                canvas = self.sidebar_canvases[self.sidebar_tabs.select()]
+                canvas.yview_scroll(direction, "units")
                 return "break"
             widget = widget.master
         return None
 
-    def _build_flight_card(self):
-        card = self._card(self.sidebar_content, "Status de voo", "dados derivados")
+    def _build_rescue_card(self, parent):
+        card = self._card(parent, "Localização da sonda")
+        card.configure(padx=10, pady=8)
+        card.pack(fill=tk.X)
+        self.lbl_packet_age = self._label(card, "● Aguardando pacote", 9, COLOR_TEXT_MUTED, "bold")
+        self.lbl_packet_age.pack(anchor=tk.W, pady=(0, 4))
+        for title, attribute in (("Latitude", "lbl_lat"), ("Longitude", "lbl_lon")):
+            row, value = self._data_row(card, title)
+            row.pack(fill=tk.X, pady=(0, 3))
+            setattr(self, attribute, value)
+        metrics = tk.Frame(card, bg=COLOR_BG_CARD)
+        metrics.pack(fill=tk.X, pady=(2, 6))
+        for column in range(2):
+            metrics.grid_columnconfigure(column, weight=1, uniform="rescue")
+        for column, (title, attribute, unit) in enumerate((
+            ("ALTITUDE GPS", "lbl_alt", "m"), ("VEL. VERTICAL", "lbl_vert_speed", "m/s"),
+        )):
+            frame, value = self._metric(metrics, title, f"— {unit}", COLOR_ACCENT_CYAN)
+            frame.grid(row=0, column=column, sticky="ew", padx=(0, 4) if column == 0 else (4, 0))
+            setattr(self, attribute, value)
+        for title, attribute in (
+            ("Fix / satélites", "lbl_sat"), ("Hora UTC", "lbl_time"),
+            ("Altitude barométrica", "lbl_altb"), ("Bateria", "lbl_bat"),
+            ("Distância na superfície", "lbl_rescue_distance"),
+        ):
+            row, value = self._data_row(card, title)
+            row.pack(fill=tk.X, pady=(0, 3))
+            setattr(self, attribute, value)
+        link = tk.Frame(card, bg=COLOR_BG_CARD)
+        link.pack(fill=tk.X, pady=(0, 3))
+        for column, (title, attribute) in enumerate((("RSSI", "lbl_rssi"), ("SNR", "lbl_snr"))):
+            link.grid_columnconfigure(column, weight=1, uniform="rescue_link")
+            row, value = self._data_row(link, title)
+            row.grid(row=0, column=column, sticky="ew", padx=(0, 8) if column == 0 else (8, 0))
+            setattr(self, attribute, value)
+        self.lbl_rescue_status = self._label(
+            card, "Configure o tracker para calcular a distância.", 8, COLOR_TEXT_MUTED,
+            justify=tk.LEFT, anchor="w", wraplength=290,
+        )
+        self.lbl_rescue_status.pack(fill=tk.X, pady=(3, 6))
+        tk.Button(
+            card, text="Configurar tracker", command=self.configure_tracker,
+            bg=COLOR_BG_ELEVATED, fg=COLOR_TEXT_MAIN, relief=tk.FLAT,
+            activebackground=COLOR_BORDER, activeforeground=COLOR_TEXT_MAIN,
+            font=(FONT_FAMILY, 10), padx=12, pady=6, cursor="hand2",
+        ).pack(fill=tk.X)
+        card.bind("<Configure>", lambda event: self.lbl_rescue_status.config(wraplength=max(100, event.width - 30)))
+
+    def _build_flight_card(self, parent):
+        card = self._card(parent, "Vento", "estimado pelo GPS")
         card.pack(fill=tk.X, pady=(0, 9))
         metrics = tk.Frame(card, bg=COLOR_BG_CARD)
         metrics.pack(fill=tk.X)
         for column in range(2):
             metrics.grid_columnconfigure(column, weight=1, uniform="flight")
-        frame, self.lbl_alt = self._metric(metrics, "ALTITUDE GPS", "— m", COLOR_ACCENT_CYAN)
-        frame.grid(row=0, column=0, sticky="ew", padx=(0, 4), pady=(0, 7))
-        frame, self.lbl_vert_speed = self._metric(metrics, "VELOCIDADE VERTICAL", "— m/s", COLOR_ACCENT_BLUE)
-        frame.grid(row=0, column=1, sticky="ew", padx=(4, 0), pady=(0, 7))
         frame, self.lbl_wind_speed = self._metric(metrics, "VENTO ESTIMADO", "— m/s", COLOR_ACCENT_GREEN)
-        frame.grid(row=1, column=0, sticky="ew", padx=(0, 4))
-        frame, self.lbl_wind_dir = self._metric(metrics, "DIREÇÃO DO VENTO", "—°", COLOR_ACCENT_GREEN)
-        frame.grid(row=1, column=1, sticky="ew", padx=(4, 0))
-
-    def _build_link_card(self):
-        card = self._card(self.sidebar_content, "GPS e link LoRa")
-        card.pack(fill=tk.X, pady=(0, 9))
-        metrics = tk.Frame(card, bg=COLOR_BG_CARD)
-        metrics.pack(fill=tk.X, pady=(0, 10))
-        for column in range(2):
-            metrics.grid_columnconfigure(column, weight=1, uniform="link")
-        frame, self.lbl_rssi = self._metric(metrics, "RSSI", "— dBm", COLOR_ACCENT_BLUE)
         frame.grid(row=0, column=0, sticky="ew", padx=(0, 4))
-        frame, self.lbl_snr = self._metric(metrics, "SNR", "— dB", COLOR_ACCENT_BLUE)
+        frame, self.lbl_wind_dir = self._metric(metrics, "DIREÇÃO DO VENTO", "—°", COLOR_ACCENT_GREEN)
         frame.grid(row=0, column=1, sticky="ew", padx=(4, 0))
-        self.lbl_packet_age = self._label(card, "●  Aguardando primeiro pacote", 9, COLOR_TEXT_MUTED, "bold")
-        self.lbl_packet_age.pack(anchor=tk.W, pady=(0, 10))
 
-        rows = [
-            ("Hora UTC", "lbl_time"),
-            ("Fix / satélites", "lbl_sat"),
-            ("Latitude", "lbl_lat"),
-            ("Longitude", "lbl_lon"),
-            ("Altitude barométrica", "lbl_altb"),
-        ]
-        for index, (title, attribute) in enumerate(rows):
-            row, value = self._data_row(card, title)
-            row.pack(fill=tk.X, pady=(0, 7 if index < len(rows) - 1 else 0))
+    def _build_environment_card(self, parent):
+        card = self._card(parent, "Telemetria ambiental", "PTU")
+        card.pack(fill=tk.X, pady=(0, 9))
+        for title, attribute, color in (
+            ("Temperatura", "lbl_temp", COLOR_WARNING),
+            ("Pressão", "lbl_press", COLOR_ACCENT_GREEN),
+            ("Umidade", "lbl_hum", COLOR_ACCENT_CYAN),
+        ):
+            row, value = self._data_row(card, title, color=color)
+            row.pack(fill=tk.X, pady=(0, 3))
             setattr(self, attribute, value)
 
-    def _build_environment_card(self):
-        card = self._card(self.sidebar_content, "Telemetria ambiental", "PTU")
-        card.pack(fill=tk.X, pady=(0, 9))
-        metrics = tk.Frame(card, bg=COLOR_BG_CARD)
-        metrics.pack(fill=tk.X)
-        for column in range(3):
-            metrics.grid_columnconfigure(column, weight=1, uniform="environment")
-        frame, self.lbl_temp = self._metric(metrics, "TEMP.", "— °C", COLOR_WARNING)
-        frame.grid(row=0, column=0, sticky="ew", padx=(0, 3))
-        frame, self.lbl_press = self._metric(metrics, "PRESSÃO", "— hPa", COLOR_ACCENT_GREEN)
-        frame.grid(row=0, column=1, sticky="ew", padx=3)
-        frame, self.lbl_hum = self._metric(metrics, "UMIDADE", "— %", COLOR_ACCENT_CYAN)
-        frame.grid(row=0, column=2, sticky="ew", padx=(3, 0))
-
-    def _build_imu_card(self):
-        card = self._card(self.sidebar_content, "Dinâmica de voo", "IMU bruta")
+    def _build_imu_card(self, parent):
+        card = self._card(parent, "Dinâmica de voo", "IMU bruta")
         card.pack(fill=tk.X, pady=(0, 9))
         table = tk.Frame(card, bg=COLOR_BG_CARD)
         table.pack(fill=tk.X)
@@ -969,25 +1042,22 @@ class SondeTrackerApp(MissionControls, ZoomControls):
 
     def _build_charts(self):
         charts_card = tk.Frame(
-            self.root, bg=COLOR_BG_CARD, height=250,
+            self.root, bg=COLOR_BG_CARD,
             highlightbackground=COLOR_BORDER, highlightthickness=1,
         )
         self.charts_card = charts_card
-        charts_card.grid(row=3, column=0, sticky="ew", padx=14, pady=(0, 14))
+        charts_card.grid(row=3, column=0, sticky="nsew", padx=14, pady=(0, 14))
         charts_card.grid_propagate(False)
-        charts_card.grid_rowconfigure(1, weight=1)
+        charts_card.grid_rowconfigure(0, weight=1)
         charts_card.grid_columnconfigure(0, weight=1)
-        header = tk.Frame(charts_card, bg=COLOR_BG_CARD, padx=14, pady=8)
-        header.grid(row=0, column=0, sticky="ew")
-        self._label(header, "TENDÊNCIAS DA MISSÃO", 9, COLOR_TEXT_MAIN, "bold").pack(side=tk.LEFT)
-        self._label(header, "Eixo temporal: hora UTC do GPS", 8, COLOR_TEXT_MUTED).pack(side=tk.RIGHT)
 
-        self.fig = Figure(figsize=(13.5, 2.2), dpi=100)
+        self.fig = Figure(figsize=(13.5, 6.5), dpi=100, layout="constrained")
         self.fig.patch.set_facecolor(COLOR_BG_CARD)
         self.canvas = FigureCanvasTkAgg(self.fig, master=charts_card)
         self.canvas.get_tk_widget().configure(bg=COLOR_BG_CARD, highlightthickness=0)
-        self.canvas.get_tk_widget().grid(row=1, column=0, sticky="nsew", padx=7, pady=(0, 5))
+        self.canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew", padx=7, pady=5)
         self._draw_empty_charts()
+        self._update_charts_visibility()
 
     def _draw_empty_charts(self):
         self.fig.clear()
@@ -1001,7 +1071,6 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             )
             axis.set_xticks([])
             axis.set_yticks([])
-        self.fig.tight_layout(pad=1.1, w_pad=2.0)
         self.canvas.draw_idle()
 
     def _style_chart_axis(self, axis, title):
@@ -1060,6 +1129,8 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self._poll_region_download()
 
     def _poll_region_download(self):
+        if self.closing:
+            return
         download = self.region_download
         if download.running:
             percent = download.done * 100 // max(download.total, 1)
@@ -1134,6 +1205,8 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             )
 
     def _poll_usb_ports(self):
+        if self.closing:
+            return
         if not self.is_connected:
             self.refresh_ports()
         self.root.after(2000, self._poll_usb_ports)
@@ -1225,7 +1298,6 @@ class SondeTrackerApp(MissionControls, ZoomControls):
             )
             pressure_axis.plot(indices, sampled(self.history_press), color=COLOR_ACCENT_GREEN, linewidth=1.8)
             pressure_axis.fill_between(indices, sampled(self.history_press), color=COLOR_ACCENT_GREEN, alpha=0.07)
-            self.fig.tight_layout(pad=1.1, w_pad=2.0)
             self.canvas.draw_idle()
         except Exception as error:
             print(f"Falha na renderização do canvas: {error}")

@@ -287,6 +287,12 @@ A aproximação vale até **~11 km**; acima disso ela diverge. Ainda assim é ú
 
 A nova interface está em [`src/tracker.py`](src/tracker.py). Ela lê a serial USB do receptor Heltec a 115200 baud e oferece mapa, gráficos, distância tracker–sonda, apontamento 3D e telecomando. Aceita as linhas A e B, preservando campos ausentes como indisponíveis. O zoom da interface começa em 150% (menos, se a tela for pequena) e muda com **Ctrl +** e **Ctrl -**, de 100% a 300%; **Ctrl 0** volta ao padrão. A janela de "Configurar tracker" abre grande e centralizada sobre a janela principal.
 
+**Ações da missão** fica ao lado do estado da conexão no cabeçalho compacto. Suas opções abrem em um menu horizontal à direita do botão, sem deslocar o mapa ou os gráficos para baixo.
+
+O painel lateral abre na aba **Resgate**, com coordenadas, altitude, velocidade vertical, fix GPS, bateria, enlace e distância na superfície reunidos para leitura rápida. **Sensores**, **Mensagens** e **Comandos** ficam em abas próprias; mensagens recebidas fora da aba aparecem no contador do seu título até serem lidas. O mapa ocupa a maior parte da janela e os gráficos começam recolhidos: use **Mostrar gráficos** no cabeçalho para abrir as tendências na parte inferior da janela, ocupando toda a largura e mantendo o mapa e o painel lateral visíveis acima. A altura se adapta à janela; **Ocultar gráficos** devolve esse espaço ao mapa. Em telas pequenas ou com zoom alto, cada aba tem sua própria rolagem.
+
+Fechar a janela salva a missão, interrompe a serial, cancela downloads e aguarda as requisições de mapa em andamento antes de liberar o cache e encerrar o processo. Durante esse breve encerramento, os controles ficam desabilitados. Se a gravação falhar e houver registros na memória, a interface ainda pede confirmação antes de descartá-los. Os testes incluem o fechamento normal da janela em um subprocesso com workers de mapa, serial e gravação em atividade; esse teste também roda no Windows pelo Actions.
+
 A aba **Sonda 3D**, ao lado do mapa e da Antena 3D, traz de volta a atitude 3D da interface antiga (`trackerV1.2.py`): um cilindro com o nariz vermelho em +X, girado a cada pacote por `Pitch`, `Roll` e `Yaw`, também na reprodução. Uma seta azul marca o topo (+Z) para o roll ficar visível. A rotação segue a convenção do bordo da linha B (Z para cima em repouso, roll em X, pitch em Y e yaw no sentido horário visto de cima, como uma bússola; ver [`src/attitude.py`](src/attitude.py)). Como o firmware tara os três ângulos no boot, os eixos de referência são a atitude da sonda ao ligar, e não o norte. A aba também mostra a inclinação do topo em relação à vertical e avisa quando a sonda está de cabeça para baixo.
 
 O botão **Centralizar**, no cabeçalho do mapa, volta o mapa para a última posição da sonda; sem posição dela, para o tracker, e sem nenhum dos dois, para a posição inicial, mantendo o zoom atual.
@@ -301,7 +307,7 @@ Também há exportação CSV, KML e captura bruta, e reprodução das novas miss
 
 O botão **Exportar KML** gera um arquivo para o Google Earth com o trajeto da sonda (altitude MSL, como o GPS), os marcadores do primeiro ponto, do ponto mais alto e do último ponto, e a posição do tracker, se estiver configurada. Só entram pacotes com GPS 3D válido; se a missão não tiver nenhum, a interface avisa e não cria o arquivo.
 
-No cartão "Energia e telecomando", o botão **Calibrar IMU** envia o comando `2500` depois de uma confirmação que lembra que a carga precisa estar parada e que a sonda fica ~4 s sem rádio. A confirmação chega no campo "ACK recebido" como `2501`.
+Na aba **Comandos**, o botão **Calibrar IMU** envia o comando `2500` depois de uma confirmação que lembra que a carga precisa estar parada e que a sonda fica ~4 s sem rádio. A confirmação chega no campo "ACK recebido" como `2501`.
 
 ```bash
 python -m pip install -r requirements-tracker.txt

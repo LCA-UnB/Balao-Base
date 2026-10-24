@@ -5,6 +5,7 @@ próximas vezes, vem do arquivo, com ou sem rede. `RegionDownload` baixa com ant
 os tiles de uma área inteira, numa faixa de zoom, para a missão de campo.
 """
 import io
+from queue import Empty, Queue
 import sqlite3
 import threading
 from pathlib import Path
@@ -105,28 +106,86 @@ class OfflineMapView(tkintermapview.TkinterMapView):
 
     def __init__(self, *args, cache=None, **kwargs):
         self.cache = cache  # antes do super(): as threads de carga começam a pedir tiles lá dentro
+        self._stop_loading = threading.Event()
+        self._loaded_tiles = Queue()
         super().__init__(*args, **kwargs)
 
+    def pre_cache(self):
+        # O prefetch da biblioteca manipula PhotoImage em outra thread.
+        # O cache em disco e o download explícito de área atendem ao uso offline.
+        return
+
     def request_image(self, zoom, x, y, db_cursor=None):
-        server, key = self.tile_server, f"{zoom}{x}{y}"
+        """Carrega uma imagem PIL; objetos Tk pertencem exclusivamente à thread da UI."""
+        server = self.tile_server
+        if not self.running:
+            return None
         data = self.cache.get(server, zoom, x, y) if self.cache else None
         fetched = data is None
         if fetched:
             try:
                 data = fetch_tile(server, zoom, x, y)
             except requests.RequestException:
-                return self.empty_tile_image  # sem rede: não guarda, para tentar de novo depois
+                return None  # sem rede: não guarda, para tentar de novo depois
         image = decode_tile(data) if data is not None else None
         if image is None or not self.running:
-            if self.running and server == self.tile_server:
-                self.tile_image_cache[key] = self.empty_tile_image
-            return self.empty_tile_image
+            return None
         if fetched and self.cache:
             self.cache.put(server, zoom, x, y, data)
-        image_tk = ImageTk.PhotoImage(image)
-        if server == self.tile_server:
-            self.tile_image_cache[key] = image_tk
-        return image_tk
+        return image
+
+    def load_images_background(self):
+        while not self._stop_loading.is_set():
+            try:
+                task = self.image_load_queue_tasks.pop()
+            except IndexError:
+                self._stop_loading.wait(.02)
+                continue
+            server = self.tile_server
+            image = self.request_image(*task[0])
+            if self.running and server == self.tile_server:
+                self._loaded_tiles.put((server, task, image))
+
+    def update_canvas_tile_images(self):
+        # Chamado por after() na thread principal. Workers nunca criam ou
+        # descartam PhotoImage, inclusive durante a finalização do Python.
+        while self.running:
+            try:
+                server, (coordinates, tile), image = self._loaded_tiles.get_nowait()
+            except Empty:
+                break
+            if server != self.tile_server or coordinates[0] != round(self.zoom):
+                continue
+            key = "".join(str(value) for value in coordinates)
+            if image is None:
+                image_tk = self.empty_tile_image
+            else:
+                image_tk = ImageTk.PhotoImage(image, master=self)
+                self.tile_image_cache[key] = image_tk
+                if len(self.tile_image_cache) > 512:
+                    del self.tile_image_cache[next(iter(self.tile_image_cache))]
+            tile.set_image(image_tk)
+        if self.running:
+            self.after(20, self.update_canvas_tile_images)
+
+    def stop_loading(self):
+        self.running = False
+        self._stop_loading.set()
+        self.image_load_queue_tasks.clear()
+        while True:
+            try:
+                self._loaded_tiles.get_nowait()
+            except Empty:
+                break
+
+    @property
+    def loading(self):
+        return any(thread.is_alive() for thread in self.image_load_thread_pool)
+
+    def destroy(self):
+        self.stop_loading()
+        self.tile_image_cache.clear()
+        super().destroy()
 
 
 def _tile_ranges(top_left, bottom_right, zoom):
@@ -200,17 +259,17 @@ class RegionDownload:
         return True
 
     def _work(self):
-        session = requests.Session()
-        while not self._cancel.is_set():
-            with self._lock:
-                if not self._pending:
-                    return
-                tile = self._pending.pop()
-            ok = self._download(session, *tile)
-            with self._lock:
-                self.done += 1
-                self.failed += not ok
-                self._consecutive_failures = 0 if ok else self._consecutive_failures + 1
-                if self._consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                    self.offline = True
-                    self._cancel.set()
+        with requests.Session() as session:
+            while not self._cancel.is_set():
+                with self._lock:
+                    if not self._pending:
+                        return
+                    tile = self._pending.pop()
+                ok = self._download(session, *tile)
+                with self._lock:
+                    self.done += 1
+                    self.failed += not ok
+                    self._consecutive_failures = 0 if ok else self._consecutive_failures + 1
+                    if self._consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                        self.offline = True
+                        self._cancel.set()
