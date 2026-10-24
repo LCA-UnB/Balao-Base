@@ -336,18 +336,18 @@ Consulte [`tools/rtl_sdr/LEIA-ME.md`](tools/rtl_sdr/LEIA-ME.md) para dependênci
 
 ## Cartão SD via OpenLog
 
-O firmware de bordo da linha A (o `LoraBordo`, hoje só no histórico do git) grava no cartão SD por um módulo **OpenLog** na UART2 (GPIO 3 = RX, GPIO 2 = TX). O código faz **auto-detecção de baud**: tenta 57600 primeiro e cai para 9600 (default de fábrica) se não houver resposta.
+O firmware de bordo grava no cartão SD por um módulo **OpenLog** na UART2 (GPIO 3 = RX, GPIO 2 = TX) — tanto o da linha B ([`Lora_Bordo_Com_Telecomando`](src/Lora_Bordo_Com_Telecomando/Lora_Bordo_Com_Telecomando.ino)) quanto o da linha A (o `LoraBordo`, hoje só no histórico do git). O código faz **auto-detecção de baud**: tenta 57600 primeiro e cai para 9600 (default de fábrica) se não houver resposta.
 
-| Cenário | Baud | Taxa do IMU | Precisão do estouro |
+| Cenário | Baud | Taxa do IMU (linha B) | Precisão do estouro |
 |---|---|---|---|
-| `config.txt` aplicado no SD | **57600** | **40 Hz** | ~25 ms |
-| `config.txt` **não** aplicado | 9600 | 5 Hz | ~200 ms |
+| `config.txt` aplicado no SD | **57600** | **25 Hz** (a cada 40 ms) | ~40 ms |
+| `config.txt` **não** aplicado | 9600 | 5 Hz (a cada 200 ms) | ~200 ms |
 
-Em ambos os casos a telemetria LoRa continua a 1 Hz — muda só a resolução do log do IMU. A taxa cai para 5 Hz a 9600 porque a linha `I` carrega 15 campos (accel + giro + mag + PRY) e estouraria a UART.
+Em ambos os casos a telemetria LoRa continua a 1 Hz — muda só a resolução do log do IMU. A 57600 a UART escoa ~5,7 KB/s: com a linha `I` da linha B (~155 B), 40 Hz passaria disso e o pacote de telemetria seria descartado, enquanto 25 Hz ocupa ~70% da UART. A 9600 a taxa cai para 5 Hz pelo mesmo motivo. O firmware antigo da linha A, com uma linha `I` menor, gravava a 40 Hz a 57600.
 
 Se o OpenLog não responder em nenhum baud, o firmware **não trava**: segue o voo só com LoRa, sem log.
 
-### Habilitando 40 Hz
+### Habilitando 57600 baud (IMU a 25 Hz)
 
 1. Formate o microSD em **FAT32**.
 2. Copie o [`src/config.txt`](src/config.txt) deste repositório para a **raiz do cartão**.
@@ -360,7 +360,9 @@ Se o OpenLog não responder em nenhum baud, o firmware **não trava**: segue o v
 
 ### Diagnóstico
 
-O Serial Monitor (115200) informa qual baud foi detectado:
+Na linha B, o firmware não imprime no Serial qual baud foi detectado. A confirmação vem do próprio log: linhas `I` espaçadas de **40 ms** indicam 57600 (`config.txt` aplicado); espaçadas de **200 ms**, 9600.
+
+Na linha A, o Serial Monitor (115200) informava qual baud foi detectado:
 
 ```
 OpenLog: aguardando boot (2s)...
@@ -376,7 +378,7 @@ OpenLog: 57600 sem resposta. Testando 9600 baud...
   -> OK a 9600 baud (config.txt NAO aplicado). IMU em 5 Hz.
 ```
 
-A rotina de escape também ecoa os bytes crus em HEX, o que distingue três falhas diferentes:
+A rotina de escape da linha A também ecoa os bytes crus em HEX, o que distingue três falhas diferentes:
 
 | Sintoma no `[diag] RX:` | Diagnóstico |
 |---|---|
@@ -389,7 +391,7 @@ A rotina de escape também ecoa os bytes crus em HEX, o que distingue três falh
 Cada boot cria um arquivo novo, `log_<millis>.txt`, com dois tipos de registro intercalados:
 
 - **`LOTE_<seq>,<millis>`** seguido do pacote completo — telemetria a **1 Hz**, o mesmo conteúdo que foi ao ar. O lote termina numa linha em branco.
-- **`I,<millis>,AX:…,AY:…,AZ:…,GX:…,GY:…,GZ:…,MX:…,MY:…,MZ:…,P:…,R:…,Y:…`** — amostra do IMU a **40 Hz** (ou 5 Hz), com timestamp `millis()` próprio para correlação sub-segundo.
+- **`I,<millis>,AX:…,AY:…,AZ:…,GX:…,GY:…,GZ:…,MX:…,MY:…,MZ:…,P:…,R:…,Y:…`** — amostra do IMU a **25 Hz** na linha B (40 Hz na linha A; 5 Hz em ambas a 9600), com timestamp `millis()` próprio para correlação sub-segundo.
 
 ```
 # Logs_balao | LOTE_<seq>,<millis>=telemetria 1Hz | I,<millis>=IMU | lote separado por linha em branco
@@ -410,7 +412,7 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 1. No gráfico de altitude GPS, identifique o horário aproximado do estouro (ex.: `Time:12:34:56`).
 2. Ache o lote que contém essa linha `Time:` — o cabeçalho `LOTE_N,<millis>` dá o `millis` de referência.
 3. A partir desse `millis`, varra as linhas `I` numa janela de ±500 ms.
-4. O pico de `AX/AY/AZ` marca o instante com precisão de **~25 ms** (40 Hz) ou **~200 ms** (5 Hz).
+4. O pico de `AX/AY/AZ` marca o instante com precisão de **~40 ms** (25 Hz, linha B a 57600), ~25 ms (40 Hz, linha A a 57600) ou **~200 ms** (5 Hz, a 9600).
 
 > ⚠️ **Não remova o cartão com o OpenLog ligado.** Ele mantém buffer interno e perde dados se for desligado abruptamente. Corte a alimentação antes de retirar o cartão.
 
