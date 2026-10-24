@@ -85,7 +85,8 @@ class MissionUITests(unittest.TestCase):
             return int(self.root.tk.splitlist(str(widget.cget('font')))[1])
         def snapshot():
             return (font_size(app.lbl_callsign), int(app.sidebar_shell.cget('width')),
-                    round(app.fig.dpi), round(app.antenna_fig.dpi), self.root.minsize())
+                    round(app.fig.dpi / app.canvas.device_pixel_ratio),
+                    round(app.antenna_fig.dpi / app.antenna_canvas.device_pixel_ratio), self.root.minsize())
         self.assertEqual((ZOOM_MIN, ZOOM_MAX), (1.0, 3.0))
         self.assertGreaterEqual(app.default_zoom, 1.0)
         self.assertLessEqual(app.default_zoom, 1.5)
@@ -114,6 +115,19 @@ class MissionUITests(unittest.TestCase):
         self.root.event_generate('<Control-0>')
         self.root.update()
         self.assertEqual(app.zoom, app.default_zoom)
+
+    def test_screen_pixel_ratio_keeps_zoom_in_figure_dpi(self):
+        app = self.app
+        canvas, widget = app.canvas, app.canvas.get_tk_widget()
+        self.root.update()
+        pixels = (widget.winfo_width(), widget.winfo_height())
+        with patch.object(widget, 'winfo_fpixels', return_value=192.0):
+            canvas._update_device_pixel_ratio()
+        self.assertEqual(canvas.device_pixel_ratio, 2.0)
+        self.assertAlmostEqual(app.fig.dpi, 100 * app.zoom * 2)
+        self.assertEqual(tuple(round(side) for side in app.fig.bbox.size), pixels)
+        app.set_zoom(1.0)
+        self.assertAlmostEqual(app.fig.dpi, 200)
 
     def test_mission_buttons_wrap_instead_of_leaving_the_window(self):
         app = self.app
