@@ -18,7 +18,8 @@ B_FIELDS = BASE_FIELDS | {"Ack"}
 # line-framed LoRa packet, so it is limited to printable ASCII on one line.
 MESSAGE_LIMIT = 100
 MESSAGE_STATUS = {"ENFILEIRADA": "queued", "ENVIADA": "sent", "ENTREGUE": "delivered",
-                  "FALHOU": "failed", "RECEBIDA": "received", "RECUSADA": "refused"}
+                  "FALHOU": "failed", "RECEBIDA": "received", "RECUSADA": "refused",
+                  "CANCELADA": "cancelled", "EXPIRADA": "expired"}
 MESSAGE_KEYS = {"Id": "id", "De": "from", "Hora": "time", "RSSI": "rssi", "SNR": "snr",
                 "Tentativa": "attempts", "Tentativas": "attempts", "Motivo": "reason"}
 STATION_TOTALS = (1, 2, 3, 5, 6)

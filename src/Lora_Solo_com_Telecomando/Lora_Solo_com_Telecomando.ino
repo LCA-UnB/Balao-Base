@@ -17,6 +17,9 @@
   - "M <texto>" na serial envia uma mensagem. O bordo a desce no lugar da
     telemetria ("PT2UNB-R") e todas as estacoes a recebem; quem enviou usa
     esse mesmo pacote como confirmacao.
+  - "MC" cancela a mensagem pendente. Se ela passa MSG_PRAZO_SEM_ENVIO_MS
+    sem ir ao ar (nenhum pacote do bordo abriu a janela propria), expira
+    sozinha, para nao recusar as seguintes como "ocupada".
   - "ID <letra> <N>" configura a estacao (gravado na flash); "ID?" consulta.
   - Telecomandos numericos so saem da estacao A.
   - Linhas "[MSG] ...", "[ESTACAO] ..." e "[ACK] ..." sao lidas pela interface.
@@ -50,6 +53,13 @@
 
 // Quantas janelas proprias tentar antes de desistir de um comando/mensagem.
 #define MAX_TENTATIVAS                              5
+
+// Uma mensagem que passa este tempo sem ir ao ar (desde que foi enfileirada
+// ou desde a ultima tentativa) expira. O envio so e' agendado quando chega um
+// pacote do bordo; sem pacotes - bordo desligado, fora de alcance ou colidindo
+// com outro transmissor - ela ficaria presa e recusaria as seguintes. Com
+// N = 6 a janela propria volta a cada 12 s, entao 30 s toleram perder duas.
+#define MSG_PRAZO_SEM_ENVIO_MS                      30000
 
 // A telemetria agora carrega 20 campos (14 originais + AX/AY/AZ +
 // AXavg/AYavg/AZavg). Com o CRC ligado, um pacote que chega integro tem
@@ -109,6 +119,7 @@ bool has_msg = false;
 char msg_id[MSG_ID_TAM];
 char msg_texto[MSG_TEXTO_MAX + 1];
 uint8_t msg_tentativas = 0;
+uint32_t msg_progresso_ms = 0;   // millis() ao enfileirar ou na ultima tentativa
 
 // --- MENSAGENS JA RECEBIDAS (o bordo repete o relay quando a origem retransmite) ---
 char idsVistos[IDS_VISTOS][MSG_ID_TAM];
@@ -285,7 +296,7 @@ void setup() {
   imprimirEstacao();
   Serial.println(F("Envio centralizado na janela de escuta desta estacao (rodizio pelo Time: do bordo)."));
   Serial.println(F("Digite um numero e ENTER para um telecomando (so estacao A),"));
-  Serial.println(F("'M <texto>' para uma mensagem, 'ID <letra> <N>' para configurar ou 'ID?' para consultar.\n"));
+  Serial.println(F("'M <texto>' para uma mensagem, 'MC' para cancela-la, 'ID <letra> <N>' para configurar ou 'ID?' para consultar.\n"));
 
   abrirEscuta();
 }
@@ -443,6 +454,24 @@ void processarPacoteBordo() {
 }
 
 // ==========================================================================
+//  MENSAGEM PENDENTE: CANCELAMENTO E PRAZO
+// ==========================================================================
+
+// Libera a mensagem pendente; um envio dela ja agendado nao sai mais.
+void encerrarMensagem(const char *status, const char *motivo) {
+  if (envio_agendado && envio_eh_msg) envio_agendado = false;
+  Serial.printf("[MSG] %s Id:%s Motivo:%s Tentativas:%u\n", status, msg_id, motivo, msg_tentativas);
+  has_msg = false;
+}
+
+void verificarPrazoMensagem() {
+  if (!has_msg || (envio_agendado && envio_eh_msg)) return;
+  if (millis() - msg_progresso_ms >= MSG_PRAZO_SEM_ENVIO_MS) {
+    encerrarMensagem("EXPIRADA", "sem_pacote_do_bordo");
+  }
+}
+
+// ==========================================================================
 //  ENTRADA DO USUARIO
 // ==========================================================================
 
@@ -457,6 +486,15 @@ void tratarLinhaSerial(char *linha) {
     int n = 0;
     if (sscanf(linha + 3, " %c %d", &letra, &n) == 2 && configurarEstacao(letra, n)) {
       imprimirEstacao();
+    }
+    return;
+  }
+
+  if (strcmp(linha, "MC") == 0 || strcmp(linha, "mc") == 0) {
+    if (has_msg) {
+      encerrarMensagem("CANCELADA", "operador");
+    } else {
+      Serial.println(F("[MSG] RECUSADA Motivo:nenhuma_pendente"));
     }
     return;
   }
@@ -485,6 +523,7 @@ void tratarLinhaSerial(char *linha) {
     snprintf(msg_id, sizeof(msg_id), "%c%lu", estacaoId, (unsigned long)msgSeq);
     has_msg = true;
     msg_tentativas = 0;
+    msg_progresso_ms = millis();
     Serial.printf("[MSG] ENFILEIRADA Id:%s Texto:%s\n", msg_id, msg_texto);
     return;
   }
@@ -536,6 +575,7 @@ void loop() {
     envio_agendado = false;
     if (envio_eh_msg) {
       msg_tentativas++;
+      msg_progresso_ms = millis();
       Serial.printf("[MSG] ENVIADA Id:%s Tentativa:%u\n", msg_id, msg_tentativas);
     } else {
       tentativas++;
@@ -549,6 +589,8 @@ void loop() {
   }
 
   servicoRadio();
+
+  verificarPrazoMensagem();
 
   // === ENTRADA DO USUARIO (NAO BLOQUEANTE) ===
   // readStringUntil() bloquearia ate 1 s no timeout padrao de Stream, o que

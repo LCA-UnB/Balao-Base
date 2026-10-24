@@ -315,6 +315,17 @@ class ParserTests(unittest.TestCase):
         self.assertEqual((notices[3]['from'], notices[3]['time'], notices[3]['rssi']), ('C', '12:34:57', -80))
         self.assertEqual(parser.take_notices(), [])
 
+    def test_cancelled_and_expired_message_lines_become_notices(self):
+        parser = PacketParser()
+        parser.feed(b'[MSG] CANCELADA Id:A19 Motivo:operador Tentativas:2\n'
+                    b'[MSG] EXPIRADA Id:A20 Motivo:sem_pacote_do_bordo Tentativas:0\n'
+                    b'[MSG] RECUSADA Motivo:nenhuma_pendente\n', 'now')
+        self.assertEqual(parser.take_notices(), [
+            {'kind': 'message', 'status': 'cancelled', 'id': 'A19', 'reason': 'operador', 'attempts': 2, 'received_at': 'now'},
+            {'kind': 'message', 'status': 'expired', 'id': 'A20', 'reason': 'sem_pacote_do_bordo', 'attempts': 0, 'received_at': 'now'},
+            {'kind': 'message', 'status': 'refused', 'reason': 'nenhuma_pendente', 'received_at': 'now'},
+        ])
+
     def test_ordered_feed_keeps_ack_notice_before_newer_telemetry(self):
         data = b'[ACK] Ack:6\n' + FRAME.replace(b'Ack:0', b'Ack:8')
         for chunks in ([data], [data[:12], data[12:]]):
