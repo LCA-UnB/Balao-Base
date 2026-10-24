@@ -13,7 +13,7 @@ from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
-from mission import MissionWriter, export_csv, export_kml, export_raw, packet_rows, read_database, read_metadata
+from mission import MissionWriter, folder_label, export_csv, export_kml, export_raw, packet_rows, read_database, read_metadata
 from telemetry import MESSAGE_LIMIT, PacketParser, enrich_packet, sanitize_message
 from replay import MissionReplay
 
@@ -39,6 +39,16 @@ class WriterTests(unittest.TestCase):
         writer = MissionWriter.create(self.temp.name, 'Teste', sync_interval=.01, retry_interval=.01, **kwargs)
         self.writers.append(writer)
         return writer
+
+    def test_folder_name_includes_mission_name(self):
+        writer = MissionWriter.create(self.temp.name, '  Voo 4: São Paulo/DF ', sync_interval=.01)
+        self.writers.append(writer)
+        stamp, *label, short_id = writer.path.parent.name.split('_')
+        self.assertRegex(stamp, r'^\d{8}T\d{6}Z$')
+        self.assertEqual('_'.join(label), 'Voo-4-São-Paulo-DF')
+        self.assertEqual(short_id, read_metadata(writer.path)['id'][:8])
+        self.assertEqual(folder_label('../..'), '')
+        self.assertEqual(len(folder_label('x' * 100)), 40)
 
     def test_exact_bytes_structured_values_and_export(self):
         writer = self.writer()
