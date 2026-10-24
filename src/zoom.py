@@ -39,6 +39,7 @@ class ZoomControls:
         self.zoom = self.default_zoom
         self._zoom_applied = 1.0
         self._zoom_fonts, self._zoom_dims = {}, {}
+        self._zoom_hooked = set()
         self._zoom_named = {name: tkfont.nametofont(name).cget("size") for name in NAMED_FONTS}
         for sequence in ("<Control-plus>", "<Control-equal>", "<Control-KP_Add>"):
             self.root.bind_all(sequence, lambda event: self.zoom_by(ZOOM_STEP))
@@ -100,7 +101,12 @@ class ZoomControls:
         self._configure_styles()
         self._zoom_widget(self.root)
         for figure, canvas in self._zoom_figures():
-            figure.set_dpi(FIGURE_DPI * self.zoom)
+            if canvas not in self._zoom_hooked:
+                # O matplotlib (3.11+ no Linux) refaz o DPI pela tela ao exibir o canvas,
+                # a partir do DPI de criação; o resize_event que ele dispara devolve o zoom.
+                canvas.mpl_connect("resize_event", lambda event, figure=figure, canvas=canvas: self._keep_figure_dpi(figure, canvas))
+                self._zoom_hooked.add(canvas)
+            figure.set_dpi(self._figure_dpi(canvas))
             widget = canvas.get_tk_widget()
             if widget.winfo_width() > 1 and widget.winfo_height() > 1:
                 figure.set_size_inches(widget.winfo_width() / figure.dpi, widget.winfo_height() / figure.dpi, forward=False)
@@ -108,6 +114,19 @@ class ZoomControls:
         self._zoom_applied = self.zoom
         if hasattr(self, "on_zoom_applied"):
             self.on_zoom_applied()
+
+    def _figure_dpi(self, canvas):
+        """DPI do gráfico: o zoom da interface vezes a razão de pixels da tela."""
+        return FIGURE_DPI * self.zoom * canvas.device_pixel_ratio
+
+    def _keep_figure_dpi(self, figure, canvas):
+        """Reaplica o DPI do zoom quando o matplotlib o troca, mantendo o tamanho em pixels."""
+        dpi = self._figure_dpi(canvas)
+        if abs(figure.dpi - dpi) > 1e-6:
+            width, height = figure.bbox.width, figure.bbox.height
+            figure.set_dpi(dpi)
+            figure.set_size_inches(width / dpi, height / dpi, forward=False)
+            canvas.draw_idle()
 
     def _zoom_figures(self):
         pairs = (("fig", "canvas"), ("antenna_fig", "antenna_canvas"), ("probe_fig", "probe_canvas"))
