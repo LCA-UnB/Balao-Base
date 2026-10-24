@@ -181,6 +181,11 @@ class MissionControls:
         self.lbl_message_count.pack(anchor=tk.E, pady=(3, 0))
         self.lbl_message_status = self._label(card, "Nenhuma mensagem enviada.", 9, "#94a3b5", justify=tk.LEFT, wraplength=320)
         self.lbl_message_status.pack(anchor=tk.W)
+        # Sempre habilitado: depois de reconectar, a interface não sabe se o
+        # rádio ainda guarda uma mensagem pendente; ele mesmo responde se não há.
+        self.btn_cancel_message = tk.Button(card, text="Cancelar mensagem", command=self.cancel_message,
+                                            padx=14, pady=6, font=("Segoe UI", 10))
+        self.btn_cancel_message.pack(anchor=tk.E, pady=(6, 0))
 
     def _set_station_choice(self, letter, total):
         self.station_total.set(str(total))
@@ -429,6 +434,11 @@ class MissionControls:
             self.mission.event("message_requested", text=text)
             self.lbl_message_status.config(text="Aguardando o rádio de solo aceitar a mensagem…", fg="#94a3b5")
 
+    def cancel_message(self):
+        if self._write_serial("Mensagem", "MC\n"):
+            self.mission.event("message_cancel_requested")
+            self.lbl_message_status.config(text="Pedindo ao rádio de solo para cancelar a mensagem pendente…", fg="#94a3b5")
+
     def apply_station(self):
         letter, total = self.station_letter.get(), int(self.station_total.get())
         if self._write_serial("Estação", f"ID {letter} {total}\n"):
@@ -462,13 +472,17 @@ class MissionControls:
             return
         if status == "queued" and sanitize_message(self.message_text.get(), limit=None) == notice.get("text"):
             self.message_text.set("")
-        reasons = {"ocupada": f"o rádio ainda aguarda a confirmação da mensagem {message_id}", "vazia": "mensagem vazia"}
+        reasons = {"ocupada": f"o rádio ainda aguarda a confirmação da mensagem {message_id} (use Cancelar mensagem para liberá-lo)",
+                   "vazia": "mensagem vazia", "nenhuma_pendente": "não há mensagem pendente para cancelar"}
         text, color = {
             "queued": (f"Mensagem {message_id} na fila do rádio de solo.", "#94a3b5"),
             "sent": (f"Mensagem {message_id} enviada ao balão (tentativa {attempts}).", "#ffb547"),
             "delivered": (f"Mensagem {message_id} repetida pelo balão.", "#38d683"),
             "failed": (f"Mensagem {message_id} sem confirmação após {attempts} tentativas.", "#ff6072"),
             "refused": (f"Mensagem recusada: {reasons.get(notice.get('reason'), notice.get('reason', '—'))}. O texto continua no campo.", "#ff6072"),
+            "cancelled": (f"Mensagem {message_id} cancelada após {attempts} tentativa(s). O rádio aceita a próxima.", "#94a3b5"),
+            "expired": (f"Mensagem {message_id} expirou: nenhum pacote do bordo abriu a janela desta estação. "
+                        "O rádio aceita a próxima.", "#ff6072"),
         }[status]
         self.lbl_message_status.config(text=text, fg=color)
 

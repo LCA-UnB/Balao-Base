@@ -455,7 +455,15 @@ class MissionUITests(unittest.TestCase):
             notice(b'[MSG] RECUSADA Motivo:ocupada Id:B7\n',
                    lambda: 'recusada' in self.app.lbl_message_status.cget('text'))
             self.assertEqual(self.app.message_text.get(), 'Direção  norte')
+            self.assertIn('Cancelar mensagem', self.app.lbl_message_status.cget('text'))
             notice(b'[MSG] ENFILEIRADA Id:B8 Texto:Direcao norte\n', lambda: self.app.message_text.get() == '')
+            self.app.cancel_message()
+            notice(b'[MSG] CANCELADA Id:B8 Motivo:operador Tentativas:1\n',
+                   lambda: 'cancelada' in self.app.lbl_message_status.cget('text'))
+            self.assertEqual(self.app.lbl_message_status.cget('text'),
+                             'Mensagem B8 cancelada após 1 tentativa(s). O rádio aceita a próxima.')
+            notice(b'[MSG] EXPIRADA Id:B9 Motivo:sem_pacote_do_bordo Tentativas:0\n',
+                   lambda: 'expirou' in self.app.lbl_message_status.cget('text'))
             self.app.station_total.set('5')
             self.app._update_station_letters()
             self.app.station_letter.set('E')
@@ -464,7 +472,7 @@ class MissionUITests(unittest.TestCase):
             while b'ID E 5' not in written and time.monotonic() < deadline:
                 if select.select([master], [], [], .05)[0]:
                     written += os.read(master, 1024)
-            self.assertEqual(written.replace(b'\r', b''), b'ID?\nM Direcao norte\nID E 5\n')
+            self.assertEqual(written.replace(b'\r', b''), b'ID?\nM Direcao norte\nMC\nID E 5\n')
 
             self.app.cmd_entry.insert(0, '5')
             self.app.send_command()
