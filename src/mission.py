@@ -14,6 +14,7 @@ import csv
 import json
 import os
 from pathlib import Path
+import re
 import sqlite3
 import threading
 import time
@@ -31,6 +32,12 @@ def utc_now():
 
 def json_bytes(value):
     return json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode("utf-8")
+
+
+def folder_label(name, limit=40):
+    """Mission name as a folder-safe label (letters, digits, '-' and '_' only)."""
+    label = re.sub(r"[^\w-]+", "-", name.strip(), flags=re.UNICODE).strip("-_")
+    return label[:limit].rstrip("-_")
 
 
 def database_path(path):
@@ -152,7 +159,8 @@ class MissionWriter:
     @classmethod
     def create(cls, parent, name, **options):
         mission_id = uuid.uuid4().hex
-        folder = Path(parent) / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ_") + mission_id[:8])
+        label = folder_label(name)
+        folder = Path(parent) / "_".join(filter(None, (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"), label, mission_id[:8])))
         folder.mkdir(parents=True, exist_ok=False)
         path = folder / "mission.sqlite3"
         metadata = {"schema_version": SCHEMA_VERSION, "id": mission_id, "name": name.strip() or "Missão",
