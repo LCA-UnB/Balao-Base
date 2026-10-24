@@ -420,7 +420,7 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 
 ## Logs de missão
 
-`docs/logs/` guarda telemetria capturada no voo de 19/09/2026, no formato de saída do Rastreador Sonda. O nome do arquivo é `telemetria_AAAAMMDD_HHMMSS.txt`, com a data e a hora (do computador de solo) em que a captura começou; cada reconexão da interface gera um arquivo novo:
+`docs/logs/` guarda a telemetria dos voos. Os arquivos soltos são do voo de 19/09/2026, no formato de saída do Rastreador Sonda. O nome do arquivo é `telemetria_AAAAMMDD_HHMMSS.txt`, com a data e a hora (do computador de solo) em que a captura começou; cada reconexão da interface gera um arquivo novo:
 
 | Arquivo | Linhas |
 |---|---|
@@ -430,6 +430,13 @@ I,6421,AX:0.21,AY:-9.40,AZ:0.75,GX:0.16,GY:-0.07,GZ:0.21,MX:23.46,MY:-12.27,MZ:-
 | `docs/logs/telemetria_20260919_110107.txt` | 13.958 |
 | `docs/logs/telemetria_20260919_112448.txt` | 2.809 |
 | `docs/logs/telemetria_20260919_113050.txt` | 60.713 |
+
+`docs/logs/20261024T133313Z_cc5d4e5f/` guarda a missão **Voo3**, de 24/10/2026, gravada pela nova estação de solo (`src/tracker.py`) entre 13:33 e 15:41 UTC, no formato descrito em `docs/MISSION_LOGS.md`:
+
+| Arquivo | Conteúdo |
+|---|---|
+| `mission.sqlite3` | Banco da missão (encerrada): 2.949 pacotes, 158.166 registros brutos e 227 eventos. Abre em **Reprodução** ou com **Retomar missão** |
+| `telemetria.txt` | Cópia em texto da serial (63.199 linhas), no mesmo formato dos TXT de 19/09 |
 
 ---
 
@@ -454,7 +461,7 @@ Pontos levantados na revisão do código atual. Estão registrados aqui para que
 
 1. **As interfaces de rastreamento aceitam as duas linhas de telemetria.** O parser em `src/telemetry.py` reconhece `MZ` e `Ack`, preserva campos ausentes como indisponíveis e evita duplicar a cópia formatada da linha A. A interface redesenhada em `tools/rastreador_sonda/tracker.py` (legada) também fecha pacotes em `MZ` ou `Ack`; a interface legada `src/trackerV1.2.py` permanece disponível.
 
-2. **Os logs históricos continuam versionados em `docs/logs/`.** As novas missões usam pastas locais escolhidas pelo operador e não substituem essas capturas. A reprodução de TXT antigos está fora desta etapa.
+2. **Os logs históricos continuam versionados em `docs/logs/`.** As novas missões usam pastas locais escolhidas pelo operador (por padrão `logs/`, fora do Git); para versionar uma missão, copie a pasta dela para `docs/logs/`, sem o `.writer.lock`. A reprodução de TXT antigos está fora desta etapa.
 
 3. **Artefatos antigos de build (legados) continuam em `tools/tracker_win64x/build/`.** São só arquivos intermediários do PyInstaller para a `src/trackerV1.2.py`, sem o `.exe`. Eles não representam a nova interface `src/tracker.py`; o executável Windows ainda precisa ser gerado para uma distribuição dessa versão.
 
