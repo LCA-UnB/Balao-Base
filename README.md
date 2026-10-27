@@ -10,6 +10,7 @@ Repositório **base** dos balões estratosféricos do projeto **Distrito Espacia
 |---|---|---|
 | Balão 1 (Abertura) | [`LCA-UnB/Balao-Abertura`](https://github.com/LCA-UnB/Balao-Abertura) | Cópia do `Balao-Base` até o commit `274e2ee` |
 | Balão 2 | [`LCA-UnB/Balao-2`](https://github.com/LCA-UnB/Balao-2) | Cópia do `Balao-Base` até o commit `755379a` |
+| Balão 3 | [`LCA-UnB/Balao-3`](https://github.com/LCA-UnB/Balao-3) | Cópia do `Balao-Base` até o commit `2b6b63d`, com os logs do Voo3 em `logs/` |
 
 ---
 
