@@ -118,7 +118,7 @@ O bordo interpreta o número pela faixa; o `Ack` sempre volta como `comando + 1`
 | Comando | Efeito no bordo |
 |---|---|
 | 1 a 50 | Nenhuma ação além do `Ack` e do registro `CMD` no SD |
-| 900 a 1100 | Troca o QNH (hPa) usado na altitude barométrica |
+| 900 a 1100 | Troca a pressão de referência P_ref (hPa, padrão 901, medida a 971 m) da altitude barométrica |
 | Acima de 2000 (a interface usa 2500) | Calibra o IMU: refaz o zero de pitch/roll/yaw na posição atual; bloqueia rádio, GPS e SD por ~4 s e só dá resultado correto com a carga parada |
 | Demais valores | Ignorado |
 
@@ -262,13 +262,15 @@ MZ:2.94
 
 ## Altitude barométrica (`AltB`)
 
-Calculada pela atmosfera padrão (ISA), com **P₀ = 1013,25 hPa** ao nível do mar:
+Calculada no bordo da linha B por uma fórmula ajustada, com **P_ref = 901 hPa** medida a **971 m**:
 
 ```
-AltB = 44330 * (1 - (P / 1013.25) ^ 0.1903)
+AltB = 971 + 83655 * (1 - (P / 901) ^ 0.09335)
 ```
 
-A aproximação vale até **~11 km**; acima disso ela diverge. Ainda assim é útil como referência independente do GPS — em particular para substituir o `Alt` quando o fix cai no meio do voo.
+`P` é a pressão do MS5611 em hPa. Com P = 901 hPa a fórmula dá 971 m. Em outros pontos dá 2919 m a 700 hPa, 11094 m a 226,3 hPa, 20222 m a 54,7 hPa e 28726 m a 12 hPa. Acima de 11 km ela fica bem mais perto da atmosfera padrão do que a fórmula ISA da troposfera usada antes, `44330 * (1 - (P / 1013.25) ^ 0.1903)`, que dava cerca de 1 km a menos a 20 km e cerca de 5 km a menos a 30 km. A altitude barométrica serve como referência independente do GPS, em particular para substituir o `Alt` quando o fix cai no meio do voo.
+
+O telecomando de 900 a 1100 troca o `901` (P_ref, a pressão no nível de 971 m) pelo valor enviado. Ele **não** é mais o QNH ao nível do mar: mandar 1013, por exemplo, desloca toda a `AltB`.
 
 ## Campo `Fix` — validade dos dados GPS
 

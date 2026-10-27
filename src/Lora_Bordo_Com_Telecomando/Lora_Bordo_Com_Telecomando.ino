@@ -91,7 +91,12 @@ HardwareSerial OpenLogSerial(2);
 #define SCL_GPS_PIN 42
 #define SDA_GY86_PIN 48
 #define SCL_GY86_PIN 47
-int referencePressureHpa = 1013;
+// Altitude barometrica ajustada: AltB = 971 + 83655 * (1 - (P / P_ref)^0.09335),
+// com P_ref = 901 hPa medida a 971 m. O telecomando 900-1100 troca o P_ref.
+int referencePressureHpa = 901;
+#define ALT_REF_M     971.0F
+#define ALT_ESCALA_M  83655.0F
+#define ALT_EXPOENTE  0.09335F
 #define TEMP_CORR (-2)
 
 // --- BATERIA (divisor interno da Heltec WiFi LoRa 32 V3) ---
@@ -566,7 +571,7 @@ int montarTelemetria(uint8_t sec_atual, int ack_no_pacote) {
   lastBatVolts = lerTensaoBateria();
   float temp = ms5611.getTemperature() + TEMP_CORR;
   float press = ms5611.getPressure();
-  float altBar = 44330.0F * (1.0F - pow(press / referencePressureHpa, 0.1903F));
+  float altBar = ALT_REF_M + ALT_ESCALA_M * (1.0F - pow(press / referencePressureHpa, ALT_EXPOENTE));
 
   // snprintf devolve o tamanho que SERIA escrito. Sem o teto, pos pode passar
   // de BUFFER_SIZE e (BUFFER_SIZE - pos) vira um size_t enorme na chamada
@@ -742,7 +747,7 @@ void loop() {
        ack_val = cmd_recebido + 1; 
        ack_pendente = true;
 
-       Serial.printf(">>> QNH ATUALIZADO PARA %d hPa. Proxima telemetria confirma via QNHref:.\n\n",
+       Serial.printf(">>> P_ref DA ALTITUDE BAROMETRICA ATUALIZADA PARA %d hPa. Proxima telemetria confirma via Ack:.\n\n",
                       cmd_recebido);
         char linha[64];
         snprintf(linha, sizeof(linha), "QNH,%lu,%d,rssi:%d,snr:%d", millis(), cmd_recebido, rxRssi, rxSnr);
