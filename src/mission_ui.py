@@ -12,7 +12,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 import serial
 
 from antenna import Position, position_from_packet
-from mission import MissionWriter, export_csv, export_kml, export_raw, read_metadata
+from mission import MissionWriter, export_csv, export_kml, export_raw, export_prediction_comparison, read_metadata
 from replay import MissionReplay
 from station import StationReceiver
 from telemetry import MESSAGE_LIMIT, STATION_TOTALS, sanitize_message
@@ -68,7 +68,7 @@ class MissionControls:
             for title, command in (("Nova missão", self.new_mission), ("Retomar missão", self.resume_mission),
                                    ("Encerrar missão", self.end_mission), ("Reproduzir", self.open_replay),
                                    ("Exportar CSV", self.save_csv), ("Exportar KML", self.save_kml),
-                                   ("Exportar bruto", self.save_raw), ("Detalhes", self.log_details))]
+                                   ("Exportar bruto", self.save_raw), ("Comparar previsões", self.compare_predictions), ("Detalhes", self.log_details))]
         self._mission_layout = None
         self.mission_buttons.bind("<Configure>", lambda event: self._flow_mission_buttons())
         self.lbl_mode = self._label(actions, "AO VIVO", 9, "#38d683", "bold")
@@ -198,6 +198,9 @@ class MissionControls:
         self.lbl_message_count.config(text=f"{size}/{MESSAGE_LIMIT}", fg="#ff6072" if size > MESSAGE_LIMIT else "#617186")
 
     def _release_mission(self):
+        if self.prediction_busy:
+            messagebox.showinfo("Previsão em andamento", "Aguarde a previsão terminar para trocar de missão.")
+            return False
         if self.is_connected or self.replay:
             messagebox.showinfo("Missão", "Desconecte o rádio e volte ao modo ao vivo antes de trocar de missão.")
             return False
@@ -250,6 +253,9 @@ class MissionControls:
             messagebox.showerror("Não foi possível retomar", str(error))
 
     def end_mission(self):
+        if self.prediction_busy:
+            messagebox.showinfo("Previsão em andamento", "Aguarde a previsão terminar antes de encerrar a missão.")
+            return
         if not self.mission:
             return
         if self.replay:
@@ -499,6 +505,7 @@ class MissionControls:
                 self.refresh_ports()
 
     def _reset_display(self):
+        self.reset_prediction()
         for history in (self.history_time, self.history_temp, self.history_alt, self.history_press, self.history_hum, self.path_coordinates):
             history.clear()
         self.sample_count = 0
@@ -543,6 +550,7 @@ class MissionControls:
         self.needs_gui_update = True
 
     def _record_history(self, record):
+        self.record_prediction_sample(record)
         fields = record["fields"]
         self.sample_count += 1
         self.history_time.append(fields.get("Time") or record["received_at"][11:19])
@@ -585,6 +593,9 @@ class MissionControls:
         return (self.replay.position if self.replay else time.monotonic()) - self.sonde_fix[1]
 
     def open_replay(self):
+        if self.prediction_busy:
+            messagebox.showinfo("Previsão em andamento", "Aguarde a previsão terminar antes de reproduzir.")
+            return
         if self.is_connected:
             messagebox.showinfo("Reprodução", "Desconecte o rádio antes de reproduzir uma missão.")
             return
@@ -743,6 +754,34 @@ class MissionControls:
     def save_raw(self):
         self._export("raw")
 
+    def compare_predictions(self):
+        path = self.replay.path if self.replay else (self.mission.path if self.mission else self._choose_mission("Escolher missão para comparar previsões"))
+        if not path:
+            return
+        if self.mission and self.mission.path == path and not self.mission.flush():
+            messagebox.showerror("Gravação pendente", "Aguarde o salvamento da missão antes de comparar.")
+            return
+        value = simpledialog.askstring("Pouso real", "Informe latitude e longitude reais, separadas por espaço (graus decimais).\nExemplo: -15.675056 -47.550183", parent=self.root)
+        if value is None:
+            return
+        try:
+            parts = value.split()
+            if len(parts) != 2:
+                raise ValueError("Informe exatamente latitude e longitude separadas por espaço.")
+            latitude, longitude = (float(v.replace(",", ".")) for v in parts)
+            Position(latitude, longitude, 0)
+        except ValueError as error:
+            messagebox.showerror("Coordenadas inválidas", str(error))
+            return
+        destination = filedialog.asksaveasfilename(parent=self.root, title="Salvar comparação", defaultextension=".csv", filetypes=[("CSV", "*.csv")])
+        if not destination:
+            return
+        try:
+            count = export_prediction_comparison(path, destination, latitude, longitude)
+            messagebox.showinfo("Comparação de previsões", f"{count} previsões comparadas.\n{destination}")
+        except (OSError, ValueError) as error:
+            messagebox.showerror("Não foi possível comparar", str(error))
+
     def gui_updater_loop(self):
         if self.closing:
             return
@@ -771,6 +810,9 @@ class MissionControls:
             self.root.after(500, self.gui_updater_loop)
 
     def close_application(self):
+        if self.prediction_busy:
+            messagebox.showinfo("Previsão em andamento", "Aguarde a previsão terminar antes de fechar.")
+            return
         if self.export_busy:
             messagebox.showinfo("Exportação em andamento", "Aguarde o término da exportação antes de fechar.")
             return

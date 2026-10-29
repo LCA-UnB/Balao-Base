@@ -519,3 +519,47 @@ def export_raw(path, destination):
             output.write(payload)
             count += len(payload)
     return count
+
+
+def export_prediction_comparison(path, destination, latitude, longitude):
+    """Compare previsões registradas com coordenadas reais fornecidas pelo operador."""
+    from antenna import Position, calculate_pointing
+    actual = Position(float(latitude), float(longitude), 0)
+    predictions = []
+    with read_database(path) as db:
+        for received_at, payload in db.execute("SELECT received_at, payload FROM records WHERE kind='event' ORDER BY id"):
+            event = json.loads(payload)
+            if event.get("event") != "prediction":
+                continue
+            stages = event.get("response", {}).get("prediction", [])
+            descent = next((stage.get("trajectory", []) for stage in stages if stage.get("stage") == "descent"), [])
+            if not descent:
+                continue
+            point = descent[-1]
+            predicted = Position(float(point["latitude"]), (float(point["longitude"]) + 180) % 360 - 180, 0)
+            source = event.get("input", {})
+            request = event.get("request", {})
+            result_request = event.get("response", {}).get("request", {})
+            predictions.append({
+                "calculada_utc": event.get("completed_at", received_at),
+                "posicao_utc": source.get("position_received_at", ""),
+                "fase": "descida" if source.get("descending") else "subida",
+                "latitude_sonda": source.get("position", {}).get("latitude", ""),
+                "longitude_sonda": source.get("position", {}).get("longitude", ""),
+                "altitude_sonda_m": source.get("position", {}).get("altitude", ""),
+                "subida_m_s": request.get("ascent_rate", ""),
+                "estouro_m": request.get("burst_altitude", ""),
+                "descida_nivel_mar_m_s": request.get("descent_rate", ""),
+                "dataset_utc": result_request.get("dataset", ""),
+                "pouso_previsto_utc": point.get("datetime", ""),
+                "latitude_prevista": predicted.latitude, "longitude_prevista": predicted.longitude,
+                "latitude_real": actual.latitude, "longitude_real": actual.longitude,
+                "erro_m": round(calculate_pointing(actual, predicted).surface_distance, 1),
+            })
+    if not predictions:
+        raise ValueError("Esta missão não possui previsões salvas para comparar.")
+    with open(destination, "w", newline="", encoding="utf-8-sig") as output:
+        writer = csv.DictWriter(output, fieldnames=list(predictions[0]))
+        writer.writeheader()
+        writer.writerows(predictions)
+    return len(predictions)

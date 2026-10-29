@@ -2,6 +2,7 @@ import math
 import tkinter as tk
 from tkinter import messagebox, ttk
 from mission_ui import MissionControls
+from prediction import PredictionControls
 from zoom import ZoomControls, scaled
 
 import matplotlib
@@ -56,7 +57,7 @@ HOME_POSITION = (-15.7641474, -47.8691109)  # posição inicial do mapa: Lago No
 def _thousands(number):
     return f"{number:,}".replace(",", ".")
 
-class SondeTrackerApp(MissionControls, ZoomControls):
+class SondeTrackerApp(PredictionControls, MissionControls, ZoomControls):
     def __init__(self, root):
         self.root = root
         self.root.title("LoRa Telemetry Ground Station — Monitor de Missão")
@@ -100,6 +101,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         }
 
         self.init_missions()
+        self.init_prediction()
         self._configure_styles()
         self.setup_ui()
         self.apply_zoom()
@@ -383,6 +385,7 @@ class SondeTrackerApp(MissionControls, ZoomControls):
         self.root.bind_all("<Button-5>", self._on_sidebar_mousewheel, add="+")
 
         self._build_flight_card()
+        self.build_prediction_card()
         self._build_link_card()
         self._build_environment_card()
         self._build_imu_card()
