@@ -75,6 +75,7 @@ Pacotes incompletos são registrados ao detectar o próximo quadro, desconectar 
 ## Exportação
 
 - **Exportar CSV:** um registro por pacote estruturado, incluindo os dois horários, sensores, flags, posição do tracker e distância/azimute/elevação. UTF-8 com BOM, separador vírgula, ponto decimal e valores ausentes em branco. Os nomes indicam unidades nos campos derivados; `Lat`/`Lon` são graus, `Alt`/`AltB` são metros MSL, `T` é °C, `P` é hPa, `U` é %, `Bat` é V, RSSI é dBm e SNR é dB. Na importação em planilhas, selecione esse separador e convenção decimal. Texto que poderia ser interpretado como fórmula é exportado como texto literal.
+- **Comparar previsões:** exporta CSV com a distância de cada previsão salva ao ponto real informado pelo operador. Para missões encerradas, selecione o banco; a comparação não o altera. As respostas completas, parâmetros, posição de origem e modelo meteorológico ficam nos eventos `prediction` da missão. Missões anteriores à funcionalidade não contêm essas previsões.
 - **Exportar bruto:** concatena os BLOBs seriais salvos, sem decodificar ou alterar bytes, em um arquivo `.bin`, com o mesmo conteúdo do `telemetria.txt` automático. É uma captura textual quando a serial contém apenas texto, mas preserva também os bytes corrompidos. Contadores de perda ficam nos eventos do banco, sem inserir conteúdo artificial nessa exportação.
 
 As janelas de exportação (CSV, KML e bruto) sugerem a mesma pasta `logs/` na raiz do projeto, com o nome da subpasta da missão como nome do arquivo.
